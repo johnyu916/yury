@@ -1,0 +1,110 @@
+{% extends "main.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/cpu.css">
+{% endblock %}
+{% block body %}
+<script src='/static/js/cpu.js'></script>
+
+{#Data for javascript #}
+<div>Debug: {{get_settings().DEBUG}} </div>
+<div id="cpu-info" data-cpu='{{context["CPU"]}}'>
+</div>
+
+{# Buttons #}
+<div>
+  <button id='run-cpu'>Run</button>
+  <button id='stop-cpu'>Stop</button>
+  CPU speed (instructions/second)
+  <select id='speed-cpu'>
+    <option>1</option>
+    <option>2</option>
+    <option>4</option>
+    <option>Max</option>
+  </select>
+</div>
+{# Storage Memory #}
+<div class="col-md-6">
+  {# first row has blank and addr #}
+  <div class='row'>
+    <div class='col-md-2'>
+    </div>
+    <div class='col-md-10'>
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='col-md-2'>
+      {# first column is addresses #}
+      <table>
+        {% for column in range(context['CPU']['STORAGE']['COLUMNS']) %}
+        <tr><td>{{column}}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+    <div class='col-md-10'>
+      <table>
+        <tr>
+        {% for row in range(context['CPU']['STORAGE']['ROWS']) %}
+          <td>{{row}}</td>
+        {% endfor %}
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+{# Instructions #}
+<div class="col-md-6" id="instruction-view">
+  <div id='instructions'>
+  </div>
+  <button id='new-instruction'>New Instruction</button>
+</div>
+
+<!-- Instruction -->
+<div class='instruction-template'>
+  {# Instruction type #}
+  <div class='instruction-part'>
+    <span class='title'>
+      Type
+    </span>
+    <select class='instruction-type two' size='2'>
+        <option>Store</option>
+        <option>Branch</option>
+    </select>
+  </div>
+  <div class='instruction-part'>
+    <span class='title'>
+      Location
+    </span>
+    {% for index in range(context['CPU']['STORAGE']['ROWS'] + context['CPU']['STORAGE']['COLUMNS'])%}
+    <select class='read-location two' size='2'>
+        <option>0</option>
+        <option>1</option>
+    </select>
+    {% endfor %}
+
+  </div>
+  {# Write #}
+  <div class='instruction-part write-div'>
+    <span class='title'>
+      Value
+    </span>
+    <select class='write-value two' size='2'>
+      <option>0</option>
+      <option>1</option>
+    </select>
+  </div>
+  {# Branch #}
+  <div class='instruction-part branch-div'>
+    <span class='title'>
+      Branch To
+    </span>
+    {% for index in range(context['CPU']['STORAGE']['ROWS'] + context['CPU']['STORAGE']['COLUMNS'])%}
+    <select class='branch-location two' size='2'>
+        <option>0</option>
+        <option>1</option>
+    </select>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

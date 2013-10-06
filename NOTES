@@ -1,0 +1,48 @@
+Software development education with video games. User must write code of the player in the game.
+A game is one or more stages (which can be one or more substages, etc). The game is "cleared"
+game can be enjoyed by player or program.
+virtual machine for the game.
+
+itself is a game.
+
+flow:
+
+1. enter website.
+2. game is chosen.
+3. show demo of complete game.
+4. write code.
+5. test.
+6. pass or fail.
+7. if passed, go to next level.
+8. if failed, try again.
+
+components:
+1. web client.
+    a. html5. use canvas to draw
+    c. code editor.
+        - standard code editors? must be saved.
+    c. external editor. it should be VERY easy to write code externally and test so people can use their own editors.
+    d. debugger. rather a memory map.
+
+2. web server.
+    a. users.
+        - MongoDB user/password.
+        - name, optional photo, basic information.
+    b. track user progress.
+        - Current level.
+        - bonus items completed in level.
+    c. save user code.
+    d. game simulator.
+        - pong.
+        - shooter.
+        - RTS
+    e. see other user progress.
+        - Allow cooperation? (future)
+
+what you are about to do is depedent on something u have built previously (can't build
+current thing before the previous thing).
+
+requirements:
+
+need switch. A switch takes inputs and produces output.
+need memory. Memory is readable, and you can store 0 or 1.

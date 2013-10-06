@@ -1,0 +1,11 @@
+python virtualenv
+python flask
+python path.py
+mongodb (2.4.6)
+node.js 0.10.17
+twitter recess 1.10
+
+
+=== Optional ===
+pyflakes
+

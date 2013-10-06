@@ -1,0 +1,19 @@
+Goal: transparency, simplicity
+
+The user should know exactly what is going on at all times.
+
+3 instructions:
+write value at some location.
+if something, go here, else go there.
+
+functions: labels for line numbers
+
+function is just namespace. variables are named with slashes
+like dictionaries.
+
+write 0 to 100000.
+if 100000 equals 1, go to 1000, else go to 500.
+
+write 0-128 to bob
+
+

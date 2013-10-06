@@ -1,0 +1,23 @@
+=== CPU ===
+- Enter and edit instructions
+- Run
+- Examine memory
+- Editable when finished running or stopped.
+
+===== Instructions =====
+
+type arguments
+
+write someplace something 
+
+0 8 1 # 10 bits
+
+if at someplace it equals 1, go to some insn. what if it is not? then just go on.
+
+1 8 8 # 17 bits
+
+===== Instruction UI =====
+top: run button, stop button. speed adjustment
+page is split in half. left half is storage memory.
+right half is instructions.
+

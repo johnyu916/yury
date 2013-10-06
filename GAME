@@ -1,0 +1,16 @@
+let's say there are 2 games, pong, galaga, cityville.
+they need to have some things in common.
+
+1. they have an interface for the user.
+every once in a while, the playerbot receives information
+from the game. the playerbot decides wha to do based on the info.
+the playerbot then sends information back to the game.
+such interaction should be as general as possible.
+2. people also need to see what's going on.
+3. before game starts, you load scripts for all the bots in the game.
+4. the game can be paused. people can inspect it.
+5. the game ends.
+6. the game starts.
+
+7. basically a whole bunch of machines running.
+8. machines maintain a connection with the "environment"
