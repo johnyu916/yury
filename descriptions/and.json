@@ -1,0 +1,44 @@
+{
+    'name': 'and0',
+    'type': 'and',
+    devices: [
+        {
+            'name': 'resistor0',
+            'type': 'resistor'
+        },
+        {
+            'name': 'source0',
+            'type': 'source',
+            'to': ' '
+        },
+        {
+            'name': 'ground0',
+            'type': 'ground',
+            'from': ' '
+        },
+        {
+            'name': 'switch0',
+            'type': 'switch',
+            'from': '',
+            'to': '',
+            'button': '',
+        },
+        {
+            'name': 'switch1',
+            'type': 'switch',
+            'from': '',
+            'to': '',
+            'button': '',
+        }
+    ],
+    wires: [
+        {
+            'from': ' ',
+            'to': ' '
+        },
+        {
+            'from': ' ',
+            'to': ' '
+        }
+    ]
+}

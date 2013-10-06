@@ -2,6 +2,22 @@
  * Classes for electornic circuit components.
  * Current flows in a direction from source to ground.
  * the wires "plug" into pins.
+ * everybody has a type and a name. devices and others
+ * JSON structure is:
+ {
+    name: 'and0',
+    type: 'and',
+    devices: [{
+        name: 'res0',
+        type: 'resistor',
+    },
+    {
+        name: 'wire0',
+        type: 'wire',
+        to: ' ',
+    ]
+
+ }
  */
 
 function Apple (type) {
@@ -25,6 +41,7 @@ function Wire(from, to, voltage){
     this.voltage = typeof voltage != 'undefined' ? voltage : false;
 }
 
+//do we need this?
 function Pin(element, name){
     this.element = element;
     this.name = name;
@@ -46,15 +63,19 @@ function Meter(name){
 
 function Source(name){
     this.name = name;
+    this.to = null;
 }
 
 function Ground(name){
     this.name = name;
-    this.pin = new Pin();
+    this.from = null;
 }
 
+//do we need bridges? let's try to do without
 function Bridge(name){
     this.name=name;
+    this.from = null;
+    this.to = null;
 }
 
 function Switch(name){
@@ -67,4 +88,9 @@ function Switch(name){
 function Device(name){
     this.name = name;
     this.devices = null;
+    this.sources = null;
+    this.grounds = null;
+    this.resistors = null;
+    this.switches = null;
+    this.wires = null;
 }

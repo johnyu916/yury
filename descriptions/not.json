@@ -1,0 +1,37 @@
+{
+    'name': 'not0',
+    'type': 'not',
+    devices: [
+        {
+            'name': 'resistor0',
+            'type': 'resistor'
+        },
+        {
+            'name': 'source0',
+            'type': 'source',
+            'to': ' '
+        },
+        {
+            'name': 'ground0',
+            'type': 'ground',
+            'from': ' '
+        },
+        {
+            'name': 'switch0',
+            'type': 'switch',
+            'from': '',
+            'to': '',
+            'button': '',
+        }
+    ],
+    wires: [
+        {
+            'from': ' ',
+            'to': ' '
+        },
+        {
+            'from': ' ',
+            'to': ' '
+        }
+    ]
+}
