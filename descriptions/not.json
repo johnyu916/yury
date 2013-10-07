@@ -1,7 +1,7 @@
 {
     'name': 'not0',
     'type': 'not',
-    devices: [
+    elements: [
         {
             'name': 'resistor0',
             'type': 'resistor'
@@ -9,29 +9,32 @@
         {
             'name': 'source0',
             'type': 'source',
-            'to': ' '
         },
         {
             'name': 'ground0',
             'type': 'ground',
-            'from': ' '
         },
         {
             'name': 'switch0',
             'type': 'switch',
-            'from': '',
-            'to': '',
-            'button': '',
+            'button': 'null',
         }
     ],
     wires: [
         {
-            'from': ' ',
-            'to': ' '
+            'name': 'wire0',
+            'from': 'source0',
+            'to': ' 'resistor0',
         },
         {
-            'from': ' ',
-            'to': ' '
+            'name': 'wire1',
+            'from': 'resistor0',
+            'to': ' 'switch0/from',
+        }
+        {
+            'name': 'wire2',
+            'from': 'switch0',
+            'to': 'ground0'
         }
     ]
 }

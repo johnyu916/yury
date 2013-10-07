@@ -9,36 +9,40 @@
         {
             'name': 'source0',
             'type': 'source',
-            'to': ' '
         },
         {
             'name': 'ground0',
             'type': 'ground',
-            'from': ' '
         },
         {
             'name': 'switch0',
             'type': 'switch',
-            'from': '',
-            'to': '',
-            'button': '',
         },
         {
             'name': 'switch1',
             'type': 'switch',
-            'from': '',
-            'to': '',
-            'button': '',
         }
     ],
     wires: [
         {
-            'from': ' ',
-            'to': ' '
+            'name': 'wire0',
+            'from': 'source0',
+            'to': ' 'switch0/from',
         },
         {
-            'from': ' ',
-            'to': ' '
+            'name': 'wire1',
+            'from': 'switch0',
+            'to': ' 'switch1/from',
+        }
+        {
+            'name': 'wire2',
+            'from': 'switch1',
+            'to': ' 'resistor0',
+        }
+        {
+            'name': 'wire3',
+            'from': 'resistor0',
+            'to': ' 'ground0',
         }
     ]
 }
