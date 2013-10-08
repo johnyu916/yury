@@ -2,11 +2,13 @@
 {% block head %}
 {% endblock %}
 {% block body %}
+<script src='/static/js/devices.js'></script>
 <select id='device-type'>
   {% for device in devices %}
-  <option>{% device['type']%}</option>
+  <option>{{ device['type'] }}</option>
   {% endfor %}
 </select>
+<button id='device-type-button'>select device</button>
 <button id='step'>step</button>
 
 <ul>

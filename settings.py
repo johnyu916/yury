@@ -25,3 +25,5 @@ ROOT = path.path(__file__).dirname()
 STATIC = ROOT / 'static'
 LESS_DIR = STATIC / 'less'
 CSS_DIR = STATIC / 'css'
+
+DEVICE_DIR = ROOT / 'descriptions'

@@ -1,48 +1,48 @@
 {
-    'name': 'and0',
-    'type': 'and',
-    devices: [
+    "name": "and0",
+    "type": "and",
+    "devices": [
         {
-            'name': 'resistor0',
-            'type': 'resistor'
+            "name": "resistor0",
+            "type": "resistor"
         },
         {
-            'name': 'source0',
-            'type': 'source',
+            "name": "source0",
+            "type": "source"
         },
         {
-            'name': 'ground0',
-            'type': 'ground',
+            "name": "ground0",
+            "type": "ground"
         },
         {
-            'name': 'switch0',
-            'type': 'switch',
+            "name": "switch0",
+            "type": "switch"
         },
         {
-            'name': 'switch1',
-            'type': 'switch',
+            "name": "switch1",
+            "type": "switch"
         }
     ],
-    wires: [
+    "wires": [
         {
-            'name': 'wire0',
-            'from': ['source0'],
-            'to': ' ['switch0/from'],
+            "name": "wire0",
+            "from": ["source0"],
+            "to": ["switch0/from"]
         },
         {
-            'name': 'wire1',
-            'from': ['switch0'],
-            'to': ' ['switch1/from'],
-        }
+            "name": "wire1",
+            "from": ["switch0"],
+            "to": ["switch1/from"]
+        },
         {
-            'name': 'wire2',
-            'from': ['switch1'],
-            'to': ' ['resistor0'],
-        }
+            "name": "wire2",
+            "from": ["switch1"],
+            "to": ["resistor0"]
+        },
         {
-            'name': 'wire3',
-            'from': ['resistor0'],
-            'to': ' ['ground0'],
+            "name": "wire3",
+            "from": ["resistor0"],
+            "to": ["ground0"]
         }
     ]
 }

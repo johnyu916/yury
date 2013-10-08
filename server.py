@@ -13,6 +13,7 @@ def cpu():
     return views.cpu()
 
 @app.route('/hardware')
+def hardware():
     return views.hardware()
 
 @app.route('/')
