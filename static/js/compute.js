@@ -5,27 +5,25 @@ function compute(device){
 }
 
 function getIsConnected(element){
-    var wires = element.to; //TODO: this is a list
+    var wires = element.to;
     for (var i = 0; i < element.to.length; i++){
-        
-    
-    var nextElement = wire.to.to;
-    var type = nextElement.type;
-    if (type == 'resistor'){
-        return isConnected(nextElement);
-    }
-    else if (type == 'switch'){
-        if (wire == element.button){
-            //this wire is linked to button
-            return false;
+        var nextElement = wire.to.to;
+        var type = nextElement.type;
+        if (type == 'resistor'){
+            return isConnected(nextElement);
         }
-        if (element.button.voltage == true){
-            return isConnected(element);
+        else if (type == 'switch'){
+            if (wire == element.button){
+                //this wire is linked to button
+                return false;
+            }
+            if (element.button.voltage == true){
+                return isConnected(element);
+            }
         }
-    }
-    else if (type == 'ground'){
-        return true;
-    }
+        else if (type == 'ground'){
+            return true;
+        }
     }
     return false;
 }

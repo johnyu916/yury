@@ -26,23 +26,23 @@
     wires: [
         {
             'name': 'wire0',
-            'from': 'source0',
-            'to': ' 'switch0/from',
+            'from': ['source0'],
+            'to': ' ['switch0/from'],
         },
         {
             'name': 'wire1',
-            'from': 'switch0',
-            'to': ' 'switch1/from',
+            'from': ['switch0'],
+            'to': ' ['switch1/from'],
         }
         {
             'name': 'wire2',
-            'from': 'switch1',
-            'to': ' 'resistor0',
+            'from': ['switch1'],
+            'to': ' ['resistor0'],
         }
         {
             'name': 'wire3',
-            'from': 'resistor0',
-            'to': ' 'ground0',
+            'from': ['resistor0'],
+            'to': ' ['ground0'],
         }
     ]
 }

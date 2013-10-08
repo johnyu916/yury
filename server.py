@@ -12,6 +12,9 @@ app = Flask(__name__)
 def cpu():
     return views.cpu()
 
+@app.route('/hardware')
+    return views.hardware()
+
 @app.route('/')
 def index():
     return views.index()

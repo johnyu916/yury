@@ -1,0 +1,20 @@
+{% extends "main.html" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+<select id='device-type'>
+  {% for device in devices %}
+  <option>{% device['type']%}</option>
+  {% endfor %}
+</select>
+<button id='step'>step</button>
+
+<ul>
+  <li>
+    <!-- wires-->
+    <span></span>
+    <span></span>
+  </li>
+</ul>
+
+{% endblock %}
