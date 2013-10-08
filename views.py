@@ -1,4 +1,3 @@
-from flask import render_template
 from settings import CPU
 from database import database
 
@@ -7,12 +6,16 @@ def cpu():
     context = {
         'CPU' : CPU
     }
-    return render_template('cpu.html', context=context)
+    return context
 
 def hardware():
     devices = database()['devices'].find({},{'type':1})
     context = {'devices': devices}
-    return render_template('hardware.html', context = context)
+    return context
 
-def index():
-    return render_template('index.html')
+def get_device(device_type):
+    document = database()['devices'].find_one({'type':device_type})
+    document['_id'] = str(document['_id'])
+    return document
+
+

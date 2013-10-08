@@ -2,21 +2,26 @@
 {% block head %}
 {% endblock %}
 {% block body %}
-<script src='/static/js/devices.js'></script>
-<select id='device-type'>
-  {% for device in devices %}
+<script src='/static/js/compute.js'></script>
+<script src='/static/js/hardware.js'></script>
+<select id='device-type-select'>
+  {% for device in context["devices"] %}
   <option>{{ device['type'] }}</option>
   {% endfor %}
 </select>
 <button id='device-type-button'>select device</button>
 <button id='step'>step</button>
 
-<ul>
+<ul id='wire-list'>
   <li>
     <!-- wires-->
-    <span></span>
-    <span></span>
+    <div class='wire'></div>
   </li>
 </ul>
+
+<!-- debug output -->
+<textarea id="debug-output">
+
+</textarea>
 
 {% endblock %}

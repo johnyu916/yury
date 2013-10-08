@@ -2,6 +2,12 @@ from settings import LESS_DIR, CSS_DIR
 import shlex
 import subprocess
 
+def get_primitive_dict():
+    '''
+    Convert MongoDB document into string
+    '''
+    pass
+
 def update_css():
     '''
     If any less files changed, recompile css.

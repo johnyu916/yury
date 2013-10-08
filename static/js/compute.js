@@ -10,7 +10,7 @@ function getIsConnected(element){
         var nextElement = wire.to.to;
         var type = nextElement.type;
         if (type == 'resistor'){
-            return isConnected(nextElement);
+            return getIsConnected(nextElement);
         }
         else if (type == 'switch'){
             if (wire == element.button){
@@ -18,7 +18,7 @@ function getIsConnected(element){
                 return false;
             }
             if (element.button.voltage == true){
-                return isConnected(element);
+                return getIsConnected(element);
             }
         }
         else if (type == 'ground'){
@@ -29,8 +29,7 @@ function getIsConnected(element){
 }
 
 function setVoltage(source){
-    var is_connected = getIsConnected(source)){
-    //is connected. set voltages.
+    var is_connected = getIsConnected(source);
     spreadVoltage(source.to, true, isConnected);
 }
 
@@ -54,7 +53,7 @@ function spreadVoltage(wire, voltage, isConnected){
 }
 
 
-function forEachElement(func, type){
+function forEachElement(device, type, func){
     // initially power on everything.
     for (var i = 0; i < device.devices.length; i++){
         var child = device.devices[i];

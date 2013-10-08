@@ -1,7 +1,7 @@
 import settings
 from settings import SERVER
 from utilities import update_css
-from flask import Flask
+from flask import Flask, jsonify, request, render_template
 
 import views
 
@@ -10,15 +10,29 @@ app = Flask(__name__)
 # URL routers
 @app.route('/cpu')
 def cpu():
-    return views.cpu()
+    context = views.cpu()
+    return render_template('cpu.html', context=context)
 
 @app.route('/hardware')
 def hardware():
-    return views.hardware()
+    context = views.hardware()
+    return render_template('hardware.html', context = context)
+
+@app.route('/device')
+def device():
+    device_type = request.args.get('type','')
+    document = views.get_device(device_type)
+    context = {
+        'status': 'success',
+        'device': document
+    }
+    return jsonify(**context)
+
+    # abort(500) and errorhandler if failed
 
 @app.route('/')
 def index():
-    return views.index()
+    return render_template('index.html')
 
 # Before request is sent
 @app.before_request
