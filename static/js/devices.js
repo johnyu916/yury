@@ -35,7 +35,8 @@ wire always has at least two devices connected to it. some conditions:
         //3. only one of the devices can be input.
         //4. only one of the devices can be output.
 */
-function Wire(from, to, voltage){
+function Wire(name, from, to, voltage){
+    this.name = name;
     this.from = from;
     this.to = to;
     this.voltage = typeof voltage != 'undefined' ? voltage : false;
@@ -71,10 +72,14 @@ function Switch(name){
     this.button = null;
 }
 
-function Device(name){
+function Device(name, type){
     this.name = name;
-    this.type = null;
+    this.type = type;
     this.devices = null;
+}
+
+function Bridge(name){
+    this.name = name;
 }
 
 function get_device(device_data){

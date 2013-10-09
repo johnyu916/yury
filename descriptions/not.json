@@ -17,7 +17,14 @@
         {
             "name": "switch0",
             "type": "switch",
-            "button": "null"
+        },
+        {
+            "name": "in",
+            "type": "bridge"
+        },
+        {
+            "name": "out",
+            "type": "bridge"
         }
     ],
     "wires": [
@@ -29,12 +36,17 @@
         {
             "name": "wire1",
             "from": ["resistor0"],
-            "to": ["switch0/from"]
+            "to": ["switch0/from", "out"]
         },
         {
             "name": "wire2",
             "from": ["switch0"],
             "to": ["ground0"]
+        },
+        {
+            "name": "wire3",
+            "from": ["in"],
+            "to": ["switch0/button"]
         }
     ]
 }
