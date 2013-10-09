@@ -41,13 +41,6 @@ function Wire(from, to, voltage){
     this.voltage = typeof voltage != 'undefined' ? voltage : false;
 }
 
-//do we need this?
-function Pin(element, name){
-    this.element = element;
-    this.name = name;
-    this.wire = null;
-}
-
 //pins are either in pins or out pins. curren only
 //flows in one direction.
 //similarly, wires have directionality.
@@ -71,13 +64,6 @@ function Ground(name){
     this.from = null;
 }
 
-//do we need bridges? let's try to do without
-function Bridge(name){
-    this.name=name;
-    this.from = null;
-    this.to = null;
-}
-
 function Switch(name){
     this.name=name;
     this.from = null;
@@ -87,10 +73,15 @@ function Switch(name){
 
 function Device(name){
     this.name = name;
+    this.type = null;
     this.devices = null;
-    this.sources = null;
-    this.grounds = null;
-    this.resistors = null;
-    this.switches = null;
-    this.wires = null;
+}
+
+function get_device(device_data){
+    if ('devices' in device_data){
+
+    }
+    else{
+
+    }
 }

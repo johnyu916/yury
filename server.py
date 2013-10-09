@@ -1,6 +1,6 @@
 import settings
 from settings import SERVER
-from utilities import update_css
+from shared.utilities import update_css
 from flask import Flask, jsonify, request, render_template
 
 import views
