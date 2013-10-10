@@ -2,6 +2,7 @@
  *
  */
 function compute(device){
+    
 }
 
 function getIsConnected(element){
