@@ -16,7 +16,7 @@
         },
         {
             "name": "switch0",
-            "type": "switch",
+            "type": "switch"
         },
         {
             "name": "in",

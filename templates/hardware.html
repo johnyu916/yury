@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="/static/css/hardware.css">
 {% endblock %}
 {% block body %}
+<script src='/static/js/shared.js'></script>
 <script src='/static/js/devices.js'></script>
 <script src='/static/js/compute.js'></script>
 <script src='/static/js/hardware.js'></script>
@@ -11,7 +12,13 @@
   <option>{{ device['type'] }}</option>
   {% endfor %}
 </select>
+<!-- test devices -->
 <button id='device-type-button'>select device</button>
+<select id='test-type-select'>
+  <option>andtest</option>
+  <option>ortest</option>
+  <option>nottest</option>
+</select>
 <button id='step'>step</button>
 
 <ul id='wire-list'>
