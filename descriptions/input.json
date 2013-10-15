@@ -1,0 +1,38 @@
+{
+    "name": "input0",
+    "type": "input",
+    "devices": [
+        {
+            "name": "resistor0",
+            "type": "resistor"
+        },
+        {
+            "name": "source0",
+            "type": "source"
+        },
+        {
+            "name": "ground0",
+            "type": "ground"
+        },
+        {
+            "name": "out0",
+            "type": "bridge"
+        },
+        {
+            "name": "out1",
+            "type": "bridge"
+        }
+    ],
+    "wires": [
+        {
+            "name": "wire0",
+            "from": ["source0"],
+            "to": ["resistor0", "out1"]
+        },
+        {
+            "name": "wire1",
+            "from": ["resistor0"],
+            "to": ["ground0", "out0"]
+        }
+    ]
+}

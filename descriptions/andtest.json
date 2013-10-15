@@ -1,0 +1,30 @@
+{
+    "name": "andtest0",
+    "type": "andtest",
+    "devices": [
+        {
+            "name": "and0",
+            "type": "and"
+        },
+        {
+            "name": "input0",
+            "type": "input"
+        },
+        {
+            "name": "input1",
+            "type": "input"
+        }
+    ],
+    "wires": [
+        {
+            "name": "wire0",
+            "from": ["input0/out0"],
+            "to": ["and0/in0"]
+        },
+        {
+            "name": "wire1",
+            "from": ["input1/out0"],
+            "to": ["and0/in1"]
+        }
+    ]
+}
