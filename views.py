@@ -1,4 +1,4 @@
-from settings import CPU
+from settings import CPU, DEVICE_PRIMITIVES
 from database import database
 
 def cpu():
@@ -13,9 +13,19 @@ def hardware():
     context = {'devices': devices}
     return context
 
-def get_device(device_type):
+# Actually returns list of devices. The device itself
+# and the dependent devices
+def get_device(device_type, prefix=''):
+    print "type: {0}".format(device_type)
     document = database()['devices'].find_one({'type':device_type})
+    print document
     document['_id'] = str(document['_id'])
-    return document
+    documents = [document]
+    for child_data in document['devices']:
+        if not child_data['type'] in DEVICE_PRIMITIVES:
+            #need to load recursively
+            documents.extend(get_device(child_data['type'], document['name']+'/'))
+
+    return documents
 
 

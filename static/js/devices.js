@@ -78,6 +78,7 @@ function Device(name, type){
     this.name = name;
     this.type = type;
     this.devices = [];
+    this.wires = [];
 }
 
 function Bridge(name){

@@ -2,8 +2,9 @@
 var device_map = {};
 var load_counter = 0;
 
-function run_step(device){
-    forEachElement(device, 'source', setVoltage);
+function run_step(devices){
+    //find root
+    forEachElement(devices, get_root(devices), 'source', setVoltage);
     var wires = device.wires;
     var wires = $(".wire-list");
     print_wire_values(wires);
@@ -51,7 +52,23 @@ function parse_wire_links(wire, data, device_map, device_pin){
     return device_list;
 }
 
-function load_device(device, device_type, callback){
+function load_device(device_type, callback){
+    $.ajax({
+        url: '/device?type='+device_type
+    }).done(function(server_data){
+        var devices_data = server_data['device'];
+        //also populate devices with wires.
+        for (var i = 0; i < devices_data.length; i++){
+            add_wire_data(devices_data[i]);
+        }
+        callback(devices_data);
+    }).error(function(){
+        console.log("load_device failed for " + device_type);
+    });
+}
+
+
+function load_device_old(device, device_type, callback){
     load_counter++;
     $.ajax({
         url: '/device?type='+device_type
@@ -112,11 +129,17 @@ function test_input(bridge_name, value){
     return new Device(bridge_name + type, type);
 }
 
+/*
 function test(device, input0, input1){
     var in0 = device_map['in0'];
     var in1 = device_map['in1'];
-    test0 = test_input(in0.name, input0);
-    test1 = test_input(in1.name, input1);
+    var test0 = test_input(in0.name, input0);
+    var wire0 = new Wire(in0.name+'wire',
+    var test1 = test_input(in1.name, input1);
+}
+*/
+function test(device){
+    run_step(device);
 }
 
 $(document).ready(function() {
@@ -124,7 +147,7 @@ $(document).ready(function() {
     $('#device-type-button').click(function(){
         /* load the device */
         var selected = $('#device-type-select').val();
-        load_device(device, selected, function(){
+        load_device(selected, function(){
             $("#debug-output").text(device_json(device));
             reset_wires(device.wires.length);
             print_wire_values(device.wires);
@@ -133,12 +156,14 @@ $(document).ready(function() {
     $('#test-type-select').on('change', function(){
         var selected = $('#test-type-select').val();
         if (selected == 'andtest'){
-            load_device(device, 'and', function(){
+            load_device('andtest', function(device_data){
+                test(device_data);
+                /*
                 inputs = get_inputs(2);
                 for (var i = 0; i < inputs.length; i++){
                     test(device, inputs[i][0], inputs[i][1]);              
                 }
-                
+                */
             });
         }
     });

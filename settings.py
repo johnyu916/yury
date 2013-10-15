@@ -21,6 +21,8 @@ CPU = {
     "INSTRUCTIONS": 4 # ditto.
 }
 
+DEVICE_PRIMITIVES = ['resistor', 'source', 'ground', 'switch', 'bridge'];
+
 ROOT = path.path(__file__).dirname()
 STATIC = ROOT / 'static'
 LESS_DIR = STATIC / 'less'
