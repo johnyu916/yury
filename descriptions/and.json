@@ -1,6 +1,12 @@
 {
     "name": "and0",
     "type": "and",
+    "inputs": [
+        "in0", "in1"
+    ],
+    "outputs":[
+        "out"
+    ],
     "devices": [
         {
             "name": "resistor0",
@@ -21,14 +27,6 @@
         {
             "name": "switch1",
             "type": "switch"
-        },
-        {
-            "name": "in0",
-            "type": "bridge"
-        },
-        {
-            "name": "in1",
-            "type": "bridge"
         },
         {
             "name": "out",

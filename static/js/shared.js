@@ -48,6 +48,7 @@ function parse_wire(device, wire, data, device_pin){
         var device_name = tokens[0];
         if (tokens.length == 2) device_pin = tokens[1];
         console.log('device_name ' + device_name + ' pin: ' + device_pin);
+
         device.devices[device_name][device_pin] = wire.name;
     }
 }

@@ -1,6 +1,9 @@
 {
     "name": "input0",
     "type": "input",
+    "outputs": [
+        "out0", "out1"
+    ],
     "devices": [
         {
             "name": "resistor0",
@@ -13,14 +16,6 @@
         {
             "name": "ground0",
             "type": "ground"
-        },
-        {
-            "name": "out0",
-            "type": "bridge"
-        },
-        {
-            "name": "out1",
-            "type": "bridge"
         }
     ],
     "wires": [
