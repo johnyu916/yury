@@ -34,11 +34,20 @@ function get_root(devices){
     return get_device(devices, name);
 }
 
+//from list of device dicts, get the dict of interest
 function get_device(devices, name){
     for (var i = 0; i < devices.length; i++){
         var device = devices[i];
         if (device.name == name) return device;
     }
+}
+
+//return index of child device inside a device dict
+function get_device_index(devices, name){
+    for (var i = 0; i < devices.length; i++){
+        if (devices[i].name == name) return i;
+    }
+    return -1;
 }
 
 function parse_wire(device, wire, data, device_pin){
@@ -48,8 +57,8 @@ function parse_wire(device, wire, data, device_pin){
         var device_name = tokens[0];
         if (tokens.length == 2) device_pin = tokens[1];
         console.log('device_name ' + device_name + ' pin: ' + device_pin);
-
-        device.devices[device_name][device_pin] = wire.name;
+        var index = get_device_index(device.devices, device_name);
+        device.devices[index][device_pin] = wire.name;
     }
 }
 
