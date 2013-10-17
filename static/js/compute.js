@@ -4,22 +4,24 @@
 function compute(device){
     
 }
-
-function getIsConnected(devices, device, element){
-    var wire = get_wire(device.wires, element.name, 'from');
+function get_is_connected(device){
+    console.log("getisconnec devicename: "+device.name);
+    var wire = device.to;
+    console.log("getisconnec wirename: "+wire.name);
     for (var i = 0; i < wire.to.length; i++){
-        var nextElement = wire.to[i];
-        var type = nextElement.type;
+        var next_device = wire.to[i];
+        console.log("getisconnec next devicename: "+next_device.name);
+        var type = next_device.type;
         if (type == 'resistor'){
-            return getIsConnected(devices, device, nextElement);
+            return get_is_connected(next_device);
         }
         else if (type == 'switch'){
-            if (wire == element.button){
+            if (wire == next_device.button){
                 //this wire is linked to button
                 return false;
             }
-            if (element.button.voltage == true){
-                return getIsConnected(devices, device, element);
+            if (next_device.button.voltage == true){
+                return get_is_connected(next_device);
             }
         }
         else if (type == 'ground'){
@@ -52,31 +54,41 @@ function getIsConnectedOld(devices, device, element){
     return false;
 }
 
-function setVoltage(devices, device, source){
+function set_voltage(source){
+    console.log("setVoltage source name: " + source.name);
+    var is_connected = get_is_connected(source);
+    console.log("setVoltage isConnected: " + is_connected);
+    spread_voltage(source.to, true, is_connected);
+}
+
+function setVoltageOld(devices, device, source){
     console.log("setVoltage source name: " + source.name);
     var is_connected = getIsConnected(devices, device, source);
     console.log("setVoltage isConnected: " + is_connected);
     spreadVoltage(source.to, true, is_connected);
 }
 
-function spreadVoltage(wire, voltage, isConnected){
+function spread_voltage(wire, voltage, isConnected){
 
     wire.voltage = voltage;
-    var element = wire.to;
-    //TODO: wire has multiple elements
-    var type = element.type;
-    if (type == 'resistor'){
-        if (isConnected) spreadVoltage(element.to, voltage, isConnected);
-        else spreadVoltage(element.to, false, isConnected);
-    }
-    if (type == 'switch'){
-        if (element.button.voltage == true){
-            spreadVoltage(element.to, voltage, isConnected);
+
+    for (var i = 0; i < wire.to.length; i++){
+        var element = wire.to[i];
+        //TODO: wire has multiple elements
+        var type = element.type;
+        if (type == 'resistor'){
+            if (isConnected) spread_voltage(element.to, voltage, isConnected);
+            else spread_voltage(element.to, false, isConnected);
         }
-        else spreadVoltage(element.to, false, isConnected);
-    }
-    if (type == 'ground'){
-        return;
+        if (type == 'switch'){
+            if (element.button.voltage == true){
+                spread_voltage(element.to, voltage, isConnected);
+            }
+            else spread_voltage(element.to, false, isConnected);
+        }
+        if (type == 'ground'){
+            return;
+        }
     }
 }
 

@@ -103,6 +103,54 @@ function device_names(devices){
     return names;
 }
 
+function get_element_dict(source){
+    var components = [];
+    var data = {
+        "name": source.name,
+        "type": source.type
+    };
+    console.log("device name: " + source.name);
+    components.push(data);
+    var wire = source.to;
+    if (wire == null) return components;
+    
+    var wire_data = {
+        "name": wire.name,
+        "value": wire.voltage
+    }
+
+    console.log("wire name: " + wire.name);
+    var froms = [];
+    for (var i = 0; i < wire.from.length; i++){
+        var next_element = wire.from[i];
+        froms.push(next_element.name);
+    }
+    var tos = [];
+    for (var i = 0; i < wire.to.length; i++){
+        var next_element = wire.to[i];
+        tos.push(next_element.name);
+    }
+    wire_data.from = froms;
+    wire_data.to = tos;
+    components.push(wire_data);
+
+
+    for (var j = 0; j < wire.to.length; j++){
+        var next_element = wire.to[j];
+        array_extend(components, get_element_dict(next_element));
+    }
+    return components;
+}
+
+function sources_json(sources){
+    var data = [];
+    for (var i = 0; i < sources.length; i++){
+        var element_dict = get_element_dict(sources[i]);
+        data.push(element_dict);
+    }
+    return JSON.stringify(data);
+}
+
 function device_json(device){
     //recursive print
     //first construct dictionary
@@ -115,6 +163,8 @@ function wire_dict(wire){
     var to_data = device_names(wire.to);
     return {'name':wire.name, 'from':from_data, 'to':to_data, 'voltage': wire.voltage};
 }
+
+
 function device_dict(device){
     var data = {
         'name': device.name,
@@ -138,4 +188,42 @@ function device_dict(device){
     }
     data['wires'] = wires_data;
     return data;
+}
+
+
+function construct_device(devices_data, device_data){
+    var name = device_data['name'];
+    var children_data = device_data['devices'];
+    var device_map = {};
+    var srouces = [];
+    for (var i = 0; i < children_data.length; i++){
+        var child_data = children_data[i];
+        var child = null;
+        if (array_index(device_primitives, child_data.type) >= 0){
+            child = new Device(child_data.name, child_data.type);
+            if (child_data.type == 'source'){
+                sources.push(child);
+            }
+        }
+        else{
+            //find child
+            var child_data = get_device_data(devices_data, child_data.name);
+            array_extend(sources, construct_device_inner(devices_data, child_data));
+        }
+        device_map[child.name] = child;
+    }
+
+
+    var wires_data = device_data.wires;
+    var wires = [];
+    for (var i = 0; i < wires_data.length; i++){
+        var wire_data = wires_data[i];
+        var wire = new Wire(wire_data.name);
+        var from = parse_wire_links(wire, wire_data.from, device_map, 'to');
+        var to = parse_wire_links(wire, wire_data.to, device_map, 'from');
+        wire.from = from;
+        wire.to = to;
+        wires.push(wire);
+    }
+    return sources;
 }

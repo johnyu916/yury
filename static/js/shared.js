@@ -1,8 +1,17 @@
-function in_array(token, array){
-    for (var i = 0; i < array.length; i++){
+function array_index(array, token){
+    var i = array.length;
+    while (i--){
         if (token == array[i]) return i;
     }
     return -1;
+}
+
+function array_extend(array, values){
+    console.log("array: " + array + " values: " + values);
+    for (var i = 0; i < values.length; i++){
+        console.log("value: " + values[i]);
+        array.push(values[i]);
+    }
 }
 
 /*binary inputs. return array of arrays.
@@ -29,13 +38,13 @@ function get_inputs(size){
     return arrays;
 }
 
-function get_root(devices){
+function get_device_data_root(devices){
     var name = devices[0].name.split('/')[0];
-    return get_device(devices, name);
+    return get_device_data(devices, name);
 }
 
 //from list of device dicts, get the dict of interest
-function get_device(devices, name){
+function get_device_data(devices, name){
     for (var i = 0; i < devices.length; i++){
         var device = devices[i];
         if (device.name == name) return device;
@@ -49,6 +58,8 @@ function get_device_index(devices, name){
     }
     return -1;
 }
+
+
 
 function parse_wire(device, wire, data, device_pin){
     for (var i = 0; i < data.length; i++){
@@ -80,5 +91,22 @@ function get_wire(wires, device_name, direction){
         for (var j = 0; j < elements.length; j++){
             
         }
+    }
+}
+
+function traverse_path(element, callback){
+    var wire = element.to;
+    if (wire == null) return;
+    callback(wire);
+    for (var i = 0; i < wire.to.length; i++){
+        var next_element = wire.to[i];
+        traverse_path(next_element, callback);
+    }
+
+}
+
+function for_each_wire(sources, callback){
+    for (var i = 0; i < sources.length; i++){
+        traverse_path(sources[i], callback);
     }
 }

@@ -1,8 +1,15 @@
 //fill wires
 var device_map = {};
 var load_counter = 0;
+var sources = [];
 
-function run_step(devices){
+function run_step(sources){
+    var i = sources.length;
+    while (i--){
+        set_voltage(sources[i])
+    }
+}
+function run_step_old(devices){
     //find root
     forEachElement(devices, get_root(devices), 'source', setVoltage);
     var wires = device.wires;
@@ -10,7 +17,10 @@ function run_step(devices){
     print_wire_values(wires);
 }
 
-function print_wire_values(wires){
+function print_wire_values(wire){
+    console.log('wire: ' + wire.name + ' voltage: ' + wire.voltage);
+}
+function print_wire_values_old(wires){
     for (var i = 0; i < wires.length; i++){
         var wire = wires[i];
         var wire_id = "#wire-" + i;
@@ -37,14 +47,15 @@ function get_wires(wires_data){
     return wires;
 }
 
-function parse_wire_links(wire, data, device_map, device_pin){
+function parse_wire_links(wire, path_list, device_map, device_pin){
     device_list = [];
-    for (var i = 0; i < data.length; i++){
-        var path = data[i];
+    for (var i = 0; i < path_list.length; i++){
+        var path = path_list[i];
         var tokens = path.split('/');
         var device_name = tokens[0];
         if (tokens.length == 2) device_pin = tokens[1];
 
+        //console.log("device name: " + device_name);
         var device = device_map[device_name];
         device[device_pin] = wire;
         device_list.push(device);
@@ -57,10 +68,9 @@ function load_device(device_type, callback){
         url: '/device?type='+device_type
     }).done(function(server_data){
         var devices_data = server_data['device'];
+        var root_data = get_device_data_root(devices_data)
+        sources = construct_device(devices_data, root_data);
         //also populate devices with wires.
-        for (var i = 0; i < devices_data.length; i++){
-            add_wire_data(devices_data[i]);
-        }
         callback(devices_data);
     }).error(function(){
         console.log("load_device failed for " + device_type);
@@ -105,7 +115,6 @@ function load_device_old(device, device_type, callback){
         for (var i = 0; i < wires_data.length; i++){
             var wire_data = wires_data[i];
             var wire = new Wire(wire_data.name);
-            //from devices
             var from = parse_wire_links(wire, wire_data.from, device_map, 'to');
             var to = parse_wire_links(wire, wire_data.to, device_map, 'from');
             wire.from = from;
@@ -148,8 +157,8 @@ $(document).ready(function() {
         /* load the device */
         var selected = $('#device-type-select').val();
         load_device(selected, function(){
-            $("#debug-output").text(device_json(device));
-            reset_wires(device.wires.length);
+            $("#debug-output").text(sources_json(sources));
+            //reset_wires(device.wires.length);
             print_wire_values(device.wires);
         });
     });
@@ -169,8 +178,8 @@ $(document).ready(function() {
     });
     $('#step').click(function(){
         //var display = "step: "+JSON.stringify(device.devices);
-        var display = device.devices.length;
         //$("#debug-output").text(display);
-        run_step(device);
+        run_step(sources);
+        for_each_wire(sources, print_wire_values);
     });
 });
