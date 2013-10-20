@@ -13,16 +13,24 @@ def hardware():
     context = {'devices': devices}
     return context
 
+
 # Actually returns list of devices. The device itself
 # and the dependent devices
 def get_device(device_type, prefix=''):
+    def type_in_documents(device_type, documents):
+        for document in documents:
+            if document['type'] == device_type:
+                return True
+        return False
+
     print "type: {0}".format(device_type)
     document = database()['devices'].find_one({'type':device_type})
     print document
     document['_id'] = str(document['_id'])
     documents = [document]
     for child_data in document['devices']:
-        if not child_data['type'] in DEVICE_PRIMITIVES:
+        device_type = child_data['type']
+        if not device_type in DEVICE_PRIMITIVES and not type_in_documents(device_type, documents):
             #need to load recursively
             documents.extend(get_device(child_data['type'], document['name']+'/'))
 

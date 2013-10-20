@@ -7,9 +7,9 @@ function array_index(array, token){
 }
 
 function array_extend(array, values){
-    console.log("array: " + array + " values: " + values);
+    //console.log("array: " + array + " values: " + values);
     for (var i = 0; i < values.length; i++){
-        console.log("value: " + values[i]);
+        //console.log("value: " + values[i]);
         array.push(values[i]);
     }
 }
@@ -39,15 +39,16 @@ function get_inputs(size){
 }
 
 function get_device_data_root(devices){
-    var name = devices[0].name.split('/')[0];
-    return get_device_data(devices, name);
+    //var type = devices[0].name.split('/')[0];
+    //return get_device_data(devices, name);
+    return devices[0];
 }
 
 //from list of device dicts, get the dict of interest
-function get_device_data(devices, name){
+function get_device_data(devices, type){
     for (var i = 0; i < devices.length; i++){
         var device = devices[i];
-        if (device.name == name) return device;
+        if (device.type == type) return device;
     }
 }
 

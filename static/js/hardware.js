@@ -1,6 +1,4 @@
 //fill wires
-var device_map = {};
-var load_counter = 0;
 var sources = [];
 
 function run_step(sources){
@@ -47,13 +45,23 @@ function get_wires(wires_data){
     return wires;
 }
 
-function parse_wire_links(wire, path_list, device_map, device_pin){
+// get the list of devices that wire points to.
+// also update device's wires.
+function parse_wire_links(wire, path_list, device_map, device_pin, prefix){
     device_list = [];
     for (var i = 0; i < path_list.length; i++){
         var path = path_list[i];
         var tokens = path.split('/');
-        var device_name = tokens[0];
-        if (tokens.length == 2) device_pin = tokens[1];
+        var device_name = prefix + tokens[0];
+        if (tokens.length == 2) {
+            if (array_index(device_primitives, tokens[0]) >=0){
+                //compound element inside.
+                device_name += tokens[1];
+            }
+            else{
+                device_pin = tokens[1];
+            }
+        }
 
         //console.log("device name: " + device_name);
         var device = device_map[device_name];
@@ -68,69 +76,14 @@ function load_device(device_type, callback){
         url: '/device?type='+device_type
     }).done(function(server_data){
         var devices_data = server_data['device'];
-        var root_data = get_device_data_root(devices_data)
-        sources = construct_device(devices_data, root_data);
+        sources = construct_device(devices_data);
         //also populate devices with wires.
-        callback(devices_data);
+        callback(sources);
     }).error(function(){
         console.log("load_device failed for " + device_type);
     });
 }
 
-
-function load_device_old(device, device_type, callback){
-    load_counter++;
-    $.ajax({
-        url: '/device?type='+device_type
-    }).done(function(server_data){
-        var device_data = server_data['device'];
-        var wires_data = device_data['wires'];
-        device.name = device_data['name'];
-        device.type = device_data['type'];
-        device_map[device.name] = device;
-        var type = device_data['type'];
-        children_data = device_data.devices;
-
-        //sub-devices.
-        var children = []
-        for (var i = 0; i < children_data.length; i++){
-            child_data = children_data[i];
-            child_type = child_data['type'];
-            var child = null;
-            if (in_array(child_type, device_primitives) < 0){
-                child = new Device();
-                load_device(child, child_type, callback);
-            }
-            else{
-                child = new Device(child_data['name'], child_type);
-            }
-            device_map[child.name] = child;
-            children.push(child);
-        }
-        device.devices = children;
-
-        //wires.
-        var wires_data = device_data.wires;
-        var wires = [];
-        for (var i = 0; i < wires_data.length; i++){
-            var wire_data = wires_data[i];
-            var wire = new Wire(wire_data.name);
-            var from = parse_wire_links(wire, wire_data.from, device_map, 'to');
-            var to = parse_wire_links(wire, wire_data.to, device_map, 'from');
-            wire.from = from;
-            wire.to = to;
-            wires.push(wire);
-        }
-        device.wires = wires;
-
-        load_counter--;
-        if (load_counter == 0){
-            callback();
-        }
-    }).error(function(){
-        console.log("load_device failed for " + device_type);
-    });
-}
 
 function test_input(bridge_name, value){
     var type = 'ground';
@@ -152,14 +105,13 @@ function test(device){
 }
 
 $(document).ready(function() {
-    var device = new Device();
     $('#device-type-button').click(function(){
         /* load the device */
         var selected = $('#device-type-select').val();
-        load_device(selected, function(){
+        load_device(selected, function(sources){
             $("#debug-output").text(sources_json(sources));
             //reset_wires(device.wires.length);
-            print_wire_values(device.wires);
+            for_each_wire(sources, print_wire_values);
         });
     });
     $('#test-type-select').on('change', function(){

@@ -190,40 +190,53 @@ function device_dict(device){
     return data;
 }
 
+/* Make devices and wires from dict data.
+ *
+ */
+function construct_device(devices_data){
+    var root_data = get_device_data_root(devices_data)
+    return construct_device_inner(devices_data, root_data, '/');
+}
 
-function construct_device(devices_data, device_data){
+function construct_device_inner(devices_data, device_data, prefix){
     var name = device_data['name'];
+    var new_prefix = prefix + name + '/';
+    console.log("construct_device name: " + name);
     var children_data = device_data['devices'];
     var device_map = {};
-    var srouces = [];
+    var sources = [];
     for (var i = 0; i < children_data.length; i++){
         var child_data = children_data[i];
+        console.log("construct_device child name: " + child_data['name']);
         var child = null;
         if (array_index(device_primitives, child_data.type) >= 0){
-            child = new Device(child_data.name, child_data.type);
+            child = new Device(new_prefix + child_data.name, child_data.type);
+            device_map[child.name] = child;
+            console.log("construct_device add primitive : " + child_data.name);
             if (child_data.type == 'source'){
                 sources.push(child);
             }
         }
         else{
             //find child
-            var child_data = get_device_data(devices_data, child_data.name);
-            array_extend(sources, construct_device_inner(devices_data, child_data));
+            console.log("construct_device add high : " + child_data.name + child_data.type);
+            //TODO: child data update
+            var child_data = get_device_data(devices_data, child_data.type);
+            child_data['name'] = 
+            array_extend(sources, construct_device_inner(devices_data, child_data, new_prefix));
         }
-        device_map[child.name] = child;
     }
 
-
+    //construct wires.
     var wires_data = device_data.wires;
-    var wires = [];
     for (var i = 0; i < wires_data.length; i++){
         var wire_data = wires_data[i];
-        var wire = new Wire(wire_data.name);
-        var from = parse_wire_links(wire, wire_data.from, device_map, 'to');
-        var to = parse_wire_links(wire, wire_data.to, device_map, 'from');
+        var wire = new Wire(new_prefix + wire_data.name);
+        var from = parse_wire_links(wire, wire_data.from, device_map, 'to', new_prefix);
+        var to = parse_wire_links(wire, wire_data.to, device_map, 'from', new_prefix);
         wire.from = from;
         wire.to = to;
-        wires.push(wire);
+        wire.voltage = false;
     }
     return sources;
 }

@@ -17,6 +17,10 @@
         {
             "name": "out0",
             "type": "bridge"
+        },
+        {
+            "name": "out1",
+            "type": "bridge"
         }
     ],
     "wires": [

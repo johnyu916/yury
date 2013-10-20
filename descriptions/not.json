@@ -1,7 +1,7 @@
 {
     "name": "not0",
     "type": "not",
-    "elements": [
+    "devices": [
         {
             "name": "resistor0",
             "type": "resistor"
