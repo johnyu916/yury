@@ -52,19 +52,16 @@ function parse_wire_links(wire, path_list, device_map, device_pin, prefix){
     for (var i = 0; i < path_list.length; i++){
         var path = path_list[i];
         var tokens = path.split('/');
-        var device_name = prefix + tokens[0];
-        if (tokens.length == 2) {
-            if (array_index(device_primitives, tokens[0]) >=0){
-                //compound element inside.
-                device_name += tokens[1];
-            }
-            else{
-                device_pin = tokens[1];
-            }
+        var device_name = prefix + path;
+        if (!(device_name in device_map)){
+            //console.log("parse_wire not in device map: " + device_name);
+            var length = tokens.length;
+            device_name = prefix + tokens[length-2];
+            device_pin = tokens[length-1];
         }
-
-        //console.log("device name: " + device_name);
         var device = device_map[device_name];
+
+        //console.log("parse_wire device name: " + device_name);
         device[device_pin] = wire;
         device_list.push(device);
     }

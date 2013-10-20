@@ -39,32 +39,32 @@
     "wires": [
         {
             "name": "wire0",
-            "from": ["source0"],
+            "from": "source0",
             "to": ["switch0/from"]
         },
         {
             "name": "wire1",
-            "from": ["switch0"],
+            "from": "switch0",
             "to": ["switch1/from"]
         },
         {
             "name": "wire2",
-            "from": ["switch1"],
+            "from": "switch1",
             "to": ["resistor0"]
         },
         {
             "name": "wire3",
-            "from": ["resistor0"],
+            "from": "resistor0",
             "to": ["ground0", "out"]
         },
         {
             "name": "wire4",
-            "from": ["in0"],
+            "from": "in0",
             "to": ["switch0/button"]
         },
         {
             "name": "wire5",
-            "from": ["in1"],
+            "from": "in1",
             "to": ["switch1/button"]
         }
     ]

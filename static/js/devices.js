@@ -194,36 +194,35 @@ function device_dict(device){
  *
  */
 function construct_device(devices_data){
-    var root_data = get_device_data_root(devices_data)
-    return construct_device_inner(devices_data, root_data, '/');
+    var root_data = get_device_data_root(devices_data);
+    var device_map = {};
+    return construct_device_inner(devices_data, root_data, device_map, '/');
 }
 
-function construct_device_inner(devices_data, device_data, prefix){
+function construct_device_inner(devices_data, device_data, device_map, prefix){
     var name = device_data['name'];
     var new_prefix = prefix + name + '/';
-    console.log("construct_device name: " + name);
+    //console.log("construct_device name: " + name);
     var children_data = device_data['devices'];
-    var device_map = {};
     var sources = [];
     for (var i = 0; i < children_data.length; i++){
         var child_data = children_data[i];
-        console.log("construct_device child name: " + child_data['name']);
+        //console.log("construct_device child name: " + child_data['name']);
         var child = null;
         if (array_index(device_primitives, child_data.type) >= 0){
             child = new Device(new_prefix + child_data.name, child_data.type);
             device_map[child.name] = child;
-            console.log("construct_device add primitive : " + child_data.name);
+            //console.log("construct_device add primitive : " + child_data.name);
             if (child_data.type == 'source'){
                 sources.push(child);
             }
         }
         else{
             //find child
-            console.log("construct_device add high : " + child_data.name + child_data.type);
-            //TODO: child data update
-            var child_data = get_device_data(devices_data, child_data.type);
-            child_data['name'] = 
-            array_extend(sources, construct_device_inner(devices_data, child_data, new_prefix));
+            //console.log("construct_device add high : " + child_data.name + child_data.type);
+            var child_compound_data = get_device_data(devices_data, child_data.type);
+            child_compound_data['name'] = child_data['name']
+            array_extend(sources, construct_device_inner(devices_data, child_compound_data, device_map, new_prefix));
         }
     }
 
