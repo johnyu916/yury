@@ -38,6 +38,10 @@ function get_inputs(size){
     return arrays;
 }
 
+function get_device(devices){
+
+}
+
 function get_device_data_root(devices){
     //var type = devices[0].name.split('/')[0];
     //return get_device_data(devices, name);
@@ -59,7 +63,6 @@ function get_device_index(devices, name){
     }
     return -1;
 }
-
 
 
 function parse_wire(device, wire, data, device_pin){
@@ -84,6 +87,14 @@ function add_wire_data(device){
     }
 }
 
+function get_wire(wires, wire_name){
+    for (var i = 0; i < wires.length; i++){
+        if (wires[i].name == wire_name) return wires[i];
+    }
+    return null;
+}
+
+/*
 function get_wire(wires, device_name, direction){
     var wires = device.wires;
     for (var i = 0; i < wires.length; i++){
@@ -93,21 +104,38 @@ function get_wire(wires, device_name, direction){
             
         }
     }
-}
+}*/
 
-function traverse_path(element, callback){
+
+function traverse_wire(element, callback, object){
     var wire = element.to;
     if (wire == null) return;
-    callback(wire);
+    callback(wire, object);
     for (var i = 0; i < wire.to.length; i++){
         var next_element = wire.to[i];
-        traverse_path(next_element, callback);
+        traverse_wire(next_element, callback, object);
+    }
+}
+
+function for_each_wire(sources, callback, object){
+    for (var i = 0; i < sources.length; i++){
+        traverse_wire(sources[i], callback, object);
+    }
+}
+
+function traverse_element(element, callback, object){
+    callback(element, object);
+    var wire = element.to;
+    if (wire == null) return;
+    for (var i = 0; i < wire.to.length; i++){
+        var next_element = wire.to[i];
+        traverse_element(next_element, callback, object);
     }
 
 }
 
-function for_each_wire(sources, callback){
+function for_each_device(sources, callback, object){
     for (var i = 0; i < sources.length; i++){
-        traverse_path(sources[i], callback);
+        traverse_element(sources[i], callback, object);
     }
 }

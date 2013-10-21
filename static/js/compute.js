@@ -7,7 +7,7 @@ function compute(device){
 function get_is_connected(device){
     console.log("getisconnec devicename: "+device.name);
     var wire = device.to;
-    console.log("getisconnec wirename: "+wire.name);
+    //console.log("getisconnec wirename: "+wire.name);
     for (var i = 0; i < wire.to.length; i++){
         var next_device = wire.to[i];
         console.log("getisconnec next devicename: "+next_device.name);
@@ -61,15 +61,11 @@ function set_voltage(source){
     spread_voltage(source.to, true, is_connected);
 }
 
-function setVoltageOld(devices, device, source){
-    console.log("setVoltage source name: " + source.name);
-    var is_connected = getIsConnected(devices, device, source);
-    console.log("setVoltage isConnected: " + is_connected);
-    spreadVoltage(source.to, true, is_connected);
-}
 
 function spread_voltage(wire, voltage, isConnected){
+    if (wire == null) return;
 
+    console.log('spread_voltage set wire ' + wire.name + ' voltage: ' + voltage);
     wire.voltage = voltage;
 
     for (var i = 0; i < wire.to.length; i++){
@@ -77,16 +73,28 @@ function spread_voltage(wire, voltage, isConnected){
         //TODO: wire has multiple elements
         var type = element.type;
         if (type == 'resistor'){
-            if (isConnected) spread_voltage(element.to, voltage, isConnected);
-            else spread_voltage(element.to, false, isConnected);
+            spread_voltage(element.to, false, isConnected);
         }
-        if (type == 'switch'){
-            if (element.button.voltage == true){
-                spread_voltage(element.to, voltage, isConnected);
+        else if (type == 'switch'){
+            if (element.from.name == wire.name){
+                if (element.button.voltage == true){
+                    spread_voltage(element.to, voltage, isConnected);
+                }
+                else spread_voltage(element.to, false, isConnected);
             }
-            else spread_voltage(element.to, false, isConnected);
+            else{
+                //from button.
+                return;
+            }
         }
-        if (type == 'ground'){
+        else if (type == 'bridge'){
+            spread_voltage(element.to, voltage, isConnected);
+        }
+        else if (type == 'ground'){
+            return;
+        }
+        else{
+            console.log("Unknown type: " + type + " returning");
             return;
         }
     }

@@ -49,12 +49,12 @@
         {
             "name": "wire2",
             "from": ["switch0", "switch1"],
-            "to": ["resistor0"]
+            "to": ["resistor0", "out"]
         },
         {
             "name": "wire3",
             "from": ["resistor0"],
-            "to": ["ground0", "out"]
+            "to": ["ground0"] 
         },
         {
             "name": "wire4",

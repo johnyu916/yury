@@ -2,7 +2,7 @@
 # try to load devices from the descriptions directory.
 # if device already exists, don't load again.
 # 'type' is a unique index.
-from settings import DEVICE_DIR, DEVICE_TESTS_DIR
+from settings import DEVICE_DIR, DEVICE_TESTS_DIR, TESTS_DIR
 
 from database import database
 import json
@@ -18,6 +18,16 @@ def update_db():
             json_dict = json.loads(data)
             db['devices'].update({'type': json_dict['type']},json_dict,upsert=True)
 
+def update_tests():
+    db = database()
+    for filepath in TESTS_DIR.walkfiles('*.json'):
+        with open(filepath) as f:
+            print "Reading {0}".format(filepath)
+            data = f.read()
+            json_dict = json.loads(data)
+            db['tests'].update({'device': json_dict['name']}, json_dict, upsert=True)
+
+
 def get_bridge_type(bridge_name, wires):
     for wire in wires:
         wire_from = wire['from']
@@ -26,7 +36,8 @@ def get_bridge_type(bridge_name, wires):
                 return 'input'
     return 'output'
 
-def make_tests():
+
+def make_test_devices():
     for filepath in DEVICE_DIR.files('*.json'):
         with open(filepath) as f:
             print "Reading {0}".format(filepath)
@@ -79,13 +90,17 @@ def make_tests():
                 with open(str(DEVICE_TESTS_DIR) + '/' + test_type + '.json', 'w') as t:
                     t.write(json_str)
 
+
+
 def main():
     print sys.argv
     option = sys.argv[1]
     if option == 'update_db':
         update_db()
-    elif option == 'make_tests':
-        make_tests()
+    elif option == 'make_test_devices':
+        make_test_devices()
+    elif option == 'update_tests':
+        update_tests()
 
 if __name__ == '__main__':
     main()

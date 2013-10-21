@@ -2,6 +2,7 @@
 var sources = [];
 
 function run_step(sources){
+    console.log("Running step");
     var i = sources.length;
     while (i--){
         set_voltage(sources[i])
@@ -13,6 +14,13 @@ function run_step_old(devices){
     var wires = device.wires;
     var wires = $(".wire-list");
     print_wire_values(wires);
+}
+
+function fill_wires(wire, wires){
+    wires.push({
+        'name': wire.name,
+        'voltage': wire.voltage
+    });
 }
 
 function print_wire_values(wire){
@@ -73,7 +81,7 @@ function load_device(device_type, callback){
         url: '/device?type='+device_type
     }).done(function(server_data){
         var devices_data = server_data['device'];
-        sources = construct_device(devices_data);
+        var sources = construct_device(devices_data, device_type);
         //also populate devices with wires.
         callback(sources);
     }).error(function(){
@@ -81,6 +89,61 @@ function load_device(device_type, callback){
     });
 }
 
+function find_element(element, args){
+    var search_name = args['name'];
+    //console.log('looking into element: '+element.name);
+    if (element.name == search_name) {
+        //console.log('search name found: ' + search_name);
+        args.element = element;
+    }
+}
+
+function run_test(test_package){
+    var config = test_package['config'];
+    var devices_data = test_package['devices'];
+    var tests = config['tests'];
+    var steps = config.steps;
+    var passed = 0;
+    for (var i = 0; i < tests.length; i++){
+        var test = tests[i];
+        var sources = construct_device(devices_data, test.device);
+        //now run steps
+        var counter = steps;
+        while (counter--){
+            run_step(sources);
+        }
+        var device_data = get_device_data(devices_data, test.device);
+        var output_name = '/' + device_data.name + '/' + config.output;
+        console.log("output name " + output_name);
+        args = {
+            'name': output_name,
+            'element': null
+        };
+        for_each_device(sources, find_element, args);
+        console.log('expected_value: ' + test.expected_value + ' actual: ' + args.element.from.voltage);
+        if (test.expected_value == args.element.from.voltage){
+            console.log("test passed");
+            passed += 1;
+        }
+        else{
+            console.log("test failed");
+        }
+    }
+    console.log("passed " + passed + " of " + tests.length);
+}
+
+function run_tests(){
+    $.ajax({
+        url: '/tests'
+    }).done(function(server_data){
+        test_packages = server_data['test_packages']
+        for (var i = 0; i < test_packages.length; i++){
+            run_test(test_packages[i]);
+        }
+    }).error(function(){
+        console.log("run_tests failed");
+    });
+}
 
 function test_input(bridge_name, value){
     var type = 'ground';
@@ -124,6 +187,9 @@ $(document).ready(function() {
                 */
             });
         }
+    });
+    $('#run-tests').on('click', function(){
+        run_tests();
     });
     $('#step').click(function(){
         //var display = "step: "+JSON.stringify(device.devices);

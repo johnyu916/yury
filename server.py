@@ -21,10 +21,10 @@ def hardware():
 @app.route('/device')
 def device():
     device_type = request.args.get('type','')
-    document = views.get_device(device_type)
+    documents = views.get_device_documents(device_type)
     context = {
         'status': 'success',
-        'device': document
+        'device': documents
     }
     return jsonify(**context)
 
@@ -33,6 +33,15 @@ def device():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/tests')
+def tests():
+    tests = views.get_tests()
+    context = {
+        'status': 'success',
+        'test_packages': tests
+    }
+    return jsonify(**context)
 
 # Before request is sent
 @app.before_request

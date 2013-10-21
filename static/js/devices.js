@@ -178,7 +178,7 @@ function device_dict(device){
         devices_data.push(device_data);
     }
     data['devices'] = devices_data;
-    
+
     var wires = device.wires;
     var wires_data = [];
     for (var i = 0; i < wires.length; i++){
@@ -193,16 +193,16 @@ function device_dict(device){
 /* Make devices and wires from dict data.
  *
  */
-function construct_device(devices_data){
-    var root_data = get_device_data_root(devices_data);
+function construct_device(devices_data, device_type){
+    var device_data = get_device_data(devices_data, device_type);
     var device_map = {};
-    return construct_device_inner(devices_data, root_data, device_map, '/');
+    return construct_device_inner(devices_data, device_data, device_map, '/');
 }
 
 function construct_device_inner(devices_data, device_data, device_map, prefix){
     var name = device_data['name'];
     var new_prefix = prefix + name + '/';
-    //console.log("construct_device name: " + name);
+    console.log("construct_device name: " + name);
     var children_data = device_data['devices'];
     var sources = [];
     for (var i = 0; i < children_data.length; i++){
