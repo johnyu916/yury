@@ -1,0 +1,1 @@
+{"wires": [{"to": ["not0/in"], "from": ["input0/out1"], "name": "wire0"}], "type": "nottest1", "name": "nottest10", "devices": [{"type": "not", "name": "not0"}, {"type": "input", "name": "input0"}]}

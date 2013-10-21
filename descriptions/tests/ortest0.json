@@ -1,0 +1,1 @@
+{"wires": [{"to": ["or0/in0"], "from": ["input0/out0"], "name": "wire0"}, {"to": ["or0/in1"], "from": ["input1/out0"], "name": "wire1"}], "type": "ortest0", "name": "ortest00", "devices": [{"type": "or", "name": "or0"}, {"type": "input", "name": "input0"}, {"type": "input", "name": "input1"}]}

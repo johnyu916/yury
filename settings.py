@@ -29,3 +29,4 @@ LESS_DIR = STATIC / 'less'
 CSS_DIR = STATIC / 'css'
 
 DEVICE_DIR = ROOT / 'descriptions'
+DEVICE_TESTS_DIR = DEVICE_DIR / 'tests'
