@@ -39,12 +39,7 @@
         {
             "name": "wire0",
             "from": ["source0"],
-            "to": ["switch0"]
-        },
-        {
-            "name": "wire1",
-            "from": ["source0"],
-            "to": ["switch1"]
+            "to": ["switch0", "switch1"]
         },
         {
             "name": "wire2",

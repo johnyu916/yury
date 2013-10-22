@@ -106,8 +106,17 @@ function get_wire(wires, device_name, direction){
     }
 }*/
 
+function traverse_wire(wire, callback, object){
+    if (wire == null) return;
+    callback(wire, object);
+    for (var i = 0; i < wire.to.length; i++){
+        var next_element = wire.to[i];
+        if (next_element.type =='switch' && wire.name == next_element.button.name) continue;
+        else traverse_wire(next_element.to, callback, object);
+    }
+}
 
-function traverse_wire(element, callback, object){
+function traverse_wire_old(element, callback, object){
     var wire = element.to;
     if (wire == null) return;
     callback(wire, object);
@@ -117,21 +126,23 @@ function traverse_wire(element, callback, object){
     }
 }
 
+//for each wire that is potentially reachable
 function for_each_wire(sources, callback, object){
     for (var i = 0; i < sources.length; i++){
-        traverse_wire(sources[i], callback, object);
+        traverse_wire(sources[i].to, callback, object);
     }
 }
 
+//for each element that is potentially reachable
 function traverse_element(element, callback, object){
     callback(element, object);
     var wire = element.to;
     if (wire == null) return;
     for (var i = 0; i < wire.to.length; i++){
         var next_element = wire.to[i];
-        traverse_element(next_element, callback, object);
+        if (next_element.type =='switch' && wire.name == next_element.button.name) continue;
+        else traverse_element(next_element, callback, object);
     }
-
 }
 
 function for_each_device(sources, callback, object){

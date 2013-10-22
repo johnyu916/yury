@@ -4,7 +4,50 @@
 function compute(device){
     
 }
-function get_is_connected(device){
+
+// Mark resistors as active if there is current flowing through it.
+function activate_resistors(device){
+    console.log("getisconnec devicename: "+device.name);
+    var wire = device.to;
+    //console.log("getisconnec wirename: "+wire.name);
+    var is_connected = false;
+    for (var i = 0; i < wire.to.length; i++){
+        var next_device = wire.to[i];
+        console.log("getisconnec next devicename: "+next_device.name);
+        var type = next_device.type;
+        if (type == 'resistor'){
+            if (activate_resistors(next_device)) {
+                next_device.active = true;
+                is_connected = true;
+            }
+        }
+        else if (type == 'switch'){
+            if (wire.name == next_device.button.name){
+                //this wire is linked to button
+            }
+            if (next_device.button.voltage == true){
+                if (activate_resistors(next_device)) is_connected = true;
+            }
+        }
+        else if (type == 'ground'){
+            is_connected = true;
+        }
+    }
+    return is_connected;
+}
+
+
+function lower_voltage(wire){
+    wire.voltage = false;
+}
+
+function inactivate_resistor(element){
+    if (element.type == 'resistor'){
+        element.active = false;
+    }
+}
+
+function get_is_connected_old(device){
     console.log("getisconnec devicename: "+device.name);
     var wire = device.to;
     //console.log("getisconnec wirename: "+wire.name);
@@ -30,39 +73,72 @@ function get_is_connected(device){
     }
     return false;
 }
-function getIsConnectedOld(devices, device, element){
-    var wire = element.to;
-    for (var i = 0; i < element.to.length; i++){
-        var nextElement = wire.to.to;
-        var type = nextElement.type;
-        if (type == 'resistor'){
-            return getIsConnected(devices, device, nextElement);
-        }
-        else if (type == 'switch'){
-            if (wire == element.button){
-                //this wire is linked to button
-                return false;
-            }
-            if (element.button.voltage == true){
-                return getIsConnected(element);
-            }
-        }
-        else if (type == 'ground'){
-            return true;
-        }
+
+
+function lower_voltage(wire){
+    wire.voltage = false;
+}
+
+function inactivate_resistor(element){
+    if (element.type == 'resistor'){
+        element.active = false;
     }
-    return false;
 }
 
 function set_voltage(source){
+    /* 1. set all voltages and resistor actives to false.
+     * 2. find paths and mark resistor active.
+     * 3. set new voltage
+     */
+    for_each_wire([source], lower_voltage);
+    for_each_device([source], inactivate_resistor);
+
     console.log("setVoltage source name: " + source.name);
-    var is_connected = get_is_connected(source);
+    var is_connected = activate_resistors(source);
     console.log("setVoltage isConnected: " + is_connected);
-    spread_voltage(source.to, true, is_connected);
+    spread_voltage(source.to, true);
 }
 
+function spread_voltage(wire, voltage){
+    if (wire == null) return;
 
-function spread_voltage(wire, voltage, isConnected){
+    console.log('spread_voltage set wire ' + wire.name + ' voltage: ' + voltage);
+    wire.voltage = voltage;
+
+    for (var i = 0; i < wire.to.length; i++){
+        var element = wire.to[i];
+        //TODO: wire has multiple elements
+        var type = element.type;
+        if (type == 'resistor'){
+            if (element.active) spread_voltage(element.to, false);
+            else spread_voltage(element.to, voltage);
+        }
+        else if (type == 'switch'){
+            if (element.from.name == wire.name){
+                if (element.button.voltage == true){
+                    spread_voltage(element.to, voltage);
+                }
+                else continue;
+            }
+            else{
+                //arrived to button.
+                continue;
+            }
+        }
+        else if (type == 'bridge'){
+            spread_voltage(element.to, voltage);
+        }
+        else if (type == 'ground'){
+            continue;
+        }
+        else{
+            console.log("Unknown type: " + type + " returning");
+            return;
+        }
+    }
+}
+
+function spread_voltage_old(wire, voltage, isConnected){
     if (wire == null) return;
 
     console.log('spread_voltage set wire ' + wire.name + ' voltage: ' + voltage);
