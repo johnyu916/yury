@@ -94,20 +94,22 @@ function find_element(element, args){
         var search_name = args.names[i];
         //console.log('looking into element: '+element.name);
         if (element.name == search_name) {
-            //console.log('search name found: ' + search_name);
-            args.elements.search_name = element;
+            console.log('search name found: ' + search_name);
+            args.elements[search_name] = element;
         }
     }
 }
 
 function run_test(test_package){
     var config = test_package['config'];
+    console.log("Running test package: " + config['name']);
     var devices_data = test_package['devices'];
     var tests = config['tests'];
     var steps = config.steps;
     var passed = 0;
     for (var i = 0; i < tests.length; i++){
         var test = tests[i];
+        console.log("Running test on: " + test.device);
         var sources = construct_device(devices_data, test.device);
         //now run steps
         var counter = steps;
@@ -121,33 +123,49 @@ function run_test(test_package){
             console.log("output name " + output_name);
             output_names.push(output_name);
         }
-        args = {
+        var args = {
             'names': output_names,
             'elements': {}
         };
         for_each_device(sources, find_element, args);
-        console.log('expected_values: ' + test.expected_value + ' actual: ' + args.element.from.voltage);
+        var all_equal = true;
         for (var j = 0; j < args.names.length; j++){
-            var element = args.elements[args.names[j]];
-            if (test.expected_value == element.from.voltage){
-                console.log("test passed");
-                passed += 1;
+            var element_name = args.names[j];
+            //var element = args.elements[args.names[j]];
+            var element = args.elements[element_name];
+            console.log('element: '+element);
+            console.log('expected_values: ' + test.expected_value[j] + ' actual: ' + element.from.voltage);
+            if (test.expected_value[j] == element.from.voltage){
             }
             else{
-                console.log("test failed for: "+ element.name);
+                all_equal = false;
             }
+        }
+        if (all_equal){
+            console.log("test passed");
+            passed +=1;
+        }
+        else{
+            console.log("test failed for: "+ element.name);
         }
     }
     console.log("passed " + passed + " of " + tests.length);
+    return {'name': config.name, 'passed':passed, 'possible':tests.length}
 }
 
 function run_tests(){
     $.ajax({
         url: '/tests'
     }).done(function(server_data){
-        test_packages = server_data['test_packages']
+        test_packages = server_data['test_packages'];
+        var results = [];
         for (var i = 0; i < test_packages.length; i++){
-            run_test(test_packages[i]);
+            var result = run_test(test_packages[i]);
+            results.push(result);
+        }
+        for (var i = 0; i < results.length; i++){
+            var result = results[i];
+            console.log("name: " + result['name'] + " passed " + result.passed + " of " + result.possible);
         }
     }).error(function(){
         console.log("run_tests failed");

@@ -9,6 +9,7 @@ function compute(device){
 function activate_resistors(device){
     console.log("getisconnec devicename: "+device.name);
     var wire = device.to;
+    if (wire == null) return false;
     //console.log("getisconnec wirename: "+wire.name);
     var is_connected = false;
     for (var i = 0; i < wire.to.length; i++){
@@ -31,6 +32,12 @@ function activate_resistors(device){
         }
         else if (type == 'ground'){
             is_connected = true;
+        }
+        else if (type == 'bridge'){
+            if (activate_resistors(next_device)) is_connected = true;
+        }
+        else{
+            console.log("unknown device type: " + type);
         }
     }
     return is_connected;

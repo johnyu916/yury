@@ -2,7 +2,7 @@
     "_comment": "select1, select0, in",
     "name": "demux2test",
     "steps": 4,
-    "output": ["demux2/out0","demux2/out1","demux2/out2","demux2/out3"],
+    "output": ["demux20/out3","demux20/out2","demux20/out1","demux20/out0"],
     "tests": [
         {
             "device": "demux2test0",

@@ -212,7 +212,7 @@ function construct_device_inner(devices_data, device_data, device_map, prefix){
         if (array_index(device_primitives, child_data.type) >= 0){
             child = new Device(new_prefix + child_data.name, child_data.type);
             device_map[child.name] = child;
-            //console.log("construct_device add primitive : " + child_data.name);
+            console.log("construct_device add primitive : " + child.name);
             if (child_data.type == 'source'){
                 sources.push(child);
             }
@@ -231,6 +231,7 @@ function construct_device_inner(devices_data, device_data, device_map, prefix){
     for (var i = 0; i < wires_data.length; i++){
         var wire_data = wires_data[i];
         var wire = new Wire(new_prefix + wire_data.name);
+        console.log("construct new wire: " + wire.name);
         var from = parse_wire_links(wire, wire_data.from, device_map, 'to', new_prefix);
         var to = parse_wire_links(wire, wire_data.to, device_map, 'from', new_prefix);
         wire.from = from;

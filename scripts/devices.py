@@ -25,7 +25,7 @@ def update_tests():
             print "Reading {0}".format(filepath)
             data = f.read()
             json_dict = json.loads(data)
-            db['tests'].update({'device': json_dict['name']}, json_dict, upsert=True)
+            db['tests'].update({'name': json_dict['name']}, json_dict, upsert=True)
 
 
 def get_bridge_type(bridge_name, wires):

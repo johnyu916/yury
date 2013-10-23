@@ -1,23 +1,23 @@
 {
     "name": "ortest",
     "steps": 3,
-    "output": "or0/out",
+    "output": ["or0/out"],
     "tests": [
         {
             "device": "ortest0",
-            "expected_value": false
+            "expected_value": [false]
         },
         {
             "device": "ortest1",
-            "expected_value": true
+            "expected_value": [true]
         },
         {
             "device": "ortest2",
-            "expected_value": true
+            "expected_value": [true]
         },
         {
             "device": "ortest3",
-            "expected_value": true
+            "expected_value": [true]
         }
     ]
 }

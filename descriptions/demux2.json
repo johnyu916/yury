@@ -45,6 +45,10 @@
         {
             "name": "out3",
             "type": "bridge"
+        },
+        {
+            "name": "decoder20",
+            "type": "decoder2"
         }
     ],
     "wires": [
@@ -56,31 +60,31 @@
         {
             "name": "wire1",
             "from": ["select0"],
-            "to": ["decoder0/in0"]
+            "to": ["decoder20/in0"]
         },
         {
             "name": "wire2",
             "from": ["select1"],
-            "to": ["decoder0/in1"]
+            "to": ["decoder20/in1"]
         },
         {
             "name": "wire3",
-            "from": ["decoder/out0"],
+            "from": ["decoder20/out0"],
             "to": ["and0/in1"]
         },
         {
             "name": "wire3",
-            "from": ["decoder/out1"],
+            "from": ["decoder20/out1"],
             "to": ["and1/in1"]
         },
         {
             "name": "wire4",
-            "from": ["decoder/out2"],
+            "from": ["decoder20/out2"],
             "to": ["and2/in1"]
         },
         {
             "name": "wire5",
-            "from": ["decoder/out3"],
+            "from": ["decoder20/out3"],
             "to": ["and3/in1"]
         },
         {
