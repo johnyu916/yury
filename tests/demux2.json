@@ -1,0 +1,40 @@
+{
+    "_comment": "select1, select0, in",
+    "name": "demux2test",
+    "steps": 4,
+    "output": ["demux2/out0","demux2/out1","demux2/out2","demux2/out3"],
+    "tests": [
+        {
+            "device": "demux2test0",
+            "expected_value": [false, false, false, false]
+        },
+        {
+            "device": "demux2test1",
+            "expected_value": [false, false, false, true]
+        },
+        {
+            "device": "demux2test2",
+            "expected_value": [false, false, false, false]
+        },
+        {
+            "device": "demux2test3",
+            "expected_value": [false, false, true, false]
+        },
+        {
+            "device": "demux2test4",
+            "expected_value": [false, false, false, false]
+        },
+        {
+            "device": "demux2test5",
+            "expected_value": [false, true, false, false]
+        },
+        {
+            "device": "demux2test6",
+            "expected_value": [false, false, false, false]
+        },
+        {
+            "device": "demux2test7",
+            "expected_value": [true, false, false, false]
+        }
+    ]
+}

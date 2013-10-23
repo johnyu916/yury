@@ -1,0 +1,1 @@
+{"wires": [{"to": ["decoder20/in0"], "from": ["input0/out1"], "name": "wire0"}, {"to": ["decoder20/in1"], "from": ["input1/out1"], "name": "wire1"}], "type": "decoder2test3", "name": "decoder2test30", "devices": [{"type": "decoder2", "name": "decoder20"}, {"type": "input", "name": "input0"}, {"type": "input", "name": "input1"}]}

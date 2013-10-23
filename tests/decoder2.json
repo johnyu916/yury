@@ -1,0 +1,23 @@
+{
+    "name": "decoder2test",
+    "steps": 3,
+    "output": ["decoder2/out0","decoder2/out1","decoder2/out2","decoder2/out3"],
+    "tests": [
+        {
+            "device": "decoder2test0",
+            "expected_value": [false, false, false, true]
+        },
+        {
+            "device": "decoder2test1",
+            "expected_value": [false, false, true, false]
+        },
+        {
+            "device": "decoder2test2",
+            "expected_value": [false, true, false, false]
+        },
+        {
+            "device": "decoder2test3",
+            "expected_value": [true, false, false, false]
+        }
+    ]
+}

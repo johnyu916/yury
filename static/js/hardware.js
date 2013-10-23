@@ -90,11 +90,13 @@ function load_device(device_type, callback){
 }
 
 function find_element(element, args){
-    var search_name = args['name'];
-    //console.log('looking into element: '+element.name);
-    if (element.name == search_name) {
-        //console.log('search name found: ' + search_name);
-        args.element = element;
+    for (var i = 0; i < args.names.length; i++){
+        var search_name = args.names[i];
+        //console.log('looking into element: '+element.name);
+        if (element.name == search_name) {
+            //console.log('search name found: ' + search_name);
+            args.elements.search_name = element;
+        }
     }
 }
 
@@ -113,20 +115,27 @@ function run_test(test_package){
             run_step(sources);
         }
         var device_data = get_device_data(devices_data, test.device);
-        var output_name = '/' + device_data.name + '/' + config.output;
-        console.log("output name " + output_name);
+        var output_names = [];
+        for (var j = 0; j < config.output.length; j++){
+            var output_name = '/' + device_data.name + '/' + config.output[j];
+            console.log("output name " + output_name);
+            output_names.push(output_name);
+        }
         args = {
-            'name': output_name,
-            'element': null
+            'names': output_names,
+            'elements': {}
         };
         for_each_device(sources, find_element, args);
-        console.log('expected_value: ' + test.expected_value + ' actual: ' + args.element.from.voltage);
-        if (test.expected_value == args.element.from.voltage){
-            console.log("test passed");
-            passed += 1;
-        }
-        else{
-            console.log("test failed");
+        console.log('expected_values: ' + test.expected_value + ' actual: ' + args.element.from.voltage);
+        for (var j = 0; j < args.names.length; j++){
+            var element = args.elements[args.names[j]];
+            if (test.expected_value == element.from.voltage){
+                console.log("test passed");
+                passed += 1;
+            }
+            else{
+                console.log("test failed for: "+ element.name);
+            }
         }
     }
     console.log("passed " + passed + " of " + tests.length);

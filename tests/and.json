@@ -1,23 +1,23 @@
 {
     "name": "andtest",
     "steps": 3,
-    "output": "and0/out",
+    "output": ["and0/out"],
     "tests": [
         {
             "device": "andtest0",
-            "expected_value": false
+            "expected_value": [false]
         },
         {
             "device": "andtest1",
-            "expected_value": false
+            "expected_value": [false]
         },
         {
             "device": "andtest2",
-            "expected_value": false
+            "expected_value": [false]
         },
         {
             "device": "andtest3",
-            "expected_value": true
+            "expected_value": [true]
         }
     ]
 }

@@ -58,7 +58,7 @@
         },
         {
             "name": "wire4",
-            "from": ["selector"],
+            "from": ["select"],
             "to": ["not0/in", "and1/in1"]
         },
         {

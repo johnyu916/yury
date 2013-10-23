@@ -1,0 +1,40 @@
+{
+    "_comment":"input0 is select",
+    "name": "mux2test",
+    "steps": 3,
+    "output": ["mux20/out"],
+    "tests": [
+        {
+            "device": "mux2test0",
+            "expected_value": [false]
+        },
+        {
+            "device": "mux2test1",
+            "expected_value": [false]
+        },
+        {
+            "device": "mux2test2",
+            "expected_value": [true]
+        },
+        {
+            "device": "mux2test3",
+            "expected_value": [true]
+        },
+        {
+            "device": "mux2test4",
+            "expected_value": [false]
+        },
+        {
+            "device": "mux2test5",
+            "expected_value": [true]
+        },
+        {
+            "device": "mux2test6",
+            "expected_value": [false]
+        },
+        {
+            "device": "mux2test7",
+            "expected_value": [true]
+        }
+    ]
+}
