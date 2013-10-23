@@ -1,0 +1,76 @@
+{
+    "name": "decoder20",
+    "type": "decoder2",
+    "devices": [
+        {
+            "name": "not0",
+            "type": "not"
+        },
+        {
+            "name": "not1",
+            "type": "not"
+        },
+        {
+            "name": "and0",
+            "type": "and"
+        },
+        {
+            "name": "and1",
+            "type": "and"
+        },
+        {
+            "name": "and2",
+            "type": "and"
+        },
+        {
+            "name": "and3",
+            "type": "and"
+        },
+        {
+            "name": "in0",
+            "type": "bridge"
+        },
+        {
+            "name": "in1",
+            "type": "bridge"
+        },
+        {
+            "name": "out0",
+            "type": "bridge"
+        },
+        {
+            "name": "out1",
+            "type": "bridge"
+        },
+        {
+            "name": "out2",
+            "type": "bridge"
+        },
+        {
+            "name": "out3",
+            "type": "bridge"
+        }
+    ],
+    "wires": [
+        {
+            "name": "wire0",
+            "from": ["in0"],
+            "to": ["not0/in", "and1/in0", "and3/in0"]
+        },
+        {
+            "name": "wire1",
+            "from": ["in1"],
+            "to": ["not1/in", "and2/in1", "and3/in1"]
+        },
+        {
+            "name": "wire2",
+            "from": ["not0/out"],
+            "to": ["and0/in0", "and2/in0"]
+        },
+        {
+            "name": "wire0",
+            "from": ["not1/out"],
+            "to": ["and0/in1", "and1/in1"]
+        }
+    ]
+}

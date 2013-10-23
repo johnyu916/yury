@@ -1,0 +1,107 @@
+{
+    "name": "demux20",
+    "type": "demux2",
+    "devices": [
+        {
+            "name": "and0",
+            "type": "and"
+        },
+        {
+            "name": "and1",
+            "type": "and"
+        },
+        {
+            "name": "and2",
+            "type": "and"
+        },
+        {
+            "name": "and3",
+            "type": "and"
+        },
+        {
+            "name": "in",
+            "type": "bridge"
+        },
+        {
+            "name": "select0",
+            "type": "bridge"
+        },
+        {
+            "name": "select1",
+            "type": "bridge"
+        },
+        {
+            "name": "out0",
+            "type": "bridge"
+        },
+        {
+            "name": "out1",
+            "type": "bridge"
+        },
+        {
+            "name": "out2",
+            "type": "bridge"
+        },
+        {
+            "name": "out3",
+            "type": "bridge"
+        }
+    ],
+    "wires": [
+        {
+            "name": "wire0",
+            "from": ["in"],
+            "to": ["and0/in0", "and1/in0", "and2/in0", "and3/in0"]
+        },
+        {
+            "name": "wire1",
+            "from": ["select0"],
+            "to": ["decoder0/in0"]
+        },
+        {
+            "name": "wire2",
+            "from": ["select1"],
+            "to": ["decoder0/in1"]
+        },
+        {
+            "name": "wire3",
+            "from": ["decoder/out0"],
+            "to": ["and0/in1"]
+        },
+        {
+            "name": "wire3",
+            "from": ["decoder/out1"],
+            "to": ["and1/in1"]
+        },
+        {
+            "name": "wire4",
+            "from": ["decoder/out2"],
+            "to": ["and2/in1"]
+        },
+        {
+            "name": "wire5",
+            "from": ["decoder/out3"],
+            "to": ["and3/in1"]
+        },
+        {
+            "name": "wire6",
+            "from": ["and0/out"],
+            "to": ["out0"]
+        },
+        {
+            "name": "wire7",
+            "from": ["and1/out"],
+            "to": ["out1"]
+        },
+        {
+            "name": "wire8",
+            "from": ["and2/out"],
+            "to": ["out2"]
+        },
+        {
+            "name": "wire9",
+            "from": ["and3/out"],
+            "to": ["out3"]
+        }
+    ]
+}
