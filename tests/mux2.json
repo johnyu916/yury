@@ -1,7 +1,7 @@
 {
-    "_comment":"input0 is select",
+    "_comment":"input2 is select",
     "name": "mux2test",
-    "steps": 3,
+    "steps": 6,
     "output": ["mux20/out"],
     "tests": [
         {

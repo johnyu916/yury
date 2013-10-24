@@ -54,6 +54,7 @@ def make_test_devices():
                     outputs.append(bridge_name)
             value_sets = itertools.product([False,True], repeat=len(input_names))
             for value_set_index, value_set in enumerate(value_sets):
+                value_set = reversed(value_set)
                 device_type = json_dict['type']
                 test_type = device_type + 'test' + str(value_set_index)
                 device_dict = {
@@ -94,6 +95,13 @@ def make_test_devices():
 
 def main():
     print sys.argv
+    if len(sys.argv) == 1:
+        update_db()
+        make_test_devices()
+        update_db()
+        update_tests()
+        return
+
     option = sys.argv[1]
     if option == 'update_db':
         update_db()

@@ -1,6 +1,4 @@
 //fill wires
-var sources = [];
-
 function run_step(sources){
     console.log("Running step");
     var i = sources.length;
@@ -100,7 +98,7 @@ function find_element(element, args){
     }
 }
 
-function run_test(test_package){
+function run_test_package(test_package){
     var config = test_package['config'];
     console.log("Running test package: " + config['name']);
     var devices_data = test_package['devices'];
@@ -153,6 +151,18 @@ function run_test(test_package){
     return {'name': config.name, 'passed':passed, 'possible':tests.length}
 }
 
+function run_test(name){
+    $.ajax({
+        url: '/test/'+name
+    }).done(function(server_data){
+        test_package = server_data['test_package'];
+        var result = run_test_package(test_package);
+        console.log("name: " + result.name + " passed " + result.passed + " of " + result.possible);
+    }).error(function(){
+        console.log("run_test" + name + " failed");
+    });
+}
+
 function run_tests(){
     $.ajax({
         url: '/tests'
@@ -160,7 +170,7 @@ function run_tests(){
         test_packages = server_data['test_packages'];
         var results = [];
         for (var i = 0; i < test_packages.length; i++){
-            var result = run_test(test_packages[i]);
+            var result = run_test_package(test_packages[i]);
             results.push(result);
         }
         for (var i = 0; i < results.length; i++){
@@ -203,17 +213,7 @@ $(document).ready(function() {
     });
     $('#test-type-select').on('change', function(){
         var selected = $('#test-type-select').val();
-        if (selected == 'andtest'){
-            load_device('andtest', function(device_data){
-                test(device_data);
-                /*
-                inputs = get_inputs(2);
-                for (var i = 0; i < inputs.length; i++){
-                    test(device, inputs[i][0], inputs[i][1]);              
-                }
-                */
-            });
-        }
+        run_test(selected);
     });
     $('#run-tests').on('click', function(){
         run_tests();

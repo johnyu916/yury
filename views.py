@@ -10,7 +10,8 @@ def cpu():
 
 def hardware():
     devices = database()['devices'].find({},{'type':1})
-    context = {'devices': devices}
+    test_names = database()['tests'].find({},{'name':1})
+    context = {'devices': devices, 'test_names': test_names}
     return context
 
 
@@ -40,6 +41,11 @@ def get_device_documents(device_type):
     fill_devices(documents, device_type)
     return documents
 
+def get_test(test_name):
+    document = database()['tests'].find_one({'name':test_name})
+    return get_test_package(document)
+
+
 def get_tests():
     '''
     Get a list of tests.
@@ -48,14 +54,17 @@ def get_tests():
     return_docs = []
     documents = database()['tests'].find()
     for test_document in documents:
-        test_document['_id'] = str(test_document['_id'])
-        device_types = [test['device'] for test in test_document['tests']]
-        device_documents = []
-        for device_type in device_types:
-            fill_devices(device_documents, device_type)
-        return_doc = {
-            'config': test_document,
-            'devices': device_documents
-        }
-        return_docs.append(return_doc)
+        return_docs.append(get_test_package(test_document))
     return return_docs
+
+
+def get_test_package(test_document):
+    test_document['_id'] = str(test_document['_id'])
+    device_types = [test['device'] for test in test_document['tests']]
+    device_documents = []
+    for device_type in device_types:
+        fill_devices(device_documents, device_type)
+    return {
+        'config': test_document,
+        'devices': device_documents
+    }

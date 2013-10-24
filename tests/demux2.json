@@ -1,7 +1,7 @@
 {
     "_comment": "select1, select0, in",
     "name": "demux2test",
-    "steps": 4,
+    "steps": 7,
     "output": ["demux20/out3","demux20/out2","demux20/out1","demux20/out0"],
     "tests": [
         {

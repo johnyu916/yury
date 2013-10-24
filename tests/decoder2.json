@@ -1,6 +1,6 @@
 {
     "name": "decoder2test",
-    "steps": 3,
+    "steps": 5,
     "output": ["decoder20/out3","decoder20/out2","decoder20/out1","decoder20/out0"],
     "tests": [
         {

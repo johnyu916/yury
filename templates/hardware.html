@@ -15,9 +15,9 @@
 <!-- test devices -->
 <button id='device-type-button'>select device</button>
 <select id='test-type-select'>
-  <option>andtest</option>
-  <option>ortest</option>
-  <option>nottest</option>
+  {% for test_name in context["test_names"] %}
+  <option>{{ test_name['name'] }}</option>
+  {% endfor %}
 </select>
 <button id='step'>step</button>
 <button id='run-tests'>Run Tests</button>

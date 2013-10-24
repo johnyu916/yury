@@ -43,6 +43,16 @@ def tests():
     }
     return jsonify(**context)
 
+@app.route('/test/<test_name>')
+def test(test_name):
+    test = views.get_test(test_name)
+    context = {
+        'status': 'success',
+        'test_package': test
+    }
+    return jsonify(**context)
+
+
 # Before request is sent
 @app.before_request
 def before_request():
