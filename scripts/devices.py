@@ -16,6 +16,7 @@ def update_db():
             print "Reading {0}".format(filepath)
             data = f.read()
             json_dict = json.loads(data)
+            # TODO: should check device here to see if it is valid
             db['devices'].update({'type': json_dict['type']},json_dict,upsert=True)
 
 def update_tests():

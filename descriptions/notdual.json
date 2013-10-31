@@ -1,0 +1,70 @@
+{
+    "name": "notdual0",
+    "type": "notdual",
+    "devices": [
+        {
+            "name": "not0",
+            "type": "not"
+        },
+        {
+            "name": "not1",
+            "type": "not"
+        },
+        {
+            "name": "and0",
+            "type": "and"
+        },
+        {
+            "name": "and1",
+            "type": "and"
+        },
+        {
+            "name": "in0",
+            "type": "bridge"
+        },
+        {
+            "name": "in1",
+            "type": "bridge"
+        },
+        {
+            "name": "out0",
+            "type": "bridge"
+        },
+        {
+            "name": "out1",
+            "type": "bridge"
+        }
+    ],
+    "wires":[
+        {
+            "name": "wire0",
+            "from": ["in0"],
+            "to": ["not0/in", "and1/in0"]
+        },
+        {
+            "name": "wire1",
+            "from": ["in1"],
+            "to": ["not1/in", "and0/in0"]
+        },
+        {
+            "name": "wirenot0",
+            "from": ["not0/out"],
+            "to": ["and0/in1"]
+        },
+        {
+            "name": "wirenot1",
+            "from": ["not1/out"],
+            "to": ["and1/in1"]
+        },
+        {
+            "name": "wireand0",
+            "from": ["and0/out"],
+            "to": ["out0"]
+        },
+        {
+            "name": "wireand1",
+            "from": ["and1/out"],
+            "to": ["out1"]
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "name": "or30",
+    "type": "or3",
+    "devices": [
+        {
+        }
+    ],
+    "wires":[
+
+    ]
+}
