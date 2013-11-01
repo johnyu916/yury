@@ -1,5 +1,6 @@
 ==TODO==
 demonstrate the AAND, AOR, ANOT circuit
+device checker
 auto-device-generator for mux2, mux4, mux64. demux6
 construct a single instruction (write) computer
 add branch instruction

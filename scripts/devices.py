@@ -96,6 +96,8 @@ def make_test_devices():
 def make_mux_dual(number_selects):
     '''
     Make mux circuit.
+    A mux circuit is the following:
+    O = SA + not(S)B
     '''
     device_type = "mux"+str(number_inputs)+"dual"
     devices = []
@@ -109,6 +111,13 @@ def make_mux_dual(number_selects):
             "type": "bridge"
         }
         devices.append(device)
+        # need and gates
+        device = {
+            "name": "and"+str(index),
+            "type": "and"
+        }
+        devices.append(device)
+
     for index in range(number_selects):
         # selects
         device = {
@@ -116,12 +125,74 @@ def make_mux_dual(number_selects):
             "type": "bridge"
         }
         devices.append(device)
+        # nots
+        device ={
+            "name": "not"+str(index),
+            "type": "not"
+        }
+        devices.append(device)
 
-    # and, or, nots
+        # or devices
+    device ={
+        "name": "or0"
+        "type": "or"+str(number_inputs)
+    }
+    devices.append(device)
 
     # wires
     wires = []
-   
+    for i in range(number_inputs):
+        index = str(i)
+        # input to and
+        wire = {
+            "name": "wire"+index,
+            "from": ["in"+index],
+            "to": ["and"+index+"/in0"]
+        }
+        # and to or
+        wire = {
+            "name": "and"+index,
+            "from":["and"+index+"/out"],
+            "to":["or0/in"+index]
+        }
+
+    for index in range(number_selectors):
+        # from selector and from not selector
+        wire = {
+            "name": "wireselect"+str(index),
+            "from": ["select"+str(index)],
+            "to": ["not"+str(index)]
+        }
+        wires.append(wire)
+        wire = {
+            "name": "wireselectnot"+str(index),
+            "from": ["not"+str(index)],
+            "to": []
+        }
+        wires.append(wire)
+
+    
+        value_sets = itertools.product([False,True], repeat=num_selects)
+        for value_set_index, value_set in enumerate(value_sets):
+            value_set = reversed(value_set)
+            vi = str(value_set_index)
+            wire = wires['wirein'+vi]
+            wire['to'].append("and"+vi+"/in"+str(num_selects))
+            for index, value in enumerate(value_set):
+                i = str(index)
+                if value:
+                    wire = wires['select'+i]
+                    wire['to'].append("and"+vi+"/in"+i)
+                else:
+                    wire = wires['selectnot'+i]
+                    wire['to'].append("and"+vi+"/in"+i)
+
+        wire = {
+            "name": "wireor0",
+            "from": ["or0/out"],
+            "to": ["out"]
+        }
+        wires.append(wire)
     data = {
         "name": device_type+"0",
         "type": device_type,
@@ -150,37 +221,56 @@ def make_decoder_dual(num_inputs):
     with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
         t.write(json_str)
 
-def check_devices():
+def check_devices(dont_stop=True):
     for filepath in DEVICE_DIR.walkfiles('*.json'):
-        with open(filepath) as f:
-            print "Reading {0}".format(filepath)
-            content = f.read()
-            device = json.loads(data)
-            # make sure it has name and type
-            try:
-                name = device['name']
-                device_type = device['type']
-                devices = device['devices']
-                wires = device['wires']
-                for child in devices:
-                    child_name = child['name']
-                    child_type = child['type']
-                    # ensure type is in primitive or existing
-                    assert not child_type == device_type
-                    if not child_type in DEVICE_PRIMITIVES:
-                        # check if type is in compound
+        try:
+            check_device(filepath)
+        except Exception as e:
+            print "Failed device check: {0}".format(str(e))
+            if dont_stop:
+                continue
+            else:
+                raise e
 
-                for child in wires:
-                    child_name = child['name']
-                    for from_device in child['from']:
-                        assert type(from_device) == str
-                    for to_device in child['to']:
-                        assert type(to_device) == str
+def check_device(filepath):
+    with open(filepath) as f:
+        print "Reading {0}".format(filepath)
+        content = f.read()
+        device = json.loads(data)
+        # make sure it has name and type
+        name = device['name']
+        device_type = device['type']
+        devices = device['devices']
+        child_names = {}
+        for child in devices:
+            child_name = child['name']
+            assert not child_name in child_names
+            child_names[child_name] = True
+            child_type = child['type']
+            # ensure type is not recursive
+            assert not child_type == device_type
+
+        wires = device['wires']
+        wire_names = {}
+        for wire in wires:
+            wire_name = wire['name']
+            assert not wire_name in wire_names
+            wire_names[wire_name] = True
+            for from_device in wire['from']:
+                names = from_device.split('/')
+                assert len(names) in (1,2)
+                assert names[0] in child_names
+
+            for to_device in wire['to']:
+                names = to_device.split('/')
+                assert len(names) in (1,2)
+                assert names[0] in child_names
 
 
 def main():
     print sys.argv
     if len(sys.argv) == 1:
+        check_devices(dont_stop=False)
         update_db()
         make_test_devices()
         update_db()
