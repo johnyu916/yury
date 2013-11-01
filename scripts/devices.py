@@ -150,6 +150,33 @@ def make_decoder_dual(num_inputs):
     with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
         t.write(json_str)
 
+def check_devices():
+    for filepath in DEVICE_DIR.walkfiles('*.json'):
+        with open(filepath) as f:
+            print "Reading {0}".format(filepath)
+            content = f.read()
+            device = json.loads(data)
+            # make sure it has name and type
+            try:
+                name = device['name']
+                device_type = device['type']
+                devices = device['devices']
+                wires = device['wires']
+                for child in devices:
+                    child_name = child['name']
+                    child_type = child['type']
+                    # ensure type is in primitive or existing
+                    assert not child_type == device_type
+                    if not child_type in DEVICE_PRIMITIVES:
+                        # check if type is in compound
+
+                for child in wires:
+                    child_name = child['name']
+                    for from_device in child['from']:
+                        assert type(from_device) == str
+                    for to_device in child['to']:
+                        assert type(to_device) == str
+
 
 def main():
     print sys.argv
