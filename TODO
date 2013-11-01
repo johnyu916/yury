@@ -1,6 +1,6 @@
-construct a transistor, power, etc
-demonstrate a combinational circuit
+==TODO==
 demonstrate the AAND, AOR, ANOT circuit
+auto-device-generator for mux2, mux4, mux64. demux6
 construct a single instruction (write) computer
 add branch instruction
 add interrupt based read
@@ -10,3 +10,7 @@ how to have a common configuration interface for any game.
 how much game logic should be done by the game as opposed to the
 game engine? is going through gamebots best done at game engine or
 in the game?
+
+==DONE==
+construct a transistor, power, etc
+demonstrate a combinational circuit

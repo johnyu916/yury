@@ -7,6 +7,7 @@ from settings import DEVICE_DIR, DEVICE_TESTS_DIR, TESTS_DIR
 from database import database
 import json
 import itertools
+import math
 import sys
 
 def update_db():
@@ -92,6 +93,62 @@ def make_test_devices():
                 with open(str(DEVICE_TESTS_DIR) + '/' + test_type + '.json', 'w') as t:
                     t.write(json_str)
 
+def make_mux_dual(number_selects):
+    '''
+    Make mux circuit.
+    '''
+    device_type = "mux"+str(number_inputs)+"dual"
+    devices = []
+
+    number_inputs = math.pow(2, number_selects)
+    
+    for index in range(number_inputs):
+        #inputs
+        device = {
+            "name": "in"+str(index),
+            "type": "bridge"
+        }
+        devices.append(device)
+    for index in range(number_selects):
+        # selects
+        device = {
+            "name": "select"+str(index),
+            "type": "bridge"
+        }
+        devices.append(device)
+
+    # and, or, nots
+
+    # wires
+    wires = []
+   
+    data = {
+        "name": device_type+"0",
+        "type": device_type,
+        "wires": wires,
+        "devices": devices
+    }
+
+    json_str = json.dumps(data)
+    with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
+        t.write(json_str)
+
+def make_decoder_dual(num_inputs):
+    number_outputs = math.pow(2, number_outputs)
+    device_type = "decoder" + str(number_outputs) + "dual"
+    wires = []
+    devices = []
+
+    data = {
+        "name": device_type+"0",
+        "type": device_type,
+        "wires": wires,
+        "devices": devices
+    }
+
+    json_str = json.dumps(data)
+    with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
+        t.write(json_str)
 
 
 def main():
