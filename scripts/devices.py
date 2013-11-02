@@ -172,27 +172,28 @@ def make_mux_dual(number_selects):
         wires.append(wire)
 
     
-        value_sets = itertools.product([False,True], repeat=num_selects)
-        for value_set_index, value_set in enumerate(value_sets):
-            value_set = reversed(value_set)
-            vi = str(value_set_index)
-            wire = wires['wirein'+vi]
-            wire['to'].append("and"+vi+"/in"+str(num_selects))
-            for index, value in enumerate(value_set):
-                i = str(index)
-                if value:
-                    wire = wires['select'+i]
-                    wire['to'].append("and"+vi+"/in"+i)
-                else:
-                    wire = wires['selectnot'+i]
-                    wire['to'].append("and"+vi+"/in"+i)
+    value_sets = itertools.product([False,True], repeat=num_selects)
+    for value_set_index, value_set in enumerate(value_sets):
+        value_set = reversed(value_set)
+        vi = str(value_set_index)
+        wire = wires['wirein'+vi]
+        wire['to'].append("and"+vi+"/in"+str(num_selects))
+        for index, value in enumerate(value_set):
+            i = str(index)
+            if value:
+                wire = wires['select'+i]
+                wire['to'].append("and"+vi+"/in"+i)
+            else:
+                wire = wires['selectnot'+i]
+                wire['to'].append("and"+vi+"/in"+i)
+            wires.append(wire)
 
-        wire = {
-            "name": "wireor0",
-            "from": ["or0/out"],
-            "to": ["out"]
-        }
-        wires.append(wire)
+    wire = {
+        "name": "wireor0",
+        "from": ["or0/out"],
+        "to": ["out"]
+    }
+    wires.append(wire)
     data = {
         "name": device_type+"0",
         "type": device_type,
@@ -204,8 +205,8 @@ def make_mux_dual(number_selects):
     with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
         t.write(json_str)
 
-def make_decoder_dual(num_inputs):
-    number_outputs = math.pow(2, number_outputs)
+def make_decoder_dual(number_inputs):
+    number_outputs = math.pow(2, number_inputs)
     device_type = "decoder" + str(number_outputs) + "dual"
     wires = []
     devices = []
@@ -216,6 +217,73 @@ def make_decoder_dual(num_inputs):
         "wires": wires,
         "devices": devices
     }
+
+
+    for index in range(number_inputs):
+        # inputs
+        i = str(index)
+        device = {
+            "name": "in"+i,
+            "type": "bridge"
+        }
+        devices.append(device)
+        device = {
+            "name": "not"+i,
+            "type": "not"
+        }
+        devices.append(device)
+
+    for index in range(number_outputs):
+        i = str(index)
+        device = {
+            "name": "out"+i,
+            "type": "bridge"
+        }
+        devices.append(device)
+        device = {
+            "name": "and"+i,
+            "type": "and2"
+        }
+        devices.append(device)
+
+    for index in range(number_inputs):
+        i = str(index)
+        wire = {
+            "name": "wirein"+i,
+            "from": ["in"+i],
+            "to": ["not"+i]
+        }
+        wires.append(wire)
+        wire = {
+            "name": "wirenot"+i,
+            "from": ["not"+i],
+            "to": []
+        }
+        wires.append(wire)
+
+    for index in range(number_outputs):
+        i = str(index)
+        wire = {
+            "name": "wireand"+i,
+            "from":["and"+i],
+            "to":["out"+i]
+        }
+        wires.append(wire)
+
+    value_sets = itertools.product([False,True], repeat=num_selects)
+    for value_set_index, value_set in enumerate(value_sets):
+        value_set = reversed(value_set)
+        vi = str(value_set_index)
+        wire = wires['wirein'+vi]
+
+        for index, value in enumerate(value_set):
+            i = str(index)
+            if value:
+                wire = wires['wirein'+i]
+            else:
+                wire = wires['wirenot'+i]
+                wire['to'].append("and"+vi+"/in"+i)
+            wires.append(wire)
 
     json_str = json.dumps(data)
     with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
