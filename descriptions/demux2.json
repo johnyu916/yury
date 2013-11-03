@@ -73,7 +73,7 @@
             "to": ["and0/in1"]
         },
         {
-            "name": "wire3",
+            "name": "wire10",
             "from": ["decoder20/out1"],
             "to": ["and1/in1"]
         },

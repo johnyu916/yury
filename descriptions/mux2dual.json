@@ -1,0 +1,75 @@
+{
+    "name": "mux2dual0",
+    "type": "mux2dual",
+    "devices": [
+        {
+            "name": "or0",
+            "type": "or2dual"
+        },
+        {
+            "name": "and0",
+            "type": "and2dual"
+        },
+        {
+            "name": "and1",
+            "type": "and2dual"
+        },
+        {
+            "name": "not0",
+            "type": "notdual"
+        },
+        {
+            "name": "in0",
+            "type": "bridge"
+        },
+        {
+            "name": "in1",
+            "type": "bridge"
+        },
+        {
+            "name": "select",
+            "type": "bridge"
+        },
+        {
+            "name": "out",
+            "type": "bridge"
+        }
+    ],
+    "wires": [
+        {
+            "name": "wire0",
+            "from": ["in0"],
+            "to": ["and0/in0"]
+        },
+        {
+            "name": "wire1",
+            "from": ["in1"],
+            "to": ["and1/in0"]
+        },
+        {
+            "name": "wire2",
+            "from": ["and0/out"],
+            "to": ["or0/in0"]
+        },
+        {
+            "name": "wire3",
+            "from": ["and1/out"],
+            "to": ["or0/in1"]
+        },
+        {
+            "name": "wire4",
+            "from": ["select"],
+            "to": ["not0/in", "and0/in1"]
+        },
+        {
+            "name": "wire5",
+            "from": ["not0/out"],
+            "to": ["and1/in1"]
+        },
+        {
+            "name": "wire6",
+            "from": ["or0/out"],
+            "to": ["out"]
+        }
+    ]
+}

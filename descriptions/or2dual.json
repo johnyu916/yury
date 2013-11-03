@@ -66,22 +66,22 @@
     "wires":[
         {
             "name": "wireb0",
-            "from": ["b0/out"],
+            "from": ["b0"],
             "to": ["notb0/in", "and0/in0", "and12/in0"]
         },
         {
             "name": "wireb1",
-            "from": ["b1/out"],
+            "from": ["b1"],
             "to": ["notb1/in", "and10/in0", "and11/in0"]
         },
         {
             "name": "wirea0",
-            "from": ["a0/out"],
+            "from": ["a0"],
             "to": ["nota0/in", "and0/in1", "and11/in1"]
         },
         {
             "name": "wirea1",
-            "from": ["a1/out"],
+            "from": ["a1"],
             "to": ["nota1/in", "and10/in1", "and12/in1"]
         },
         {
