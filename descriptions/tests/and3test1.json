@@ -26,15 +26,6 @@
                 "input2/out0"
             ], 
             "name": "wire2"
-        }, 
-        {
-            "to": [
-                "and30/in3"
-            ], 
-            "from": [
-                "input3/out0"
-            ], 
-            "name": "wire3"
         }
     ], 
     "type": "and3test1", 
@@ -55,10 +46,6 @@
         {
             "type": "input", 
             "name": "input2"
-        }, 
-        {
-            "type": "input", 
-            "name": "input3"
         }
     ]
 }

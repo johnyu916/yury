@@ -2,7 +2,6 @@
     "wires": [
         {
             "to": [
-                "and0/in0", 
                 "and0/in2"
             ], 
             "from": [
@@ -21,7 +20,6 @@
         }, 
         {
             "to": [
-                "and1/in0", 
                 "and1/in2"
             ], 
             "from": [
@@ -40,7 +38,6 @@
         }, 
         {
             "to": [
-                "and2/in0", 
                 "and2/in2"
             ], 
             "from": [
@@ -59,7 +56,6 @@
         }, 
         {
             "to": [
-                "and3/in0", 
                 "and3/in2"
             ], 
             "from": [

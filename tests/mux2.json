@@ -10,11 +10,11 @@
         },
         {
             "device": "mux2test1",
-            "expected_value": [false]
+            "expected_value": [true]
         },
         {
             "device": "mux2test2",
-            "expected_value": [true]
+            "expected_value": [false]
         },
         {
             "device": "mux2test3",
@@ -26,11 +26,11 @@
         },
         {
             "device": "mux2test5",
-            "expected_value": [true]
+            "expected_value": [false]
         },
         {
             "device": "mux2test6",
-            "expected_value": [false]
+            "expected_value": [true]
         },
         {
             "device": "mux2test7",

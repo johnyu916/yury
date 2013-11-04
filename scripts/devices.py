@@ -164,7 +164,7 @@ def make_mux(number_selects):
         wire = {
             "name": "wirein"+index,
             "from": ["in"+index],
-            "to": ["and"+index+"/in0"]
+            "to": ["and"+index+"/in" + str(number_selects)]
         }
         wires.append(wire)
         # and to or
@@ -195,8 +195,6 @@ def make_mux(number_selects):
     for value_set_index, value_set in enumerate(value_sets):
         value_set = reversed(value_set)
         vi = str(value_set_index)
-        wire = get_wire(wires, 'wirein'+vi)
-        wire['to'].append("and"+vi+"/in"+str(number_selects))
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
@@ -260,7 +258,7 @@ def make_decoder(number_inputs):
         devices.append(device)
         device = {
             "name": "and"+i,
-            "type": "and2"
+            "type": "and" + str(number_inputs)
         }
         devices.append(device)
 
@@ -292,12 +290,12 @@ def make_decoder(number_inputs):
     for value_set_index, value_set in enumerate(value_sets):
         value_set = reversed(value_set)
         vi = str(value_set_index)
-        wire = get_wire(wires,'wirein'+vi)
 
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
                 wire = get_wire(wires,'wirein'+i)
+                wire['to'].append("and"+vi+"/in"+i)
             else:
                 wire = get_wire(wires,'wirenot'+i)
                 wire['to'].append("and"+vi+"/in"+i)
