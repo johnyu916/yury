@@ -446,8 +446,8 @@
             "name": "wireor0"
         }
     ], 
-    "type": "mux16dual", 
-    "name": "mux16dual0", 
+    "type": "mux16", 
+    "name": "mux160", 
     "devices": [
         {
             "type": "bridge", 

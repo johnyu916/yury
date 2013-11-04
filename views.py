@@ -15,9 +15,11 @@ def hardware():
     return context
 
 
-# Actually returns list of devices. The device itself
-# and the dependent devices
 def fill_devices(device_documents, device_type, prefix=''):
+    '''
+    Actually returns list of devices. The device itself
+    and the dependent devices
+    '''
     def type_in_documents(device_type):
         for document in device_documents:
             if document['type'] == device_type:

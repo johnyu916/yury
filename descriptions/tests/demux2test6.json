@@ -1,1 +1,51 @@
-{"wires": [{"to": ["demux20/in"], "from": ["input0/out0"], "name": "wire0"}, {"to": ["demux20/select0"], "from": ["input1/out1"], "name": "wire1"}, {"to": ["demux20/select1"], "from": ["input2/out1"], "name": "wire2"}], "type": "demux2test6", "name": "demux2test60", "devices": [{"type": "demux2", "name": "demux20"}, {"type": "input", "name": "input0"}, {"type": "input", "name": "input1"}, {"type": "input", "name": "input2"}]}
+{
+    "wires": [
+        {
+            "to": [
+                "demux20/in"
+            ], 
+            "from": [
+                "input0/out0"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "demux20/select0"
+            ], 
+            "from": [
+                "input1/out1"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "demux20/select1"
+            ], 
+            "from": [
+                "input2/out1"
+            ], 
+            "name": "wire2"
+        }
+    ], 
+    "type": "demux2test6", 
+    "name": "demux2test60", 
+    "devices": [
+        {
+            "type": "demux2", 
+            "name": "demux20"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "name": "notdualtest",
+    "steps": 3,
+    "output": ["notdual0/out1", "notdual0/out0"],
+    "tests": [
+        {
+            "device": "notdualtest0",
+            "expected_value": [false, false]
+        },
+        {
+            "device": "notdualtest1",
+            "expected_value": [true, false]
+        },
+        {
+            "device": "notdualtest2",
+            "expected_value": [false, true]
+        }
+    ]
+}

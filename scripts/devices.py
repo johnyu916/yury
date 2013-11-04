@@ -3,6 +3,7 @@
 # if device already exists, don't load again.
 # 'type' is a unique index.
 from settings import DEVICE_DIR, DEVICE_TESTS_DIR, TESTS_DIR, DEVICE_PRIMITIVES
+from shared.utilities import write_json
 
 from database import database
 import json
@@ -40,7 +41,8 @@ def get_bridge_type(bridge_name, wires):
     return 'output'
 
 
-def make_test_devices():
+def make_test_devices(input_limit=6):
+    # if there are 6 inputs, then 2^6=64 files will be created.
     for filepath in DEVICE_DIR.files('*.json'):
         with open(filepath) as f:
             print "Reading {0}".format(filepath)
@@ -55,6 +57,10 @@ def make_test_devices():
                     input_names.append(bridge_name)
                 else:
                     outputs.append(bridge_name)
+            if len(input_names) > input_limit:
+                print "Not creating tests, too many inputs: {0}".format(len(input_names))
+                continue
+
             value_sets = itertools.product([False,True], repeat=len(input_names))
             for value_set_index, value_set in enumerate(value_sets):
                 value_set = reversed(value_set)
@@ -90,9 +96,8 @@ def make_test_devices():
                     wire['from'].append('input' + str(index) + '/' + out)
                 device_dict['devices'] = devices
                 device_dict['wires'] = wires
-                json_str = json.dumps(device_dict)
-                with open(str(DEVICE_TESTS_DIR) + '/' + test_type + '.json', 'w') as t:
-                    t.write(json_str)
+                device_file_path = str(DEVICE_TESTS_DIR) + '/' + test_type + '.json'
+                write_json(device_dict, device_file_path)
 
 def get_wire(wires, name):
     for wire in wires:
@@ -100,14 +105,14 @@ def get_wire(wires, name):
             return wire
     return None
 
-def make_mux_dual(number_selects):
+def make_mux(number_selects):
     '''
     Make mux circuit.
     A mux circuit is the following:
     O = SA + not(S)B
     '''
     number_inputs = int(math.pow(2, number_selects))
-    device_type = "mux"+str(number_inputs)+"dual"
+    device_type = "mux"+str(number_inputs)
     devices = []
 
     
@@ -214,15 +219,13 @@ def make_mux_dual(number_selects):
         "devices": devices
     }
 
-    json_str = json.dumps(data, indent=4)
-    print json_str
-    #json_str = str(data)
-    #with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
-    #    t.write(json_str)
+    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
+    write_json(data, device_file_path)
 
-def make_decoder_dual(number_inputs):
+
+def make_decoder(number_inputs):
     number_outputs = int(math.pow(2, number_inputs))
-    device_type = "decoder" + str(number_outputs) + "dual"
+    device_type = "decoder" + str(number_inputs)
     wires = []
     devices = []
 
@@ -299,10 +302,8 @@ def make_decoder_dual(number_inputs):
                 wire = get_wire(wires,'wirenot'+i)
                 wire['to'].append("and"+vi+"/in"+i)
 
-    json_str = json.dumps(data, indent=4)
-    print json_str
-    #with open(str(DEVICE_DIR) + '/' + device_type + '.json', 'w') as t:
-    #    t.write(json_str)
+    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
+    write_json(data, device_file_path)
 
 def check_devices(dont_stop=True):
     for filepath in DEVICE_DIR.walkfiles('*.json'):
@@ -324,6 +325,8 @@ def check_device(filepath):
         # make sure it has name and type
         name = device['name']
         device_type = device['type']
+        file_name = str(filepath.name).split('.')[0]
+        assert device_type == file_name, "{0} not equal to {1}".format(device_type, file_name)
         devices = device['devices']
         child_infos = {}
         for child in devices:
@@ -390,12 +393,12 @@ def main():
         make_test_devices()
     elif option == 'update_tests':
         update_tests()
-    elif option == 'make_mux_dual':
+    elif option == 'make_mux':
         number_selects = int(sys.argv[2])
-        make_mux_dual(number_selects)
-    elif option == 'make_decoder_dual':
+        make_mux(number_selects)
+    elif option == 'make_decoder':
         number_inputs = int(sys.argv[2])
-        make_decoder_dual(number_inputs)
+        make_decoder(number_inputs)
 
 if __name__ == '__main__':
     main()

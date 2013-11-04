@@ -128,8 +128,8 @@
             "name": "wireor0"
         }
     ], 
-    "type": "mux4dual", 
-    "name": "mux4dual0", 
+    "type": "mux4", 
+    "name": "mux40", 
     "devices": [
         {
             "type": "bridge", 

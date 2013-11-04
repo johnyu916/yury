@@ -1,1 +1,38 @@
-{"wires": [{"to": ["and0/in0"], "from": ["input0/out0"], "name": "wire0"}, {"to": ["and0/in1"], "from": ["input1/out0"], "name": "wire1"}], "type": "andtest0", "name": "andtest00", "devices": [{"type": "and", "name": "and0"}, {"type": "input", "name": "input0"}, {"type": "input", "name": "input1"}]}
+{
+    "wires": [
+        {
+            "to": [
+                "and0/in0"
+            ], 
+            "from": [
+                "input0/out0"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "and0/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }
+    ], 
+    "type": "andtest0", 
+    "name": "andtest00", 
+    "devices": [
+        {
+            "type": "and", 
+            "name": "and0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }
+    ]
+}

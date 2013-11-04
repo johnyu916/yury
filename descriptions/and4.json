@@ -1,6 +1,6 @@
 {
     "name": "and40",
-    "type": "and3",
+    "type": "and4",
     "devices": [
         {
             "name": "resistor0",

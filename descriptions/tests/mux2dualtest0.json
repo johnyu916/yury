@@ -1,0 +1,51 @@
+{
+    "wires": [
+        {
+            "to": [
+                "mux2dual0/in0"
+            ], 
+            "from": [
+                "input0/out0"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "mux2dual0/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "mux2dual0/select"
+            ], 
+            "from": [
+                "input2/out0"
+            ], 
+            "name": "wire2"
+        }
+    ], 
+    "type": "mux2dualtest0", 
+    "name": "mux2dualtest00", 
+    "devices": [
+        {
+            "type": "mux2dual", 
+            "name": "mux2dual0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }
+    ]
+}

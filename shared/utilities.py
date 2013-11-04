@@ -1,12 +1,24 @@
 from settings import LESS_DIR, CSS_DIR
 import shlex
 import subprocess
+import json
 
 def get_primitive_dict():
     '''
     Convert MongoDB document into string
     '''
     pass
+
+
+def write_json(dict_data, file_path):
+    '''
+    Write json_str to file at file_path
+    '''
+    json_str = json.dumps(dict_data, indent=4)
+    json_str_list = json_str.split('\n')
+    with open(file_path, 'w') as t:
+        for json_st in json_str_list:
+            t.write(json_st+'\n')
 
 def update_css():
     '''

@@ -1,0 +1,64 @@
+{
+    "wires": [
+        {
+            "to": [
+                "or2dual0/b0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "or2dual0/b1"
+            ], 
+            "from": [
+                "input1/out1"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "or2dual0/a0"
+            ], 
+            "from": [
+                "input2/out0"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "or2dual0/a1"
+            ], 
+            "from": [
+                "input3/out0"
+            ], 
+            "name": "wire3"
+        }
+    ], 
+    "type": "or2dualtest3", 
+    "name": "or2dualtest30", 
+    "devices": [
+        {
+            "type": "or2dual", 
+            "name": "or2dual0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }
+    ]
+}

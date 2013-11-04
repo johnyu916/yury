@@ -245,8 +245,8 @@
             "name": "wireand15"
         }
     ], 
-    "type": "decoder16dual", 
-    "name": "decoder16dual0", 
+    "type": "decoder4", 
+    "name": "decoder40", 
     "devices": [
         {
             "type": "bridge", 

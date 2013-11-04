@@ -1,0 +1,64 @@
+{
+    "wires": [
+        {
+            "to": [
+                "and40/in0"
+            ], 
+            "from": [
+                "input0/out0"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "and40/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "and40/in2"
+            ], 
+            "from": [
+                "input2/out0"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "and40/in3"
+            ], 
+            "from": [
+                "input3/out1"
+            ], 
+            "name": "wire3"
+        }
+    ], 
+    "type": "and4test8", 
+    "name": "and4test80", 
+    "devices": [
+        {
+            "type": "and4", 
+            "name": "and40"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }
+    ]
+}

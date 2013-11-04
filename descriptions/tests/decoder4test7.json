@@ -1,0 +1,64 @@
+{
+    "wires": [
+        {
+            "to": [
+                "decoder40/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "decoder40/in1"
+            ], 
+            "from": [
+                "input1/out1"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "decoder40/in2"
+            ], 
+            "from": [
+                "input2/out1"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "decoder40/in3"
+            ], 
+            "from": [
+                "input3/out0"
+            ], 
+            "name": "wire3"
+        }
+    ], 
+    "type": "decoder4test7", 
+    "name": "decoder4test70", 
+    "devices": [
+        {
+            "type": "decoder4", 
+            "name": "decoder40"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }
+    ]
+}
