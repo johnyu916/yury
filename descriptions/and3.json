@@ -1,0 +1,89 @@
+{
+    "name": "and30",
+    "type": "and3",
+    "devices": [
+        {
+            "name": "resistor0",
+            "type": "resistor"
+        },
+        {
+            "name": "source0",
+            "type": "source"
+        },
+        {
+            "name": "ground0",
+            "type": "ground"
+        },
+        {
+            "name": "switch0",
+            "type": "switch"
+        },
+        {
+            "name": "switch1",
+            "type": "switch"
+        },
+        {
+            "name": "switch2",
+            "type": "switch"
+        },
+        {
+            "name": "in0",
+            "type": "bridge"
+        },
+        {
+            "name": "in1",
+            "type": "bridge"
+        },
+        {
+            "name": "in2",
+            "type": "bridge"
+        },
+        {
+            "name": "out",
+            "type": "bridge"
+        }
+
+    ],
+    "wires": [
+        {
+            "name": "wire0",
+            "from": ["source0"],
+            "to": ["switch0/from"]
+        },
+        {
+            "name": "wires0",
+            "from": ["switch0"],
+            "to": ["switch1/from"]
+        },
+        {
+            "name": "wires1",
+            "from": ["switch1"],
+            "to": ["switch2/from"]
+        },
+        {
+            "name": "wires2",
+            "from": ["switch2"],
+            "to": ["resistor0", "out"]
+        },
+        {
+            "name": "wire3",
+            "from": ["resistor0"],
+            "to": ["ground0"]
+        },
+        {
+            "name": "wirei0",
+            "from": ["in0"],
+            "to": ["switch0/button"]
+        },
+        {
+            "name": "wirei1",
+            "from": ["in1"],
+            "to": ["switch1/button"]
+        },
+        {
+            "name": "wirei2",
+            "from": ["in2"],
+            "to": ["switch2/button"]
+        }
+    ]
+}

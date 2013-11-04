@@ -1,0 +1,38 @@
+{
+    "wires": [
+        {
+            "to": [
+                "and20/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "and20/in1"
+            ], 
+            "from": [
+                "input1/out1"
+            ], 
+            "name": "wire1"
+        }
+    ], 
+    "type": "and2test3", 
+    "name": "and2test30", 
+    "devices": [
+        {
+            "type": "and2", 
+            "name": "and20"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }
+    ]
+}

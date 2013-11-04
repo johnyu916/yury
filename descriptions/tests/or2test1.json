@@ -1,0 +1,38 @@
+{
+    "wires": [
+        {
+            "to": [
+                "or20/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "or20/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }
+    ], 
+    "type": "or2test1", 
+    "name": "or2test10", 
+    "devices": [
+        {
+            "type": "or2", 
+            "name": "or20"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }
+    ]
+}

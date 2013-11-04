@@ -1,0 +1,243 @@
+{
+    "wires": [
+        {
+            "to": [
+                "not0/in", 
+                "and1/in0", 
+                "and3/in0", 
+                "and5/in0", 
+                "and7/in0"
+            ], 
+            "from": [
+                "in0"
+            ], 
+            "name": "wirein0"
+        }, 
+        {
+            "to": [
+                "and0/in0", 
+                "and2/in0", 
+                "and4/in0", 
+                "and6/in0"
+            ], 
+            "from": [
+                "not0/out"
+            ], 
+            "name": "wirenot0"
+        }, 
+        {
+            "to": [
+                "not1/in", 
+                "and2/in1", 
+                "and3/in1", 
+                "and6/in1", 
+                "and7/in1"
+            ], 
+            "from": [
+                "in1"
+            ], 
+            "name": "wirein1"
+        }, 
+        {
+            "to": [
+                "and0/in1", 
+                "and1/in1", 
+                "and4/in1", 
+                "and5/in1"
+            ], 
+            "from": [
+                "not1/out"
+            ], 
+            "name": "wirenot1"
+        }, 
+        {
+            "to": [
+                "not2/in", 
+                "and4/in2", 
+                "and5/in2", 
+                "and6/in2", 
+                "and7/in2"
+            ], 
+            "from": [
+                "in2"
+            ], 
+            "name": "wirein2"
+        }, 
+        {
+            "to": [
+                "and0/in2", 
+                "and1/in2", 
+                "and2/in2", 
+                "and3/in2"
+            ], 
+            "from": [
+                "not2/out"
+            ], 
+            "name": "wirenot2"
+        }, 
+        {
+            "to": [
+                "out0"
+            ], 
+            "from": [
+                "and0/out"
+            ], 
+            "name": "wireand0"
+        }, 
+        {
+            "to": [
+                "out1"
+            ], 
+            "from": [
+                "and1/out"
+            ], 
+            "name": "wireand1"
+        }, 
+        {
+            "to": [
+                "out2"
+            ], 
+            "from": [
+                "and2/out"
+            ], 
+            "name": "wireand2"
+        }, 
+        {
+            "to": [
+                "out3"
+            ], 
+            "from": [
+                "and3/out"
+            ], 
+            "name": "wireand3"
+        }, 
+        {
+            "to": [
+                "out4"
+            ], 
+            "from": [
+                "and4/out"
+            ], 
+            "name": "wireand4"
+        }, 
+        {
+            "to": [
+                "out5"
+            ], 
+            "from": [
+                "and5/out"
+            ], 
+            "name": "wireand5"
+        }, 
+        {
+            "to": [
+                "out6"
+            ], 
+            "from": [
+                "and6/out"
+            ], 
+            "name": "wireand6"
+        }, 
+        {
+            "to": [
+                "out7"
+            ], 
+            "from": [
+                "and7/out"
+            ], 
+            "name": "wireand7"
+        }
+    ], 
+    "type": "decoder3", 
+    "name": "decoder30", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "in0"
+        }, 
+        {
+            "type": "not", 
+            "name": "not0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in1"
+        }, 
+        {
+            "type": "not", 
+            "name": "not1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in2"
+        }, 
+        {
+            "type": "not", 
+            "name": "not2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out0"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out1"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out2"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out3"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and3"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out4"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and4"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out5"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and5"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out6"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and6"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out7"
+        }, 
+        {
+            "type": "and3", 
+            "name": "and7"
+        }
+    ]
+}
