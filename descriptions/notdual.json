@@ -19,26 +19,26 @@
             "type": "and"
         },
         {
-            "name": "in0",
+            "name": "indown",
             "type": "bridge"
         },
         {
-            "name": "in1",
+            "name": "inup",
             "type": "bridge"
         },
         {
-            "name": "out0",
+            "name": "outdown",
             "type": "bridge"
         },
         {
-            "name": "out1",
+            "name": "outup",
             "type": "bridge"
         }
     ],
     "wires":[
         {
             "name": "wire0",
-            "from": ["in0"],
+            "from": ["indown"],
             "to": ["not0/in", "and1/in0"]
         },
         {
@@ -59,12 +59,12 @@
         {
             "name": "wireand0",
             "from": ["and0/out"],
-            "to": ["out0"]
+            "to": ["outdown"]
         },
         {
             "name": "wireand1",
             "from": ["and1/out"],
-            "to": ["out1"]
+            "to": ["outup"]
         }
     ]
 }

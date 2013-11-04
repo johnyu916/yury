@@ -3,19 +3,19 @@
     "type": "or2dual",
     "devices": [
         {
-            "name": "nota0",
+            "name": "notin1down",
             "type": "not"
         },
         {
-            "name": "nota1",
+            "name": "notin1up",
             "type": "not"
         },
         {
-            "name": "notb0",
+            "name": "notin0down",
             "type": "not"
         },
         {
-            "name": "notb1",
+            "name": "notin0up",
             "type": "not"
         },
         {
@@ -39,69 +39,69 @@
             "type": "or3"
         },
         {
-            "name": "b0",
+            "name": "in0down",
             "type": "bridge"
         },
         {
-            "name": "b1",
+            "name": "in0up",
             "type": "bridge"
         },
         {
-            "name": "a0",
+            "name": "in1down",
             "type": "bridge"
         },
         {
-            "name": "a1",
+            "name": "in1up",
             "type": "bridge"
         },
         {
-            "name": "out0",
+            "name": "outdown",
             "type": "bridge"
         },
         {
-            "name": "out1",
+            "name": "outup",
             "type": "bridge"
         }
     ],
     "wires":[
         {
-            "name": "wireb0",
-            "from": ["b0"],
-            "to": ["notb0/in", "and0/in0", "and12/in0"]
+            "name": "wirein0down",
+            "from": ["in0down"],
+            "to": ["notin0down/in", "and0/in0", "and12/in0"]
         },
         {
-            "name": "wireb1",
-            "from": ["b1"],
-            "to": ["notb1/in", "and10/in0", "and11/in0"]
+            "name": "wirein0up",
+            "from": ["in0up"],
+            "to": ["notin0up/in", "and10/in0", "and11/in0"]
         },
         {
-            "name": "wirea0",
-            "from": ["a0"],
-            "to": ["nota0/in", "and0/in1", "and11/in1"]
+            "name": "wirein1down",
+            "from": ["in1down"],
+            "to": ["notin1down/in", "and0/in1", "and11/in1"]
         },
         {
-            "name": "wirea1",
-            "from": ["a1"],
-            "to": ["nota1/in", "and10/in1", "and12/in1"]
+            "name": "wirein1up",
+            "from": ["in1up"],
+            "to": ["notin1up/in", "and10/in1", "and12/in1"]
         },
         {
-            "name": "wirenotb0",
-            "from": ["notb0/out"],
+            "name": "wirenotin0down",
+            "from": ["notin0down/out"],
             "to": ["and10/in2", "and11/in2"]
         },
         {
-            "name": "wirenotb1",
-            "from": ["notb1/out"],
+            "name": "wirenotin0up",
+            "from": ["notin0up/out"],
             "to": ["and0/in2", "and12/in2"]
         },
         {
-            "name": "wirenota0",
-            "from": ["nota0/out"],
+            "name": "wirenotin1down",
+            "from": ["notin1down/out"],
             "to": ["and10/in3", "and12/in3"]
         },
         {
-            "name": "wirenota1",
-            "from": ["nota1/out"],
+            "name": "wirenotin1up",
+            "from": ["notin1up/out"],
             "to": ["and0/in3", "and11/in3"]
         },
         {
@@ -122,12 +122,12 @@
         {
             "name": "wireor0",
             "from": ["or0/out"],
-            "to": ["out1"]
+            "to": ["outup"]
         },
         {
             "name": "wireand1",
             "from": ["and0/out"],
-            "to": ["out0"]
+            "to": ["outdown"]
         }
     ]
 }
