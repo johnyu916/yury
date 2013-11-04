@@ -60,7 +60,7 @@ def make_mux(number_selects):
         wire = {
             "name": "wirein"+index,
             "from": ["in"+index],
-            "to": ["and"+index+"/in0"]
+            "to": ["and"+index+"/in" + str(number_selects)]
         }
         wires.append(wire)
         # and to or
@@ -91,8 +91,6 @@ def make_mux(number_selects):
     for value_set_index, value_set in enumerate(value_sets):
         value_set = reversed(value_set)
         vi = str(value_set_index)
-        wire = get_wire(wires, 'wirein'+vi)
-        wire['to'].append("and"+vi+"/in"+str(number_selects))
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
@@ -160,7 +158,7 @@ def make_decoder(number_inputs):
         devices.append(device)
         device = {
             "name": "and"+i,
-            "type": "and2"
+            "type": "and" + str(number_inputs)
         }
         devices.append(device)
 
@@ -198,6 +196,7 @@ def make_decoder(number_inputs):
             i = str(index)
             if value:
                 wire = get_wire(wires,'wirein'+i)
+                wire['to'].append("and"+vi+"/in"+i)
             else:
                 wire = get_wire(wires,'wirenot'+i)
                 wire['to'].append("and"+vi+"/in"+i)
@@ -313,11 +312,18 @@ def make_decoder_dual(number_inputs):
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
-                wire = get_wire(wires,'wirein'+i)
-                wire = get_wire(wires,'wirein'+i)
+                wire = get_wire(wires,'wirein'+i+'down')
+                wire['to'].append("and"+vi+"/in"+i+'down')
+                wire = get_wire(wires,'wirein'+i+'up')
+                wire['to'].append("and"+vi+"/in"+i+'up')
             else:
-                wire = get_wire(wires,'wirenot'+i)
-                wire['to'].append("and"+vi+"/in"+i)
+                wire = get_wire(wires,'wirenot'+i+'down')
+                wire['to'].append("and"+vi+"/in"+i+'down')
+                wire = get_wire(wires,'wirenot'+i+'up')
+                wire['to'].append("and"+vi+"/in"+i'up')
+
+    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
+    write_json(data, device_file_path)
 
 
 def main():
