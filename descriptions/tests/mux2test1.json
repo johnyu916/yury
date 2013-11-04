@@ -20,7 +20,7 @@
         }, 
         {
             "to": [
-                "mux20/select"
+                "mux20/select0"
             ], 
             "from": [
                 "input2/out0"

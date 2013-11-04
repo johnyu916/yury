@@ -2,38 +2,38 @@
     "wires": [
         {
             "to": [
-                "mux20/in0"
+                "decoder30/in0"
             ], 
             "from": [
-                "input0/out1"
+                "input0/out0"
             ], 
             "name": "wire0"
         }, 
         {
             "to": [
-                "mux20/in1"
+                "decoder30/in1"
             ], 
             "from": [
-                "input1/out0"
+                "input1/out1"
             ], 
             "name": "wire1"
         }, 
         {
             "to": [
-                "mux20/select0"
+                "decoder30/in2"
             ], 
             "from": [
-                "input2/out1"
+                "input2/out0"
             ], 
             "name": "wire2"
         }
     ], 
-    "type": "mux2test5", 
-    "name": "mux2test50", 
+    "type": "decoder3test2", 
+    "name": "decoder3test20", 
     "devices": [
         {
-            "type": "mux2", 
-            "name": "mux20"
+            "type": "decoder3", 
+            "name": "decoder30"
         }, 
         {
             "type": "input", 
