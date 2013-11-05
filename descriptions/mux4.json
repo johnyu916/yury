@@ -131,54 +131,44 @@
             "type": "bridge", 
             "name": "in0"
         }, 
-        {
-            "type": "and", 
-            "name": "and0"
-        }, 
+        "type", 
+        "name", 
         {
             "type": "bridge", 
             "name": "in1"
         }, 
-        {
-            "type": "and", 
-            "name": "and1"
-        }, 
+        "type", 
+        "name", 
         {
             "type": "bridge", 
             "name": "in2"
         }, 
-        {
-            "type": "and", 
-            "name": "and2"
-        }, 
+        "type", 
+        "name", 
         {
             "type": "bridge", 
             "name": "in3"
         }, 
-        {
-            "type": "and", 
-            "name": "and3"
-        }, 
+        "type", 
+        "name", 
         {
             "type": "bridge", 
-            "name": "select0"
+            "name": "select3"
         }, 
-        {
-            "type": "not", 
-            "name": "not0"
-        }, 
+        "type", 
+        "name", 
+        "type", 
+        "name", 
         {
             "type": "bridge", 
-            "name": "select1"
+            "name": "select3"
         }, 
-        {
-            "type": "not", 
-            "name": "not1"
-        }, 
-        {
-            "type": "or4", 
-            "name": "or0"
-        }, 
+        "type", 
+        "name", 
+        "type", 
+        "name", 
+        "type", 
+        "name", 
         {
             "type": "bridge", 
             "name": "out"

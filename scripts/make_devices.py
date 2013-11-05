@@ -1,7 +1,10 @@
 from shared.utilities import write_json
+import math
+import itertools
+import sys
+from settings import DEVICE_DIR
 
-
-def make_mux(number_selects):
+def make_mux_old(number_selects):
     '''
     Make mux circuit.
     A mux circuit is the following:
@@ -117,12 +120,78 @@ def make_mux(number_selects):
     write_json(data, device_file_path)
 
 
-def make_mux_dual(number_selects):
+def make_mux(number_selects, is_dual):
+    '''
+    Make mux circuit.
+    A mux circuit is the following:
+    O = SA + not(S)B
+    '''
     number_inputs = int(math.pow(2, number_selects))
     device_type = "mux"+str(number_inputs)
+    if is_dual:
+        device_type += "dual"
     devices = []
+    
+    for index in range(number_inputs):
+        #inputs
+        i = str(index)
+        devices.extend(make_bridge("in"+i, is_dual))
+        # need and gates
+        devices.extend(make_device("and"+i, "and"+str(number_selects+1), is_dual))
 
-def make_decoder(number_inputs):
+    for index in range(number_selects):
+        # selects
+        devices.extend(make_bridge("select"+i, is_dual))
+        # nots
+        devices.extend(make_device("not"+i, "not", is_dual))
+
+        # or devices
+        devices.extend(make_device("not"+i, "not", is_dual))
+
+    devices.extend(make_device("or0", "or"+str(number_inputs), is_dual))
+    devices.extend(make_bridge("out", is_dual))
+
+    # wires
+    wires = []
+    for i in range(number_inputs):
+        index = str(i)
+        # input to and
+        to_pin = "and"+index+"/in" + str(number_selects)
+        wires.extend( make_wire("wirein"+index, ["in"+index], [to_pin], is_dual))
+        # and to or
+        wires.extend(make_wire("wireand"+index, ["and"+index+"/out"], ["or0/in"+index], is_dual))
+
+    for index in range(number_selects):
+        # from selector and from not selector
+        i = str(index)
+        wires.extend(make_wire("wireselect"+i, ["select"+i], ["not"+i+"/in"], is_dual))
+        wires.extend(make_wire("wireselectnot"+i, ["not"+i+"/out"], [], is_dual))
+
+    
+    value_sets = itertools.product([False,True], repeat=number_selects)
+    for value_set_index, value_set in enumerate(value_sets):
+        value_set = reversed(value_set)
+        vi = str(value_set_index)
+        for index, value in enumerate(value_set):
+            i = str(index)
+            if value:
+                wire_append(wires, 'wireselect'+i, 'to', 'and'+vi+"/in"+i, is_dual)
+            else:
+                wire_append(wires, 'wireselectnot'+i, 'to', 'and'+vi+"/in"+i, is_dual)
+
+
+    wires.extend(make_wire("wireor0", ["or0/out"], ["out"], is_dual))
+    data = {
+        "name": device_type+"0",
+        "type": device_type,
+        "wires": wires,
+        "devices": devices
+    }
+
+    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
+    write_json(data, device_file_path)
+
+def make_decoder_old(number_inputs):
     number_outputs = int(math.pow(2, number_inputs))
     device_type = "decoder" + str(number_inputs)
     wires = []
@@ -204,9 +273,76 @@ def make_decoder(number_inputs):
     device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
     write_json(data, device_file_path)
 
-def make_decoder_dual(number_inputs):
+def get_wire(wires, name):
+    for wire in wires:
+        if wire['name'] == name:
+            return wire
+    return None
+
+
+def make_bridge(name, is_dual):
+    devices = []
+    if is_dual:
+        for spin in ["down","up"]:
+            device = {
+                "name": name + spin,
+                "type": "bridge"
+            }
+            devices.append(device)
+    else:
+        device = {
+            "name": name,
+            "type": "bridge"
+        }
+        devices.append(device)
+
+    return devices
+
+def make_device(device_name, device_type, is_dual):
+    
+    if is_dual:
+        device_type += "dual"
+    return {
+        "name": device_name,
+        "type": device_type+"dual"
+    }
+
+def make_wire(name, from_list, to_list, is_dual):
+    wires = []
+    if is_dual:
+        for spin in ['down', 'up']:
+            froms = [pin+spin for pin in from_list]
+            tos = [pin+spin for pin in to_list]
+            wire = {
+                "name": name+spin,
+                "from": froms,
+                "to": tos
+            }
+            wires.append(wire)
+    else:
+        wire = {
+            "name": name,
+            "from": from_list,
+            "to": to_list
+        }
+        wires.append(wire)
+    return wires
+
+def wire_append(wires, wire_name, direction, device_name, is_dual):
+    if is_dual:
+        for spin in ['down', 'up']:
+            wire = get_wire(wires, wire_name+spin)
+            wire[direction].append(device_name+spin)
+    else:
+        wire = get_wire(wires, wire_name)
+        wire[direction].append(device_name)
+
+
+def make_decoder(number_inputs, is_dual):
     number_outputs = int(math.pow(2, number_inputs))
-    device_type = "decoder" + str(number_inputs) + "dual"
+    device_type = "decoder" + str(number_inputs)
+    if is_dual:
+        device_type += "dual"
     wires = []
     devices = []
 
@@ -220,88 +356,31 @@ def make_decoder_dual(number_inputs):
     for index in range(number_inputs):
         # inputs
         i = str(index)
-        device = {
-            "name": "in"+i+"down",
-            "type": "bridge"
-        }
-        devices.append(device)
-        device = {
-            "name": "in"+i+"up",
-            "type": "bridge"
-        }
+        name = "in"+i
+        devices.extend(make_bridge(name, is_dual))
         # not gate for every input
-        devices.append(device)
-        device = {
-            "name": "not"+i,
-            "type": "notdual"
-        }
-        devices.append(device)
+        devices.extend(make_device("not"+i, "not", is_dual))
 
     for index in range(number_outputs):
         # outputs
         i = str(index)
-        device = {
-            "name": "out"+i+"down",
-            "type": "bridge"
-        }
-        device = {
-            "name": "out"+i+"up",
-            "type": "bridge"
-        }
-        devices.append(device)
+        name = "out"+i
+        devices.extend(make_bridge(name, is_dual))
         # and gate for every output
-        device = {
-            "name": "and"+i,
-            "type": "and2dual"
-        }
-        devices.append(device)
+        devices.append(make_device("and"+i, "and"+str(number_inputs), is_dual))
 
     for index in range(number_inputs):
         # wire between input and not 
         i = str(index)
-        wire = {
-            "name": "wirein"+i+"down",
-            "from": ["in"+i+"down"],
-            "to": ["not"+i+"/indown"]
-        }
-        wires.append(wire)
-
-        wire = {
-            "name": "wirein"+i+"up",
-            "from": ["in"+i+"up"],
-            "to": ["not"+i+"/inup"]
-        }
-        wires.append(wire)
+        wires.extend( make_wire("wirein"+i, ["in"+i], ["not"+i+"/in"], is_dual))
 
         # wire from not
-        wire = {
-            "name": "wirenot"+i+"down",
-            "from": ["not"+i+"/outdown"],
-            "to": []
-        }
-        wires.append(wire)
-        wire = {
-            "name": "wirenot"+i+"up",
-            "from": ["not"+i+"/outup"],
-            "to": []
-        }
-        wires.append(wire)
+        wires.extend( make_wire("wirenot"+i, ["not"+i+"/out"], [], is_dual))
 
     for index in range(number_outputs):
         # wire from and to out
         i = str(index)
-        wire = {
-            "name": "wireand"+i+"down",
-            "from":["and"+i+"/outdown"],
-            "to":["out"+i+"down"]
-        }
-        wires.append(wire)
-        wire = {
-            "name": "wireand"+i+"up",
-            "from":["and"+i+"/outup"],
-            "to":["out"+i+"up"]
-        }
-        wires.append(wire)
+        wires.extend( make_wire("wireand"+i, ["and"+i+"/out"], ["out"+i], is_dual))
 
     value_sets = itertools.product([False,True], repeat=number_inputs)
     for value_set_index, value_set in enumerate(value_sets):
@@ -312,15 +391,9 @@ def make_decoder_dual(number_inputs):
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
-                wire = get_wire(wires,'wirein'+i+'down')
-                wire['to'].append("and"+vi+"/in"+i+'down')
-                wire = get_wire(wires,'wirein'+i+'up')
-                wire['to'].append("and"+vi+"/in"+i+'up')
+                wire_append(wires, 'wirein'+i, 'to', 'and'+vi+"/in"+i, is_dual)
             else:
-                wire = get_wire(wires,'wirenot'+i+'down')
-                wire['to'].append("and"+vi+"/in"+i+'down')
-                wire = get_wire(wires,'wirenot'+i+'up')
-                wire['to'].append("and"+vi+"/in"+i'up')
+                wire_append(wires, 'wirenot'+i, 'to', 'and'+vi+"/in"+i, is_dual)
 
     device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
     write_json(data, device_file_path)
@@ -330,10 +403,18 @@ def main():
     option = sys.argv[1]
     if option == 'make_mux':
         number_selects = int(sys.argv[2])
-        make_mux(number_selects)
+        if len(sys.argv) > 3:
+            is_dual = True
+        else:
+            is_dual = False
+        make_mux(number_selects, is_dual)
     elif option == 'make_decoder':
         number_inputs = int(sys.argv[2])
-        make_decoder(number_inputs)
+        if len(sys.argv) > 3:
+            is_dual = True
+        else:
+            is_dual = False
+        make_decoder(number_inputs, is_dual)
 
 if __name__ == '__main__':
     main()

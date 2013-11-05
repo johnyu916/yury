@@ -1,96 +1,130 @@
 {
-    "name": "decoder20",
-    "type": "decoder2",
-    "devices": [
-        {
-            "name": "not0",
-            "type": "not"
-        },
-        {
-            "name": "not1",
-            "type": "not"
-        },
-        {
-            "name": "and0",
-            "type": "and"
-        },
-        {
-            "name": "and1",
-            "type": "and"
-        },
-        {
-            "name": "and2",
-            "type": "and"
-        },
-        {
-            "name": "and3",
-            "type": "and"
-        },
-        {
-            "name": "in0",
-            "type": "bridge"
-        },
-        {
-            "name": "in1",
-            "type": "bridge"
-        },
-        {
-            "name": "out0",
-            "type": "bridge"
-        },
-        {
-            "name": "out1",
-            "type": "bridge"
-        },
-        {
-            "name": "out2",
-            "type": "bridge"
-        },
-        {
-            "name": "out3",
-            "type": "bridge"
-        }
-    ],
     "wires": [
         {
-            "name": "wire0",
-            "from": ["in0"],
-            "to": ["not0/in", "and1/in0", "and3/in0"]
-        },
+            "to": [
+                "not0/in", 
+                "and1/in0", 
+                "and3/in0"
+            ], 
+            "from": [
+                "in0"
+            ], 
+            "name": "wirein0"
+        }, 
         {
-            "name": "wire1",
-            "from": ["in1"],
-            "to": ["not1/in", "and2/in1", "and3/in1"]
-        },
+            "to": [
+                "and0/in0", 
+                "and2/in0"
+            ], 
+            "from": [
+                "not0/out"
+            ], 
+            "name": "wirenot0"
+        }, 
         {
-            "name": "wire2",
-            "from": ["not0/out"],
-            "to": ["and0/in0", "and2/in0"]
-        },
+            "to": [
+                "not1/in", 
+                "and2/in1", 
+                "and3/in1"
+            ], 
+            "from": [
+                "in1"
+            ], 
+            "name": "wirein1"
+        }, 
         {
-            "name": "wire3",
-            "from": ["not1/out"],
-            "to": ["and0/in1", "and1/in1"]
-        },
+            "to": [
+                "and0/in1", 
+                "and1/in1"
+            ], 
+            "from": [
+                "not1/out"
+            ], 
+            "name": "wirenot1"
+        }, 
         {
-            "name": "wire4",
-            "from": ["and0/out"],
-            "to": ["out0"]
-        },
+            "to": [
+                "out0"
+            ], 
+            "from": [
+                "and0/out"
+            ], 
+            "name": "wireand0"
+        }, 
         {
-            "name": "wire5",
-            "from": ["and1/out"],
-            "to": ["out1"]
-        },
+            "to": [
+                "out1"
+            ], 
+            "from": [
+                "and1/out"
+            ], 
+            "name": "wireand1"
+        }, 
         {
-            "name": "wire6",
-            "from": ["and2/out"],
-            "to": ["out2"]
-        },
+            "to": [
+                "out2"
+            ], 
+            "from": [
+                "and2/out"
+            ], 
+            "name": "wireand2"
+        }, 
         {
-            "name": "wire7",
-            "from": ["and3/out"],
-            "to": ["out3"]
+            "to": [
+                "out3"
+            ], 
+            "from": [
+                "and3/out"
+            ], 
+            "name": "wireand3"
+        }
+    ], 
+    "type": "decoder2", 
+    "name": "decoder20", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "in0"
+        }, 
+        "type", 
+        "name", 
+        {
+            "type": "bridge", 
+            "name": "in1"
+        }, 
+        "type", 
+        "name", 
+        {
+            "type": "bridge", 
+            "name": "out0"
+        }, 
+        {
+            "type": "and2dual", 
+            "name": "and0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out1"
+        }, 
+        {
+            "type": "and2dual", 
+            "name": "and1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out2"
+        }, 
+        {
+            "type": "and2dual", 
+            "name": "and2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out3"
+        }, 
+        {
+            "type": "and2dual", 
+            "name": "and3"
         }
     ]
 }
