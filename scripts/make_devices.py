@@ -14,7 +14,6 @@ def make_mux_old(number_selects):
     device_type = "mux"+str(number_inputs)
     devices = []
 
-    
     for index in range(number_inputs):
         #inputs
         device = {
@@ -137,18 +136,17 @@ def make_mux(number_selects, is_dual):
         i = str(index)
         devices.extend(make_bridge("in"+i, is_dual))
         # need and gates
-        devices.extend(make_device("and"+i, "and"+str(number_selects+1), is_dual))
+        devices.append(make_device("and"+i, "and"+str(number_selects+1), is_dual))
 
     for index in range(number_selects):
         # selects
+        i = str(index)
         devices.extend(make_bridge("select"+i, is_dual))
         # nots
-        devices.extend(make_device("not"+i, "not", is_dual))
+        devices.append(make_device("not"+i, "not", is_dual))
 
-        # or devices
-        devices.extend(make_device("not"+i, "not", is_dual))
-
-    devices.extend(make_device("or0", "or"+str(number_inputs), is_dual))
+    # or device
+    devices.append(make_device("or0", "or"+str(number_inputs), is_dual))
     devices.extend(make_bridge("out", is_dual))
 
     # wires
@@ -359,7 +357,7 @@ def make_decoder(number_inputs, is_dual):
         name = "in"+i
         devices.extend(make_bridge(name, is_dual))
         # not gate for every input
-        devices.extend(make_device("not"+i, "not", is_dual))
+        devices.append(make_device("not"+i, "not", is_dual))
 
     for index in range(number_outputs):
         # outputs

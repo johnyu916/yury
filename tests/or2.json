@@ -1,0 +1,23 @@
+{
+    "name": "or2test",
+    "steps": 3,
+    "output": ["or20/out"],
+    "tests": [
+        {
+            "device": "or2test0",
+            "expected_value": [false]
+        },
+        {
+            "device": "or2test1",
+            "expected_value": [true]
+        },
+        {
+            "device": "or2test2",
+            "expected_value": [true]
+        },
+        {
+            "device": "or2test3",
+            "expected_value": [true]
+        }
+    ]
+}

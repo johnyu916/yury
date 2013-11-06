@@ -1,0 +1,71 @@
+{
+    "name": "decoder4test",
+    "steps": 5,
+    "output": ["decoder40/out15","decoder40/out14","decoder40/out13","decoder40/out12","decoder40/out11","decoder40/out10","decoder40/out9","decoder40/out8", "decoder40/out7","decoder40/out6","decoder40/out5","decoder40/out4","decoder40/out3","decoder40/out2","decoder40/out1","decoder40/out0"],
+    "tests": [
+        {
+            "device": "decoder4test0",
+            "expected_value": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true]
+        },
+        {
+            "device": "decoder4test1",
+            "expected_value": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false]
+        },
+        {
+            "device": "decoder4test2",
+            "expected_value": [false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false]
+        },
+        {
+            "device": "decoder4test3",
+            "expected_value": [false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, false]
+        },
+        {
+            "device": "decoder4test4",
+            "expected_value": [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false]
+        },
+        {
+            "device": "decoder4test5",
+            "expected_value": [false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test6",
+            "expected_value": [false, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test7",
+            "expected_value": [false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test8",
+            "expected_value": [false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test9",
+            "expected_value": [false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test10",
+            "expected_value": [false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test11",
+            "expected_value": [false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test12",
+            "expected_value": [false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test13",
+            "expected_value": [false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test14",
+            "expected_value": [false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+        },
+        {
+            "device": "decoder4test15",
+            "expected_value": [true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+        }
+    ]
+}

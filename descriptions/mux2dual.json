@@ -1,0 +1,184 @@
+{
+    "wires": [
+        {
+            "to": [
+                "and0/in1down"
+            ], 
+            "from": [
+                "in0down"
+            ], 
+            "name": "wirein0down"
+        }, 
+        {
+            "to": [
+                "and0/in1up"
+            ], 
+            "from": [
+                "in0up"
+            ], 
+            "name": "wirein0up"
+        }, 
+        {
+            "to": [
+                "or0/in0down"
+            ], 
+            "from": [
+                "and0/outdown"
+            ], 
+            "name": "wireand0down"
+        }, 
+        {
+            "to": [
+                "or0/in0up"
+            ], 
+            "from": [
+                "and0/outup"
+            ], 
+            "name": "wireand0up"
+        }, 
+        {
+            "to": [
+                "and1/in1down"
+            ], 
+            "from": [
+                "in1down"
+            ], 
+            "name": "wirein1down"
+        }, 
+        {
+            "to": [
+                "and1/in1up"
+            ], 
+            "from": [
+                "in1up"
+            ], 
+            "name": "wirein1up"
+        }, 
+        {
+            "to": [
+                "or0/in1down"
+            ], 
+            "from": [
+                "and1/outdown"
+            ], 
+            "name": "wireand1down"
+        }, 
+        {
+            "to": [
+                "or0/in1up"
+            ], 
+            "from": [
+                "and1/outup"
+            ], 
+            "name": "wireand1up"
+        }, 
+        {
+            "to": [
+                "not0/indown", 
+                "and1/in0down"
+            ], 
+            "from": [
+                "select0down"
+            ], 
+            "name": "wireselect0down"
+        }, 
+        {
+            "to": [
+                "not0/inup", 
+                "and1/in0up"
+            ], 
+            "from": [
+                "select0up"
+            ], 
+            "name": "wireselect0up"
+        }, 
+        {
+            "to": [
+                "and0/in0down"
+            ], 
+            "from": [
+                "not0/outdown"
+            ], 
+            "name": "wireselectnot0down"
+        }, 
+        {
+            "to": [
+                "and0/in0up"
+            ], 
+            "from": [
+                "not0/outup"
+            ], 
+            "name": "wireselectnot0up"
+        }, 
+        {
+            "to": [
+                "outdown"
+            ], 
+            "from": [
+                "or0/outdown"
+            ], 
+            "name": "wireor0down"
+        }, 
+        {
+            "to": [
+                "outup"
+            ], 
+            "from": [
+                "or0/outup"
+            ], 
+            "name": "wireor0up"
+        }
+    ], 
+    "type": "mux2dual", 
+    "name": "mux2dual0", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "in0down"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in0up"
+        }, 
+        {
+            "type": "and2dualdual", 
+            "name": "and0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in1down"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in1up"
+        }, 
+        {
+            "type": "and2dualdual", 
+            "name": "and1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "select0down"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "select0up"
+        }, 
+        {
+            "type": "notdualdual", 
+            "name": "not0"
+        }, 
+        {
+            "type": "or2dualdual", 
+            "name": "or0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "outdown"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "outup"
+        }
+    ]
+}

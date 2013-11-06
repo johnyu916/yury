@@ -168,8 +168,10 @@
             "type": "bridge", 
             "name": "in0up"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "notdualdual", 
+            "name": "not0"
+        }, 
         {
             "type": "bridge", 
             "name": "in1down"
@@ -178,8 +180,10 @@
             "type": "bridge", 
             "name": "in1up"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "notdualdual", 
+            "name": "not1"
+        }, 
         {
             "type": "bridge", 
             "name": "out0down"

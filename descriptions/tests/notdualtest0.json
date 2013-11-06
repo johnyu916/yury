@@ -8,6 +8,15 @@
                 "input0/out0"
             ], 
             "name": "wire0"
+        }, 
+        {
+            "to": [
+                "notdual0/inup"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
         }
     ], 
     "type": "notdualtest0", 
@@ -20,6 +29,10 @@
         {
             "type": "input", 
             "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
         }
     ]
 }

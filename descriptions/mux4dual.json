@@ -258,8 +258,10 @@
             "type": "bridge", 
             "name": "in0up"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dualdual", 
+            "name": "and0"
+        }, 
         {
             "type": "bridge", 
             "name": "in1down"
@@ -268,8 +270,10 @@
             "type": "bridge", 
             "name": "in1up"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dualdual", 
+            "name": "and1"
+        }, 
         {
             "type": "bridge", 
             "name": "in2down"
@@ -278,8 +282,10 @@
             "type": "bridge", 
             "name": "in2up"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dualdual", 
+            "name": "and2"
+        }, 
         {
             "type": "bridge", 
             "name": "in3down"
@@ -288,34 +294,38 @@
             "type": "bridge", 
             "name": "in3up"
         }, 
-        "type", 
-        "name", 
         {
-            "type": "bridge", 
-            "name": "select3down"
+            "type": "and3dualdual", 
+            "name": "and3"
         }, 
         {
             "type": "bridge", 
-            "name": "select3up"
-        }, 
-        "type", 
-        "name", 
-        "type", 
-        "name", 
-        {
-            "type": "bridge", 
-            "name": "select3down"
+            "name": "select0down"
         }, 
         {
             "type": "bridge", 
-            "name": "select3up"
+            "name": "select0up"
         }, 
-        "type", 
-        "name", 
-        "type", 
-        "name", 
-        "type", 
-        "name", 
+        {
+            "type": "notdualdual", 
+            "name": "not0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "select1down"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "select1up"
+        }, 
+        {
+            "type": "notdualdual", 
+            "name": "not1"
+        }, 
+        {
+            "type": "or4dualdual", 
+            "name": "or0"
+        }, 
         {
             "type": "bridge", 
             "name": "outdown"

@@ -1,0 +1,39 @@
+{
+    "name": "and3test",
+    "steps": 3,
+    "output": ["and30/out"],
+    "tests": [
+        {
+            "device": "and3test0",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test1",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test2",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test3",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test4",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test5",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test6",
+            "expected_value": [false]
+        },
+        {
+            "device": "and3test7",
+            "expected_value": [true]
+        }
+    ]
+}

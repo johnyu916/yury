@@ -86,14 +86,18 @@
             "type": "bridge", 
             "name": "in0"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "notdual", 
+            "name": "not0"
+        }, 
         {
             "type": "bridge", 
             "name": "in1"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "notdual", 
+            "name": "not1"
+        }, 
         {
             "type": "bridge", 
             "name": "out0"

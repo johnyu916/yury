@@ -2,7 +2,7 @@
     "wires": [
         {
             "to": [
-                "notdual0/in0"
+                "notdual0/indown"
             ], 
             "from": [
                 "input0/out1"
@@ -11,7 +11,7 @@
         }, 
         {
             "to": [
-                "notdual0/in1"
+                "notdual0/inup"
             ], 
             "from": [
                 "input1/out1"

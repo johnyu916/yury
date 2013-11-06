@@ -133,7 +133,7 @@ def check_device(filepath):
         for child in devices:
             # device name is unique
             child_name = child['name']
-            assert not child_name in child_infos
+            assert not child_name in child_infos, "{0} is already defined".format(child_name)
             child_type = child['type']
             child_infos[child_name] = child_type
             # ensure type is not recursive
@@ -149,7 +149,7 @@ def check_device(filepath):
                 names = from_device.split('/')
                 assert len(names) in (1,2)
                 name = names[0]
-                assert name in child_infos
+                assert name in child_infos, "{0} not one of the devices".format(name)
                 child_type = child_infos[name]
                 if not child_type in DEVICE_PRIMITIVES:
                     assert len(names) == 2, "{0} needs port".format(from_device)

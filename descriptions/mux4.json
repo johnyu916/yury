@@ -131,44 +131,54 @@
             "type": "bridge", 
             "name": "in0"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dual", 
+            "name": "and0"
+        }, 
         {
             "type": "bridge", 
             "name": "in1"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dual", 
+            "name": "and1"
+        }, 
         {
             "type": "bridge", 
             "name": "in2"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dual", 
+            "name": "and2"
+        }, 
         {
             "type": "bridge", 
             "name": "in3"
         }, 
-        "type", 
-        "name", 
+        {
+            "type": "and3dual", 
+            "name": "and3"
+        }, 
         {
             "type": "bridge", 
-            "name": "select3"
+            "name": "select0"
         }, 
-        "type", 
-        "name", 
-        "type", 
-        "name", 
+        {
+            "type": "notdual", 
+            "name": "not0"
+        }, 
         {
             "type": "bridge", 
-            "name": "select3"
+            "name": "select1"
         }, 
-        "type", 
-        "name", 
-        "type", 
-        "name", 
-        "type", 
-        "name", 
+        {
+            "type": "notdual", 
+            "name": "not1"
+        }, 
+        {
+            "type": "or4dual", 
+            "name": "or0"
+        }, 
         {
             "type": "bridge", 
             "name": "out"

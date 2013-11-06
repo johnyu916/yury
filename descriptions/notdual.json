@@ -43,7 +43,7 @@
         },
         {
             "name": "wire1",
-            "from": ["in1"],
+            "from": ["inup"],
             "to": ["not1/in", "and0/in0"]
         },
         {
