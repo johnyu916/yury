@@ -32,13 +32,6 @@ def update_tests():
             db['tests'].update({'name': json_dict['name']}, json_dict, upsert=True)
 
 
-def get_bridge_type(bridge_name, wires):
-    for wire in wires:
-        wire_from = wire['from']
-        for device_name in wire_from:
-            if device_name == bridge_name:
-                return 'input'
-    return 'output'
 
 
 def make_test_devices(input_limit=6):
@@ -48,15 +41,7 @@ def make_test_devices(input_limit=6):
             print "Reading {0}".format(filepath)
             json_dict = json.loads(f.read())
             # look for input_names
-            bridge_names = [child['name'] for child in json_dict['devices'] if child['type'] == 'bridge']
-            wires = json_dict['wires']
-            input_names = []
-            outputs = []
-            for bridge_name in bridge_names:
-                if get_bridge_type(bridge_name, wires) == 'input':
-                    input_names.append(bridge_name)
-                else:
-                    outputs.append(bridge_name)
+            (input_names, output_names) = get_inputs_outputs(json_dict)
             if len(input_names) > input_limit:
                 print "Not creating tests, too many inputs: {0}".format(len(input_names))
                 continue

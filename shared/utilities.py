@@ -3,6 +3,26 @@ import shlex
 import subprocess
 import json
 
+def get_bridge_type(bridge_name, wires_data):
+    for wire in wires_data:
+        wire_from = wire['from']
+        for device_name in wire_from:
+            if device_name == bridge_name:
+                return 'input'
+    return 'output'
+
+def get_inputs_outputs(device_data):
+    inputs = []
+    outputs = []
+    bridge_names = [child['name'] for child in json_dict['devices'] if child['type'] == 'bridge']
+    wires = json_dict['wires']
+    for bridge_name in bridge_names:
+        if get_bridge_type(bridge_name, wires) == 'input':
+            inputs.append(bridge_name)
+        else:
+            outputs.append(bridge_name)
+    return (inputs, outputs)
+
 def get_primitive_dict():
     '''
     Convert MongoDB document into string
