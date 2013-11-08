@@ -23,7 +23,6 @@ def get_mux_results(number_selects):
     return outputs
 
 
-
 def make_mux2_test():
     device_type = "mux2"
     with open(DEVICE_DIR / device_type + 'json') as f:
@@ -46,13 +45,17 @@ def make_mux2_test():
         'tests': tests
     }
 
-def make_decoder2_test():
+
+def make_decoder_test(number_inputs, is_dual):
     # should be able to make dual and normal versions 
     # also varying number of inputs
-    device_type = 'decoder2dual'
+    number_outputs = int(math.pow(2, number_inputs))
+    device_type = "decoder" + str(number_inputs)
+    if is_dual:
+        device_type += "dual"
+
     with open(DEVICE_DIR / device_type+'json') as f:
         device_data = json.loads(f.read())
-
 
     test = {
         "name": device_type +"test",

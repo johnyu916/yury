@@ -1,23 +1,13 @@
 {
     "name": "decoder2test",
+    "device": "decoder2",
     "steps": 5,
-    "output": ["decoder20/out3","decoder20/out2","decoder20/out1","decoder20/out0"],
+    "input": ["in0", "in1"]
+    "output": ["out0","out1","out2","out3"],
     "tests": [
-        {
-            "device": "decoder2test0",
-            "expected_value": [false, false, false, true]
-        },
-        {
-            "device": "decoder2test1",
-            "expected_value": [false, false, true, false]
-        },
-        {
-            "device": "decoder2test2",
-            "expected_value": [false, true, false, false]
-        },
-        {
-            "device": "decoder2test3",
-            "expected_value": [true, false, false, false]
-        }
+    { "i": [0, 0], "o": [1,0,0,0]},
+    { "i": [1, 0], "o": [0,1,0,0]},
+    { "i": [0, 1], "o": [0,0,1,0]},
+    { "i": [1, 1], "o": [0,0,0,1]}
     ]
 }
