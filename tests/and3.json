@@ -1,39 +1,17 @@
 {
     "name": "and3test",
+    "device": "and3",
     "steps": 3,
-    "output": ["and30/out"],
+    "input": ["in0", "in1", "in2"],
+    "output": ["out"],
     "tests": [
-        {
-            "device": "and3test0",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test1",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test2",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test3",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test4",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test5",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test6",
-            "expected_value": [false]
-        },
-        {
-            "device": "and3test7",
-            "expected_value": [true]
-        }
+    { "i": [0, 0, 0], "o": [0] },
+    { "i": [1, 0, 0], "o": [0] },
+    { "i": [0, 1, 0], "o": [0] },
+    { "i": [1, 1, 0], "o": [0] },
+    { "i": [0, 0, 1], "o": [0] },
+    { "i": [1, 0, 1], "o": [0] },
+    { "i": [0, 1, 1], "o": [0] },
+    { "i": [1, 1, 1], "o": [1] }
     ]
 }

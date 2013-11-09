@@ -14,8 +14,8 @@ def get_bridge_type(bridge_name, wires_data):
 def get_inputs_outputs(device_data):
     inputs = []
     outputs = []
-    bridge_names = [child['name'] for child in json_dict['devices'] if child['type'] == 'bridge']
-    wires = json_dict['wires']
+    bridge_names = [child['name'] for child in device_data['devices'] if child['type'] == 'bridge']
+    wires = device_data['wires']
     for bridge_name in bridge_names:
         if get_bridge_type(bridge_name, wires) == 'input':
             inputs.append(bridge_name)

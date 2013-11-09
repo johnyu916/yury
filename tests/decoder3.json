@@ -1,39 +1,17 @@
 {
     "name": "decoder3test",
+    "device": "decoder3",
     "steps": 5,
-    "output": ["decoder30/out7","decoder30/out6","decoder30/out5","decoder30/out4","decoder30/out3","decoder30/out2","decoder30/out1","decoder30/out0"],
+    "input": ["in0", "in1", "in2"],
+    "output": ["out0","out1","out2","out3","out4","out5","out6","out7"],
     "tests": [
-        {
-            "device": "decoder3test0",
-            "expected_value": [false, false, false, false, false, false, false, true]
-        },
-        {
-            "device": "decoder3test1",
-            "expected_value": [false, false, false, false, false, false, true, false]
-        },
-        {
-            "device": "decoder3test2",
-            "expected_value": [false, false, false, false, false, true, false, false]
-        },
-        {
-            "device": "decoder3test3",
-            "expected_value": [false, false, false, false, true, false, false, false]
-        },
-        {
-            "device": "decoder3test4",
-            "expected_value": [false, false, false, true, false, false, false, false]
-        },
-        {
-            "device": "decoder3test5",
-            "expected_value": [false, false, true, false, false, false, false, false]
-        },
-        {
-            "device": "decoder3test6",
-            "expected_value": [false, true, false, false, false, false, false, false]
-        },
-        {
-            "device": "decoder3test7",
-            "expected_value": [true, false, false, false, false, false, false, false]
-        }
+    { "i": [0, 0, 0], "o": [1,0,0,0,0,0,0,0]},
+    { "i": [1, 0, 0], "o": [0,1,0,0,0,0,0,0]},
+    { "i": [0, 1, 0], "o": [0,0,1,0,0,0,0,0]},
+    { "i": [1, 1, 0], "o": [0,0,0,1,0,0,0,0]},
+    { "i": [0, 0, 1], "o": [0,0,0,0,1,0,0,0]},
+    { "i": [1, 0, 1], "o": [0,0,0,0,0,1,0,0]},
+    { "i": [0, 1, 1], "o": [0,0,0,0,0,0,1,0]},
+    { "i": [1, 1, 1], "o": [0,0,0,0,0,0,0,1]}
     ]
 }

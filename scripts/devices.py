@@ -32,9 +32,14 @@ def update_tests():
             db['tests'].update({'name': json_dict['name']}, json_dict, upsert=True)
 
 
+def make_tests_devices():
+    for filepath in TESTS_DIR.files('*.json'):
+        print "Reading {0}".format(filepath)
+        with open(filepath) as f:
+            test_dict = json.loads(f.read())
+            make_tests_device(test_dict)
 
-
-def make_test_devices(input_limit=6):
+def make_test_devices_old(input_limit=6):
     # if there are 6 inputs, then 2^6=64 files will be created.
     for filepath in DEVICE_DIR.files('*.json'):
         with open(filepath) as f:
@@ -50,39 +55,52 @@ def make_test_devices(input_limit=6):
             for value_set_index, value_set in enumerate(value_sets):
                 value_set = reversed(value_set)
                 device_type = json_dict['type']
-                test_type = device_type + 'test' + str(value_set_index)
-                device_dict = {
-                    'name': test_type + '0',
-                    'type': test_type
-                }
-                device_name = device_type + '0'
-                devices = [
-                    {
-                        'name': device_name,
-                        'type': device_type
-                    }
-                ]
-                wires = []
-                for index, input_name in enumerate(input_names):
-                    device = { 'name': 'input'+ str(index), 'type':'input' }
-                    devices.append(device)
-                    wire = {
-                        'name': 'wire'+str(index),
-                        'from': [],
-                        'to': [device_name + '/' + input_name]
-                    }
-                    wires.append(wire)
-                for index, value in enumerate(value_set):
-                    wire = wires[index]
-                    if value:
-                        out = 'out1'
-                    else:
-                        out = 'out0'
-                    wire['from'].append('input' + str(index) + '/' + out)
-                device_dict['devices'] = devices
-                device_dict['wires'] = wires
-                device_file_path = str(DEVICE_TESTS_DIR) + '/' + test_type + '.json'
-                write_json(device_dict, device_file_path)
+                make_test_device(device_type, input_names, input_values, index)
+
+
+def make_tests_device(test_dict):
+    device_type = test_dict['device']
+    input_names = test_dict['input']
+    for index, test in enumerate(test_dict['tests']):
+        make_test_device(device_type, input_names, test['i'], index)
+
+def make_test_device(device_type, input_names, input_values, index):
+    # Make a test device 
+    test_type = device_type + 'test' + str(index)
+    device_dict = {
+        'name': test_type + '0',
+        'type': test_type
+    }
+    device_name = device_type + '0'
+    devices = [
+        {
+            'name': device_name,
+            'type': device_type
+        }
+    ]
+    wires = []
+    for index, input_name in enumerate(input_names):
+        # construct inputs
+        device = { 'name': 'input'+ str(index), 'type':'input' }
+        devices.append(device)
+        wire = {
+            'name': 'wire'+str(index),
+            'from': [],
+            'to': [device_name + '/' + input_name]
+        }
+        wires.append(wire)
+    for index, value in enumerate(input_values):
+        # construct outputs
+        wire = wires[index]
+        if value:
+            out = 'out1'
+        else:
+            out = 'out0'
+        wire['from'].append('input' + str(index) + '/' + out)
+    device_dict['devices'] = devices
+    device_dict['wires'] = wires
+    device_file_path = str(DEVICE_TESTS_DIR) + '/' + test_type + '.json'
+    write_json(device_dict, device_file_path)
 
 def get_wire(wires, name):
     for wire in wires:
@@ -175,8 +193,8 @@ def main():
         check_devices()
     if option == 'update_db':
         update_db()
-    elif option == 'make_test_devices':
-        make_test_devices()
+    elif option == 'make_tests_devices':
+        make_tests_devices()
     elif option == 'update_tests':
         update_tests()
 

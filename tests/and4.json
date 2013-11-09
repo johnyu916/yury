@@ -1,71 +1,25 @@
 {
     "name": "and4test",
+    "device": "and4",
     "steps": 3,
-    "output": ["and40/out"],
+    "input": ["in0", "in1", "in2", "in3"],
+    "output": ["out"],
     "tests": [
-        {
-            "device": "and4test0",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test1",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test2",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test3",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test4",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test5",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test6",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test7",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test8",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test9",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test10",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test11",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test12",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test13",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test14",
-            "expected_value": [false]
-        },
-        {
-            "device": "and4test15",
-            "expected_value": [true]
-        }
+    { "i": [0, 0, 0, 0], "o": [0] },
+    { "i": [1, 0, 0, 0], "o": [0] },
+    { "i": [0, 1, 0, 0], "o": [0] },
+    { "i": [1, 1, 0, 0], "o": [0] },
+    { "i": [0, 0, 1, 0], "o": [0] },
+    { "i": [1, 0, 1, 0], "o": [0] },
+    { "i": [0, 1, 1, 0], "o": [0] },
+    { "i": [1, 1, 1, 0], "o": [0] },
+    { "i": [0, 0, 0, 1], "o": [0] },
+    { "i": [1, 0, 0, 1], "o": [0] },
+    { "i": [0, 1, 0, 1], "o": [0] },
+    { "i": [1, 1, 0, 1], "o": [0] },
+    { "i": [0, 0, 1, 1], "o": [0] },
+    { "i": [1, 0, 1, 1], "o": [0] },
+    { "i": [0, 1, 1, 1], "o": [0] },
+    { "i": [1, 1, 1, 1], "o": [1] }
     ]
 }

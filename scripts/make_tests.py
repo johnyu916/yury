@@ -1,3 +1,9 @@
+import json
+import itertools
+import sys
+from settings import DEVICE_DIR, TESTS_DIR
+from shared.utilities import get_inputs_outputs, write_json
+
 
 def get_mux_results(number_selects):
     number_inputs = pow(2,number_selects)
@@ -23,7 +29,7 @@ def get_mux_results(number_selects):
     return outputs
 
 
-def make_mux2_test():
+def make_mux2_test(number_selects):
     device_type = "mux2"
     with open(DEVICE_DIR / device_type + 'json') as f:
         device_data =json.loads(f.read())
@@ -49,39 +55,50 @@ def make_mux2_test():
 def make_decoder_test(number_inputs, is_dual):
     # should be able to make dual and normal versions 
     # also varying number of inputs
-    number_outputs = int(math.pow(2, number_inputs))
     device_type = "decoder" + str(number_inputs)
     if is_dual:
         device_type += "dual"
 
-    with open(DEVICE_DIR / device_type+'json') as f:
+    with open(DEVICE_DIR / device_type+'.json') as f:
         device_data = json.loads(f.read())
 
+    (input_names, output_names) = get_inputs_outputs(device_data)
     test = {
         "name": device_type +"test",
+        "device": device_type,
         "steps": 5,
     }
 
-    (input_names, output_names) = get_inputs_outputs(device_data)
-    test['output'] = [device_type+'0/'+output for output in output_names]
+    test['input'] = [input_name for input_name in input_names]
+    test['output'] = [output for output in output_names]
    
     tests = []
-    for number in range(len(output_names)):
+    value_sets = itertools.product([0,1], repeat=len(input_names))
+    for number, inputs in enumerate(value_sets):
         values = []
         for inner_number in range(len(output_names)):
             if inner_number == number:
-                values.append(True)
+                values.append(1)
             else:
-                values.append(False)
-        test = {
-            'device': device_type + "test" + str(number),
-            'expected_value': values
+                values.append(0)
+        test_case = {
+            'i': inputs,
+            'o': values
         }
-        tests.append(test)
+        tests.append(test_case)
     test['tests'] = tests
+    test_file_path = str(TESTS_DIR) + '/' + device_type + '.json'
+    write_json(test, test_file_path)
 
 def main():
-    pass
+    option = sys.argv[1]
+    if option == 'decoder':
+        number_inputs = int(sys.argv[2])
+        if len(sys.argv) > 3:
+            is_dual = True
+        else:
+            is_dual = False
+        make_decoder_test(number_inputs, is_dual)
 
 if __name__ == '__main__':
     main()

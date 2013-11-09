@@ -14,7 +14,7 @@
                 "and2dual0/in0up"
             ], 
             "from": [
-                "input1/out0"
+                "input1/out1"
             ], 
             "name": "wire1"
         }, 
@@ -23,7 +23,7 @@
                 "and2dual0/in1down"
             ], 
             "from": [
-                "input2/out1"
+                "input2/out0"
             ], 
             "name": "wire2"
         }, 

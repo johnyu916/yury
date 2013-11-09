@@ -2,7 +2,7 @@
     "name": "decoder2test",
     "device": "decoder2",
     "steps": 5,
-    "input": ["in0", "in1"]
+    "input": ["in0", "in1"],
     "output": ["out0","out1","out2","out3"],
     "tests": [
     { "i": [0, 0], "o": [1,0,0,0]},
