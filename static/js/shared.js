@@ -1,3 +1,6 @@
+/*
+ * Return -1 if token not found in array
+ */
 function array_index(array, token){
     var i = array.length;
     while (i--){

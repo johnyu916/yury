@@ -2,7 +2,15 @@
     "wires": [
         {
             "to": [
-                "not0/in"
+                "not0/in", 
+                "and1/in0", 
+                "and3/in0", 
+                "and5/in0", 
+                "and7/in0", 
+                "and9/in0", 
+                "and11/in0", 
+                "and13/in0", 
+                "and15/in0"
             ], 
             "from": [
                 "in0"
@@ -27,7 +35,15 @@
         }, 
         {
             "to": [
-                "not1/in"
+                "not1/in", 
+                "and2/in1", 
+                "and3/in1", 
+                "and6/in1", 
+                "and7/in1", 
+                "and10/in1", 
+                "and11/in1", 
+                "and14/in1", 
+                "and15/in1"
             ], 
             "from": [
                 "in1"
@@ -52,7 +68,15 @@
         }, 
         {
             "to": [
-                "not2/in"
+                "not2/in", 
+                "and4/in2", 
+                "and5/in2", 
+                "and6/in2", 
+                "and7/in2", 
+                "and12/in2", 
+                "and13/in2", 
+                "and14/in2", 
+                "and15/in2"
             ], 
             "from": [
                 "in2"
@@ -77,7 +101,15 @@
         }, 
         {
             "to": [
-                "not3/in"
+                "not3/in", 
+                "and8/in3", 
+                "and9/in3", 
+                "and10/in3", 
+                "and11/in3", 
+                "and12/in3", 
+                "and13/in3", 
+                "and14/in3", 
+                "and15/in3"
             ], 
             "from": [
                 "in3"
@@ -285,7 +317,7 @@
             "name": "out0"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and0"
         }, 
         {
@@ -293,7 +325,7 @@
             "name": "out1"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and1"
         }, 
         {
@@ -301,7 +333,7 @@
             "name": "out2"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and2"
         }, 
         {
@@ -309,7 +341,7 @@
             "name": "out3"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and3"
         }, 
         {
@@ -317,7 +349,7 @@
             "name": "out4"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and4"
         }, 
         {
@@ -325,7 +357,7 @@
             "name": "out5"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and5"
         }, 
         {
@@ -333,7 +365,7 @@
             "name": "out6"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and6"
         }, 
         {
@@ -341,7 +373,7 @@
             "name": "out7"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and7"
         }, 
         {
@@ -349,7 +381,7 @@
             "name": "out8"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and8"
         }, 
         {
@@ -357,7 +389,7 @@
             "name": "out9"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and9"
         }, 
         {
@@ -365,7 +397,7 @@
             "name": "out10"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and10"
         }, 
         {
@@ -373,7 +405,7 @@
             "name": "out11"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and11"
         }, 
         {
@@ -381,7 +413,7 @@
             "name": "out12"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and12"
         }, 
         {
@@ -389,7 +421,7 @@
             "name": "out13"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and13"
         }, 
         {
@@ -397,7 +429,7 @@
             "name": "out14"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and14"
         }, 
         {
@@ -405,7 +437,7 @@
             "name": "out15"
         }, 
         {
-            "type": "and2", 
+            "type": "and4", 
             "name": "and15"
         }
     ]

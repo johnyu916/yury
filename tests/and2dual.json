@@ -4,7 +4,7 @@
     "device": "and2dual",
     "steps": 3,
     "input": ["in0down", "in0up", "in1down", "in1up"],
-    "output": ["out0down", "out0up"],
+    "output": ["outdown", "outup"],
     "tests": [
     { "i": [0, 0, 0, 0], "o": [0, 0] },
     { "i": [0, 0, 1, 0], "o": [0, 0] },

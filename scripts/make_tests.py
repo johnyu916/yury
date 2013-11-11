@@ -75,6 +75,7 @@ def make_decoder_test(number_inputs, is_dual):
     tests = []
     value_sets = itertools.product([0,1], repeat=len(input_names))
     for number, inputs in enumerate(value_sets):
+        inputs = inputs[::-1]
         values = []
         for inner_number in range(len(output_names)):
             if inner_number == number:

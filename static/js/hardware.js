@@ -57,10 +57,10 @@ function parse_wire_links(wire, path_list, device_map, device_pin, prefix){
     device_list = [];
     for (var i = 0; i < path_list.length; i++){
         var path = path_list[i];
-        var tokens = path.split('/');
         var device_name = prefix + path;
         if (!(device_name in device_map)){
             //console.log("parse_wire not in device map: " + device_name);
+            var tokens = path.split('/');
             var length = tokens.length;
             device_name = prefix + tokens[length-2];
             device_pin = tokens[length-1];
@@ -100,24 +100,27 @@ function find_element(element, args){
 
 function run_test_package(test_package){
     var config = test_package['config'];
-    console.log("Running test package: " + config['name']);
+    var test_name = config['name'];
+    console.log("Running test package: " + test_name);
     var devices_data = test_package['devices'];
     var tests = config['tests'];
     var steps = config.steps;
     var passed = 0;
     for (var i = 0; i < tests.length; i++){
+        // Run every test
         var test = tests[i];
-        console.log("Running test on: " + test.device);
-        var sources = construct_device(devices_data, test.device);
+        var test_device_type = test_name+i;
+        console.log("Running test on: " + test_device_type);
+        var sources = construct_device(devices_data, test_device_type);
         //now run steps
         var counter = steps;
         while (counter--){
             run_step(sources);
         }
-        var device_data = get_device_data(devices_data, test.device);
+        var device_data = get_device_data(devices_data, test_device_type);
         var output_names = [];
         for (var j = 0; j < config.output.length; j++){
-            var output_name = '/' + device_data.name + '/' + config.output[j];
+            var output_name = '/' + device_data.name + '/' + config.device+ '0/' + config.output[j];
             console.log("output name " + output_name);
             output_names.push(output_name);
         }
@@ -129,11 +132,10 @@ function run_test_package(test_package){
         var all_equal = true;
         for (var j = 0; j < args.names.length; j++){
             var element_name = args.names[j];
-            //var element = args.elements[args.names[j]];
             var element = args.elements[element_name];
             console.log('element: '+element);
-            console.log('expected_values: ' + test.expected_value[j] + ' actual: ' + element.from.voltage);
-            if (test.expected_value[j] == element.from.voltage){
+            console.log('expected_value: ' + test.o[j] + ' actual: ' + element.from.voltage);
+            if (test.o[j] == element.from.voltage){
             }
             else{
                 all_equal = false;

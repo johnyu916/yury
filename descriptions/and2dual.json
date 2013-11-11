@@ -55,11 +55,11 @@
             "type": "bridge"
         },
         {
-            "name": "out0down",
+            "name": "outdown",
             "type": "bridge"
         },
         {
-            "name": "out0up",
+            "name": "outup",
             "type": "bridge"
         }
     ],
@@ -122,12 +122,12 @@
         {
             "name": "wireor0",
             "from": ["or0/out"],
-            "to": ["out0down"]
+            "to": ["outdown"]
         },
         {
             "name": "wireand1",
             "from": ["and1/out"],
-            "to": ["out0up"]
+            "to": ["outup"]
         }
     ]
 }

@@ -1,4 +1,5 @@
 /*
+ * array_index from shared.js
  * Classes for electornic circuit components.
  * Current flows in a direction from source to ground.
  * the wires "plug" into pins.
@@ -190,8 +191,8 @@ function device_dict(device){
     return data;
 }
 
-/* Make devices and wires from dict data.
- *
+/*
+ * Make devices and wires from dict data.
  */
 function construct_device(devices_data, device_type){
     var device_data = get_device_data(devices_data, device_type);
@@ -199,12 +200,17 @@ function construct_device(devices_data, device_type){
     return construct_device_inner(devices_data, device_data, device_map, '/');
 }
 
+/*
+ * Construct inner.
+ */
 function construct_device_inner(devices_data, device_data, device_map, prefix){
     var name = device_data['name'];
     var new_prefix = prefix + name + '/';
     console.log("construct_device name: " + name);
     var children_data = device_data['devices'];
     var sources = [];
+
+    // construct devices.
     for (var i = 0; i < children_data.length; i++){
         var child_data = children_data[i];
         //console.log("construct_device child name: " + child_data['name']);
