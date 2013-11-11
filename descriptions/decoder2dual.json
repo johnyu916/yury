@@ -169,7 +169,7 @@
             "name": "in0up"
         }, 
         {
-            "type": "notdualdual", 
+            "type": "notdual", 
             "name": "not0"
         }, 
         {
@@ -181,7 +181,7 @@
             "name": "in1up"
         }, 
         {
-            "type": "notdualdual", 
+            "type": "notdual", 
             "name": "not1"
         }, 
         {
@@ -193,7 +193,7 @@
             "name": "out0up"
         }, 
         {
-            "type": "and2dualdual", 
+            "type": "and2dual", 
             "name": "and0"
         }, 
         {
@@ -205,7 +205,7 @@
             "name": "out1up"
         }, 
         {
-            "type": "and2dualdual", 
+            "type": "and2dual", 
             "name": "and1"
         }, 
         {
@@ -217,7 +217,7 @@
             "name": "out2up"
         }, 
         {
-            "type": "and2dualdual", 
+            "type": "and2dual", 
             "name": "and2"
         }, 
         {
@@ -229,7 +229,7 @@
             "name": "out3up"
         }, 
         {
-            "type": "and2dualdual", 
+            "type": "and2dual", 
             "name": "and3"
         }
     ]

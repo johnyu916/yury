@@ -61,8 +61,13 @@ def get_tests():
 
 
 def get_test_package(test_document):
+    ''' 
+    Return all files necessary for test
+    '''
     test_document['_id'] = str(test_document['_id'])
-    device_types = [test['device'] for test in test_document['tests']]
+    test_name = test_document['name']
+    device_types = [test_name+str(index) for index in range(len(test_document['tests']))]
+    #device_types = [test['device'] for test in test_document['tests']]
     device_documents = []
     for device_type in device_types:
         fill_devices(device_documents, device_type)

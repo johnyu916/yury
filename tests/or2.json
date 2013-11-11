@@ -1,23 +1,13 @@
 {
     "name": "or2test",
+    "device": "or2",
     "steps": 3,
-    "output": ["or20/out"],
+    "input": ["in0", "in1"],
+    "output": ["out"],
     "tests": [
-        {
-            "device": "or2test0",
-            "expected_value": [false]
-        },
-        {
-            "device": "or2test1",
-            "expected_value": [true]
-        },
-        {
-            "device": "or2test2",
-            "expected_value": [true]
-        },
-        {
-            "device": "or2test3",
-            "expected_value": [true]
-        }
+        { "i": [0, 0], "o": [0] },
+        { "i": [1, 0], "o": [1] },
+        { "i": [0, 1], "o": [1] },
+        { "i": [1, 1], "o": [1] }
     ]
 }

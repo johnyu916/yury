@@ -1,0 +1,126 @@
+{
+    "wires": [
+        {
+            "to": [
+                "switch0", 
+                "switch1", 
+                "switch2", 
+                "switch3"
+            ], 
+            "from": [
+                "source0"
+            ], 
+            "name": "sourcetoswitch"
+        }, 
+        {
+            "to": [
+                "resistor0", 
+                "out"
+            ], 
+            "from": [
+                "switch0", 
+                "switch1", 
+                "switch2", 
+                "switch3"
+            ], 
+            "name": "switchtoresistor"
+        }, 
+        {
+            "to": [
+                "ground0"
+            ], 
+            "from": [
+                "resistor0"
+            ], 
+            "name": "wireresistor"
+        }, 
+        {
+            "to": [
+                "switch0/button"
+            ], 
+            "from": [
+                "in0"
+            ], 
+            "name": "wireinput0"
+        }, 
+        {
+            "to": [
+                "switch1/button"
+            ], 
+            "from": [
+                "in1"
+            ], 
+            "name": "wireinput1"
+        }, 
+        {
+            "to": [
+                "switch2/button"
+            ], 
+            "from": [
+                "in2"
+            ], 
+            "name": "wireinput2"
+        }, 
+        {
+            "to": [
+                "switch3/button"
+            ], 
+            "from": [
+                "in3"
+            ], 
+            "name": "wireinput3"
+        }
+    ], 
+    "type": "or4", 
+    "name": "or40", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "in0"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in1"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in2"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in3"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch3"
+        }, 
+        {
+            "type": "source", 
+            "name": "source0"
+        }, 
+        {
+            "type": "resistor", 
+            "name": "resistor0"
+        }, 
+        {
+            "type": "ground", 
+            "name": "ground0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out"
+        }
+    ]
+}

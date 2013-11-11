@@ -2,39 +2,21 @@
     "wires": [
         {
             "to": [
-                "decoder20/in0down"
+                "decoder20/in0"
             ], 
             "from": [
-                "input0/out1"
+                "input0/out0"
             ], 
             "name": "wire0"
         }, 
         {
             "to": [
-                "decoder20/in0up"
+                "decoder20/in1"
             ], 
             "from": [
-                "input1/out0"
+                "input1/out1"
             ], 
             "name": "wire1"
-        }, 
-        {
-            "to": [
-                "decoder20/in1down"
-            ], 
-            "from": [
-                "input2/out0"
-            ], 
-            "name": "wire2"
-        }, 
-        {
-            "to": [
-                "decoder20/in1up"
-            ], 
-            "from": [
-                "input3/out1"
-            ], 
-            "name": "wire3"
         }
     ], 
     "type": "decoder2test2", 
@@ -51,14 +33,6 @@
         {
             "type": "input", 
             "name": "input1"
-        }, 
-        {
-            "type": "input", 
-            "name": "input2"
-        }, 
-        {
-            "type": "input", 
-            "name": "input3"
         }
     ]
 }

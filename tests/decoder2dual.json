@@ -1,6 +1,6 @@
 {
-    "name": "decoder2test",
-    "device": "decoder2",
+    "name": "decoder2dualtest",
+    "device": "decoder2dual",
     "steps": 5,
     "input": ["in0down", "in0up", "in1down", "in1up"],
     "output": ["out0down", "out0up", "out1down", "out1up",

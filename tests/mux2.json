@@ -1,6 +1,7 @@
 {
     "_comment":"input2 is select",
     "name": "mux2test",
+    "device": "mux2",
     "steps": 6,
     "input": ["in0", "in1", "select0"],
     "output": ["out"],

@@ -39,24 +39,6 @@ def make_tests_devices():
             test_dict = json.loads(f.read())
             make_tests_device(test_dict)
 
-def make_test_devices_old(input_limit=6):
-    # if there are 6 inputs, then 2^6=64 files will be created.
-    for filepath in DEVICE_DIR.files('*.json'):
-        with open(filepath) as f:
-            print "Reading {0}".format(filepath)
-            json_dict = json.loads(f.read())
-            # look for input_names
-            (input_names, output_names) = get_inputs_outputs(json_dict)
-            if len(input_names) > input_limit:
-                print "Not creating tests, too many inputs: {0}".format(len(input_names))
-                continue
-
-            value_sets = itertools.product([False,True], repeat=len(input_names))
-            for value_set_index, value_set in enumerate(value_sets):
-                value_set = reversed(value_set)
-                device_type = json_dict['type']
-                make_test_device(device_type, input_names, input_values, index)
-
 
 def make_tests_device(test_dict):
     device_type = test_dict['device']
@@ -183,7 +165,7 @@ def main():
     if len(sys.argv) == 1:
         check_devices(dont_stop=False)
         update_db()
-        make_test_devices()
+        make_tests_devices()
         update_db()
         update_tests()
         return

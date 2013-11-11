@@ -87,7 +87,7 @@
             "name": "in0"
         }, 
         {
-            "type": "notdual", 
+            "type": "not", 
             "name": "not0"
         }, 
         {
@@ -95,7 +95,7 @@
             "name": "in1"
         }, 
         {
-            "type": "notdual", 
+            "type": "not", 
             "name": "not1"
         }, 
         {
@@ -103,7 +103,7 @@
             "name": "out0"
         }, 
         {
-            "type": "and2dual", 
+            "type": "and2", 
             "name": "and0"
         }, 
         {
@@ -111,7 +111,7 @@
             "name": "out1"
         }, 
         {
-            "type": "and2dual", 
+            "type": "and2", 
             "name": "and1"
         }, 
         {
@@ -119,7 +119,7 @@
             "name": "out2"
         }, 
         {
-            "type": "and2dual", 
+            "type": "and2", 
             "name": "and2"
         }, 
         {
@@ -127,7 +127,7 @@
             "name": "out3"
         }, 
         {
-            "type": "and2dual", 
+            "type": "and2", 
             "name": "and3"
         }
     ]

@@ -73,7 +73,7 @@
             "name": "in0"
         }, 
         {
-            "type": "and", 
+            "type": "and2", 
             "name": "and0"
         }, 
         {
@@ -81,7 +81,7 @@
             "name": "in1"
         }, 
         {
-            "type": "and", 
+            "type": "and2", 
             "name": "and1"
         }, 
         {

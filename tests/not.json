@@ -1,15 +1,11 @@
 {
     "name": "nottest",
+    "device": "not",
     "steps": 3,
-    "output": ["not0/out"],
+    "input": ["in"],
+    "output": ["out"],
     "tests": [
-        {
-            "device": "nottest0",
-            "expected_value": [true]
-        },
-        {
-            "device": "nottest1",
-            "expected_value": [false]
-        }
+    { "i": [0], "o": [1]},
+    { "i": [1], "o": [0]}
     ]
 }

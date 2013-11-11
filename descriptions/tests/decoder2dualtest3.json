@@ -5,7 +5,7 @@
                 "decoder2dual0/in0down"
             ], 
             "from": [
-                "input0/out1"
+                "input0/out0"
             ], 
             "name": "wire0"
         }, 
@@ -32,7 +32,7 @@
                 "decoder2dual0/in1up"
             ], 
             "from": [
-                "input3/out0"
+                "input3/out1"
             ], 
             "name": "wire3"
         }

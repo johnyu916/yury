@@ -1,76 +1,25 @@
 {
     "name": "or2dualtest",
+    "device": "or2dual",
     "steps": 3,
-    "output": ["or2dual0/out1", "or2dual0/out0"],
+    "input": ["in0down", "in0up", "in1down", "in1up"],
+    "output": ["outdown", "outup"],
     "tests": [
-        {
-            "device": "or2dualtest0",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest1",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest2",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest3",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest4",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest5",
-            "comment": "0101",
-            "expected_value": [false, true]
-        },
-        {
-            "device": "or2dualtest6",
-            "comment": "0110",
-            "expected_value": [true, false]
-        },
-        {
-            "device": "or2dualtest7",
-            "comment": "0111",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest8",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest9",
-            "comment": "1001",
-            "expected_value": [true, false]
-        },
-        {
-            "device": "or2dualtest10",
-            "comment": "1010",
-            "expected_value": [true, false]
-        },
-        {
-            "device": "or2dualtest11",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest12",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest13",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest14",
-            "expected_value": [false, false]
-        },
-        {
-            "device": "or2dualtest15",
-            "expected_value": [false, false]
-        }
+        { "i": [0, 0, 0, 0], "o": [0, 0] },
+        { "i": [1, 0, 0, 0], "o": [0, 0] },
+        { "i": [0, 1, 0, 0], "o": [0, 0] },
+        { "i": [1, 1, 0, 0], "o": [0, 0] },
+        { "i": [0, 0, 1, 0], "o": [0, 0] },
+        { "i": [1, 0, 1, 0], "o": [1, 0] },
+        { "i": [0, 1, 1, 0], "o": [0, 1] },
+        { "i": [1, 1, 1, 0], "o": [0, 0] },
+        { "i": [0, 0, 0, 1], "o": [0, 0] },
+        { "i": [1, 0, 0, 1], "o": [0, 1] },
+        { "i": [0, 1, 0, 1], "o": [0, 1] },
+        { "i": [1, 1, 0, 1], "o": [0, 0] },
+        { "i": [0, 0, 1, 1], "o": [0, 0] },
+        { "i": [1, 0, 1, 1], "o": [0, 0] },
+        { "i": [0, 1, 1, 1], "o": [0, 0] },
+        { "i": [1, 1, 1, 1], "o": [0, 0] }
     ]
 }

@@ -5,7 +5,7 @@
                 "mux2dual0/in0down"
             ], 
             "from": [
-                "input0/out0"
+                "input0/out1"
             ], 
             "name": "wire0"
         }, 
@@ -50,7 +50,7 @@
                 "mux2dual0/select0up"
             ], 
             "from": [
-                "input5/out0"
+                "input5/out1"
             ], 
             "name": "wire5"
         }

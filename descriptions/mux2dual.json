@@ -141,7 +141,7 @@
             "name": "in0up"
         }, 
         {
-            "type": "and2dualdual", 
+            "type": "and2dual", 
             "name": "and0"
         }, 
         {
@@ -153,7 +153,7 @@
             "name": "in1up"
         }, 
         {
-            "type": "and2dualdual", 
+            "type": "and2dual", 
             "name": "and1"
         }, 
         {
@@ -165,11 +165,11 @@
             "name": "select0up"
         }, 
         {
-            "type": "notdualdual", 
+            "type": "notdual", 
             "name": "not0"
         }, 
         {
-            "type": "or2dualdual", 
+            "type": "or2dual", 
             "name": "or0"
         }, 
         {
