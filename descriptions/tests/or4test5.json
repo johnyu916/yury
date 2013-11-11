@@ -1,0 +1,64 @@
+{
+    "wires": [
+        {
+            "to": [
+                "or40/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "or40/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "or40/in2"
+            ], 
+            "from": [
+                "input2/out1"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "or40/in3"
+            ], 
+            "from": [
+                "input3/out0"
+            ], 
+            "name": "wire3"
+        }
+    ], 
+    "type": "or4test5", 
+    "name": "or4test50", 
+    "devices": [
+        {
+            "type": "or4", 
+            "name": "or40"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }
+    ]
+}
