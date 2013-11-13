@@ -279,7 +279,7 @@ def get_wire(wires, name):
     return None
 
 
-def make_bridge(name, is_dual):
+def make_bridge(name, is_dual=False):
     devices = []
     if is_dual:
         for spin in ["down","up"]:
@@ -454,22 +454,24 @@ def get_or(inputs):
         if value: return True
     return False
 
-def make_and_dual(number_inputs):
+def get_and(inputs):
+    for value in inputs:
+        if not value: return False
+    return True
 
-def make_or_dual(number_inputs):
+def make_prim_dual(device_type, number_inputs):
     devices = []
+    wires = []
 
-    (ds, ws) = make_inputs_prim(number_input)
+    (ds, ws) = make_inputs_prim(number_inputs)
     devices.extend(ds)
     wires.extend(ws)
-    devices.extend[and1s]
-    devices.extend[and0s]
-    wires = []
     value_sets = itertools.product([False,True], repeat=number_inputs)
     and_values= []
+    logic_function = get_or if device_type =='or' else get_and
     for value_set_index, value_set in enumerate(value_sets):
         set_i = str(value_set_index)
-        and_values.append(get_or(value_set))
+        and_values.append(logic_function(value_set))
 
         for index, value in enumerate(value_set):
             i = str(index)
@@ -478,26 +480,43 @@ def make_or_dual(number_inputs):
             else:
                 wire = get_wire(wires, 'wirenot'+set_i)
             wire['to'].append('and'+set_i+"/in"+i)
+
+    ones = 0
+    zeros = 0
+    for value in and_values:
+        if value:
+            ones += 1
+        else:
+            zeros += 1
+
+    if ones > 1:
+        devices.append(make_device("or1", "or"+str(len(ones))))
+        wire = {
+            "name": "wireor1",
+            "from": ["or1/out"],
+            "to": ["outup"]
+        }
+        wires.append(wire)
+    if zeros > 1:
+        devices.append(make_device("or1", "or"+str(len(ones))))
+        wire = {
+            "name": "wireor0",
+            "from": ["or0/out"],
+            "to": ["outdown"]
+        }
+        wires.append(wire)
+
             
     for index, value in enumerate(and_values):
-        devices.append(make_device("and"+index, "and"+number_inputs))
+        devices.append(make_device("and"+index, "and"+str(number_inputs)))
         if value:
-            output = "outup"
-            wires.append(make_wire("wireand1" + i, ["and1"+i], ["or0"]))
+            output = "outup" if len(ones) <= 1 else "or1"
+            wires.append(make_wire("wireand1" + i, ["and1"+i], [output]))
         else:
-            output
+            output = "outdown" if len(ones) <= 1 else "or0"
+            wires.append(make_wire("wireand1" + i, ["and1"+i], [output]))
         #TODO only have or gate if there is more than one output
 
-    # and to or gain
-    for index, and1 in enumerate(and1s):
-        i = str(index)
-    wires.append(make_wire("wireand00", ["and00"+i], ["outdown"]))
-    wire = {
-        "name": "wireor0",
-        "from": ["or0/out"],
-        "to": ["outup"]
-    }
-    wires.append(wire)
     data = {
         "name": device_type+"0",
         "type": device_type,
@@ -508,39 +527,56 @@ def make_or_dual(number_inputs):
     device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
     write_json(data, device_file_path)
 
+
+def make_and(number_inputs):
+    device_data = make_prim_part("and", number_inputs)
+    wires = device_data['wires']
+    wires.extend(make_wire("sourcetoswitch", ['source0'], ['switch0']))
+    for index in range(number_inputs-1):
+        i = str(index)
+        inext = str(index+1)
+        wires.extend(make_wire("wireswitch"+i+"to"+inext, ['switch'+i], ['switch'+inext]))
+
+    wires.extend(make_wire("switchtoresistor", 'switch'+str(number_inputs-1), ['resistor0', 'out']))
+    device_file_path = str(DEVICE_DIR) + '/' + 'and' + str(number_inputs) + '.json'
+    write_json(device_data, device_file_path)
+
 def make_or(number_inputs):
-    is_dual = False
-    device_type = "or"+str(number_inputs)
+    device_data = make_prim_part("or", number_inputs)
+    switch_list = ['switch'+str(i) for i in range(number_inputs)]
+    wires = device_data['wires']
+    wires.extend(make_wire("sourcetoswitch", ['source0'], switch_list))
+    wires.extend(make_wire("switchtoresistor", switch_list, ['resistor0', 'out']))
+    device_file_path = str(DEVICE_DIR) + '/' + 'or' + str(number_inputs) + '.json'
+    write_json(device_data, device_file_path)
+
+def make_prim_part(prim_type, number_inputs):
+    device_type = prim_type+str(number_inputs)
     devices = []
     for index in range(number_inputs):
         #inputs
         i = str(index)
-        devices.extend(make_bridge("in"+i, is_dual))
-        devices.append(make_device("switch"+i, "switch", is_dual))
+        devices.extend(make_bridge("in"+i))
+        devices.append(make_device("switch"+i, "switch"))
 
     devices.append(make_device("source0", "source"))
     devices.append(make_device("resistor0", "resistor"))
     devices.append(make_device("ground0", "ground"))
-    devices.extend(make_bridge("out", is_dual))
+    devices.extend(make_bridge("out"))
 
     wires = []
-    switch_list = ['switch'+str(i) for i in range(number_inputs)]
-    wires.extend(make_wire("sourcetoswitch", ['source0'], switch_list))
-    wires.extend(make_wire("switchtoresistor", switch_list, ['resistor0', 'out']))
     wires.extend(make_wire("wireresistor", ['resistor0'], ['ground0']))
     for index in range(number_inputs):
         i = str(index)
         wires.extend(make_wire('wireinput'+i, ['in'+i], ['switch'+i+"/button"]))
     
-    data = {
+    return {
         "name": device_type+"0",
         "type": device_type,
         "wires": wires,
         "devices": devices
     }
 
-    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
-    write_json(data, device_file_path)
 
 def main():
     option = sys.argv[1]
@@ -561,13 +597,13 @@ def main():
     elif option == 'or':
         number_inputs = int(sys.argv[2])
         if len(sys.argv) > 3:
-            make_or_dual(number_inputs)
+            make_prim_dual("or", number_inputs)
         else:
             make_or(number_inputs)
     elif option == 'and':
         number_inputs = int(sys.argv[2])
         if len(sys.argv) > 3:
-            make_and_dual(number_inputs)
+            make_prim_dual("and", number_inputs)
         else:
             make_and(number_inputs)
 
