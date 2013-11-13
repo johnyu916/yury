@@ -259,7 +259,7 @@
             "name": "in0up"
         }, 
         {
-            "type": "and3dualdual", 
+            "type": "and3dual", 
             "name": "and0"
         }, 
         {
@@ -271,7 +271,7 @@
             "name": "in1up"
         }, 
         {
-            "type": "and3dualdual", 
+            "type": "and3dual", 
             "name": "and1"
         }, 
         {
@@ -283,7 +283,7 @@
             "name": "in2up"
         }, 
         {
-            "type": "and3dualdual", 
+            "type": "and3dual", 
             "name": "and2"
         }, 
         {
@@ -295,7 +295,7 @@
             "name": "in3up"
         }, 
         {
-            "type": "and3dualdual", 
+            "type": "and3dual", 
             "name": "and3"
         }, 
         {
@@ -307,7 +307,7 @@
             "name": "select0up"
         }, 
         {
-            "type": "notdualdual", 
+            "type": "notdual", 
             "name": "not0"
         }, 
         {
@@ -319,11 +319,11 @@
             "name": "select1up"
         }, 
         {
-            "type": "notdualdual", 
+            "type": "notdual", 
             "name": "not1"
         }, 
         {
-            "type": "or4dualdual", 
+            "type": "or4dual", 
             "name": "or0"
         }, 
         {

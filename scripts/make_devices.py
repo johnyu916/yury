@@ -2,6 +2,7 @@ from shared.utilities import write_json
 import math
 import itertools
 import sys
+import string
 from settings import DEVICE_DIR
 
 def make_mux_old(number_selects):
@@ -316,8 +317,8 @@ def make_wire(name, from_list, to_list, is_dual=False):
     wires = []
     if is_dual:
         for spin in ['down', 'up']:
-            froms = [append_name(pin, spin) for pin in from_list]
-            tos = [append_name(pin, spin) for pin in to_list]
+            froms = [pin+spin for pin in from_list]
+            tos = [pin+spin for pin in to_list]
             wire = {
                 "name": name+spin,
                 "from": froms,
@@ -333,15 +334,56 @@ def make_wire(name, from_list, to_list, is_dual=False):
         wires.append(wire)
     return wires
 
-def make_wires_input(number_inputs, is_dual=False):
+def make_input_and_nots(number_inputs, is_dual=False):
+    '''
+    Make input bridges, not gates, and wires from them.
+    '''
+    devices = []
+    for index in range(number_inputs):
+        i = str(index)
+        name = "in"+i
+        devices.extend(make_bridge(name, is_dual))
+        devices.append(make_device("not"+i, "not", is_dual ))
+    return devices
+
+
+def make_wires(number_inputs, is_dual=False):
+    '''
+    wire 
+    '''
     wires = []
     for index in range(number_inputs):
         i = str(index)
         wires.extend( make_wire("wirein"+i, ["in"+i], ["not"+i+"/in"], is_dual))
-
         # wire from not
         wires.extend( make_wire("wirenot"+i, ["not"+i+"/out"], [], is_dual))
     return wires
+
+def make_inputs_prim(number_inputs):
+    '''
+    Only used by anddual and ordual devices.
+    Create input bridges and not gates and bridges.
+    '''
+    devices = []
+    wires = []
+    for index in range(number_inputs):
+        i = str(index)
+        name = "in"+i
+        devices.extend(make_bridge(name, True))
+        devices.append(make_device("not"+i+"down", "not"))
+        devices.append(make_device("not"+i+"up", "not"))
+
+        i = str(index)
+
+        for spin in ['down', 'up']:
+            wires.extend( make_wire("wirein"+i+spin, ["in"+i+spin], ["not"+i+spin+"/in"]))
+            # wire from not
+            wires.extend( make_wire("wirenot"+i+spin, ["not"+i+spin+"/out"], [] ))
+    return wires
+
+    
+    return devices, wires
+
 
 def wire_append(wires, wire_name, direction, device_name, is_dual):
     if is_dual:
@@ -384,7 +426,7 @@ def make_decoder(number_inputs, is_dual):
         # and gate for every output
         devices.append(make_device("and"+i, "and"+str(number_inputs), is_dual))
 
-    wires.extend(make_wires_input(number_inputs, is_dual))
+    wires.extend(make_wires(number_inputs, is_dual))
 
     for index in range(number_outputs):
         # wire from and to out
@@ -412,43 +454,43 @@ def get_or(inputs):
         if value: return True
     return False
 
+def make_and_dual(number_inputs):
+
 def make_or_dual(number_inputs):
     devices = []
-    and1s = []
-    and0s = []
-    for index in range(number_inputs):
-        i = str(index)
-        name = "in"+i
-        devices.extend(make_bridge(name, is_dual))
-        devices.append(make_device("not"+i+"down", "not"))
-        devices.append(make_device("not"+i+"up", "not"))
 
-        if index < number_inputs - 1:
-            and1s.append(make_device("and1"+index, "and"+number_inputs))
-        else:
-            and0s.append(make_device("and00", "and"+number_inputs))
+    (ds, ws) = make_inputs_prim(number_input)
+    devices.extend(ds)
+    wires.extend(ws)
     devices.extend[and1s]
     devices.extend[and0s]
     wires = []
-    wires.extend(make_wires_input(number_inputs, True))
     value_sets = itertools.product([False,True], repeat=number_inputs)
-    not_index = 0
+    and_values= []
     for value_set_index, value_set in enumerate(value_sets):
         set_i = str(value_set_index)
-        if not get_or(value_set):
-            not_index = value_set_index
+        and_values.append(get_or(value_set))
+
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
                 wire = get_wire(wires, 'wirein'+set_i)
             else:
                 wire = get_wire(wires, 'wirenot'+set_i)
-            wire['to'].append('and'+vi+"/in"+i)
+            wire['to'].append('and'+set_i+"/in"+i)
             
+    for index, value in enumerate(and_values):
+        devices.append(make_device("and"+index, "and"+number_inputs))
+        if value:
+            output = "outup"
+            wires.append(make_wire("wireand1" + i, ["and1"+i], ["or0"]))
+        else:
+            output
+        #TODO only have or gate if there is more than one output
+
     # and to or gain
     for index, and1 in enumerate(and1s):
         i = str(index)
-        wires.append(make_wire("wireand1" + i, ["and1"+i], ["or0"]))
     wires.append(make_wire("wireand00", ["and00"+i], ["outdown"]))
     wire = {
         "name": "wireor0",
@@ -522,6 +564,12 @@ def main():
             make_or_dual(number_inputs)
         else:
             make_or(number_inputs)
+    elif option == 'and':
+        number_inputs = int(sys.argv[2])
+        if len(sys.argv) > 3:
+            make_and_dual(number_inputs)
+        else:
+            make_and(number_inputs)
 
 
 if __name__ == '__main__':
