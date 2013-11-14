@@ -1,0 +1,116 @@
+{
+    "wires": [
+        {
+            "to": [
+                "and80/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "and80/in1"
+            ], 
+            "from": [
+                "input1/out1"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "and80/in2"
+            ], 
+            "from": [
+                "input2/out1"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "and80/in3"
+            ], 
+            "from": [
+                "input3/out1"
+            ], 
+            "name": "wire3"
+        }, 
+        {
+            "to": [
+                "and80/in4"
+            ], 
+            "from": [
+                "input4/out1"
+            ], 
+            "name": "wire4"
+        }, 
+        {
+            "to": [
+                "and80/in5"
+            ], 
+            "from": [
+                "input5/out1"
+            ], 
+            "name": "wire5"
+        }, 
+        {
+            "to": [
+                "and80/in6"
+            ], 
+            "from": [
+                "input6/out1"
+            ], 
+            "name": "wire6"
+        }, 
+        {
+            "to": [
+                "and80/in7"
+            ], 
+            "from": [
+                "input7/out1"
+            ], 
+            "name": "wire7"
+        }
+    ], 
+    "type": "and8test9", 
+    "name": "and8test90", 
+    "devices": [
+        {
+            "type": "and8", 
+            "name": "and80"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }, 
+        {
+            "type": "input", 
+            "name": "input4"
+        }, 
+        {
+            "type": "input", 
+            "name": "input5"
+        }, 
+        {
+            "type": "input", 
+            "name": "input6"
+        }, 
+        {
+            "type": "input", 
+            "name": "input7"
+        }
+    ]
+}

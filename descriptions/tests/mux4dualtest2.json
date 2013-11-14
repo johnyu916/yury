@@ -1,0 +1,168 @@
+{
+    "wires": [
+        {
+            "to": [
+                "mux4dual0/in0down"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in0up"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in1down"
+            ], 
+            "from": [
+                "input2/out1"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in1up"
+            ], 
+            "from": [
+                "input3/out0"
+            ], 
+            "name": "wire3"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in2down"
+            ], 
+            "from": [
+                "input4/out1"
+            ], 
+            "name": "wire4"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in2up"
+            ], 
+            "from": [
+                "input5/out0"
+            ], 
+            "name": "wire5"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in3down"
+            ], 
+            "from": [
+                "input6/out1"
+            ], 
+            "name": "wire6"
+        }, 
+        {
+            "to": [
+                "mux4dual0/in3up"
+            ], 
+            "from": [
+                "input7/out0"
+            ], 
+            "name": "wire7"
+        }, 
+        {
+            "to": [
+                "mux4dual0/select0down"
+            ], 
+            "from": [
+                "input8/out0"
+            ], 
+            "name": "wire8"
+        }, 
+        {
+            "to": [
+                "mux4dual0/select0up"
+            ], 
+            "from": [
+                "input9/out1"
+            ], 
+            "name": "wire9"
+        }, 
+        {
+            "to": [
+                "mux4dual0/select1down"
+            ], 
+            "from": [
+                "input10/out1"
+            ], 
+            "name": "wire10"
+        }, 
+        {
+            "to": [
+                "mux4dual0/select1up"
+            ], 
+            "from": [
+                "input11/out0"
+            ], 
+            "name": "wire11"
+        }
+    ], 
+    "type": "mux4dualtest2", 
+    "name": "mux4dualtest20", 
+    "devices": [
+        {
+            "type": "mux4dual", 
+            "name": "mux4dual0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }, 
+        {
+            "type": "input", 
+            "name": "input4"
+        }, 
+        {
+            "type": "input", 
+            "name": "input5"
+        }, 
+        {
+            "type": "input", 
+            "name": "input6"
+        }, 
+        {
+            "type": "input", 
+            "name": "input7"
+        }, 
+        {
+            "type": "input", 
+            "name": "input8"
+        }, 
+        {
+            "type": "input", 
+            "name": "input9"
+        }, 
+        {
+            "type": "input", 
+            "name": "input10"
+        }, 
+        {
+            "type": "input", 
+            "name": "input11"
+        }
+    ]
+}

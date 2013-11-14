@@ -1,0 +1,207 @@
+{
+    "wires": [
+        {
+            "to": [
+                "or150/in0"
+            ], 
+            "from": [
+                "input0/out0"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "or150/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "or150/in2"
+            ], 
+            "from": [
+                "input2/out0"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "or150/in3"
+            ], 
+            "from": [
+                "input3/out0"
+            ], 
+            "name": "wire3"
+        }, 
+        {
+            "to": [
+                "or150/in4"
+            ], 
+            "from": [
+                "input4/out0"
+            ], 
+            "name": "wire4"
+        }, 
+        {
+            "to": [
+                "or150/in5"
+            ], 
+            "from": [
+                "input5/out0"
+            ], 
+            "name": "wire5"
+        }, 
+        {
+            "to": [
+                "or150/in6"
+            ], 
+            "from": [
+                "input6/out0"
+            ], 
+            "name": "wire6"
+        }, 
+        {
+            "to": [
+                "or150/in7"
+            ], 
+            "from": [
+                "input7/out0"
+            ], 
+            "name": "wire7"
+        }, 
+        {
+            "to": [
+                "or150/in8"
+            ], 
+            "from": [
+                "input8/out0"
+            ], 
+            "name": "wire8"
+        }, 
+        {
+            "to": [
+                "or150/in9"
+            ], 
+            "from": [
+                "input9/out1"
+            ], 
+            "name": "wire9"
+        }, 
+        {
+            "to": [
+                "or150/in10"
+            ], 
+            "from": [
+                "input10/out0"
+            ], 
+            "name": "wire10"
+        }, 
+        {
+            "to": [
+                "or150/in11"
+            ], 
+            "from": [
+                "input11/out0"
+            ], 
+            "name": "wire11"
+        }, 
+        {
+            "to": [
+                "or150/in12"
+            ], 
+            "from": [
+                "input12/out0"
+            ], 
+            "name": "wire12"
+        }, 
+        {
+            "to": [
+                "or150/in13"
+            ], 
+            "from": [
+                "input13/out0"
+            ], 
+            "name": "wire13"
+        }, 
+        {
+            "to": [
+                "or150/in14"
+            ], 
+            "from": [
+                "input14/out0"
+            ], 
+            "name": "wire14"
+        }
+    ], 
+    "type": "or15test10", 
+    "name": "or15test100", 
+    "devices": [
+        {
+            "type": "or15", 
+            "name": "or150"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }, 
+        {
+            "type": "input", 
+            "name": "input4"
+        }, 
+        {
+            "type": "input", 
+            "name": "input5"
+        }, 
+        {
+            "type": "input", 
+            "name": "input6"
+        }, 
+        {
+            "type": "input", 
+            "name": "input7"
+        }, 
+        {
+            "type": "input", 
+            "name": "input8"
+        }, 
+        {
+            "type": "input", 
+            "name": "input9"
+        }, 
+        {
+            "type": "input", 
+            "name": "input10"
+        }, 
+        {
+            "type": "input", 
+            "name": "input11"
+        }, 
+        {
+            "type": "input", 
+            "name": "input12"
+        }, 
+        {
+            "type": "input", 
+            "name": "input13"
+        }, 
+        {
+            "type": "input", 
+            "name": "input14"
+        }
+    ]
+}

@@ -1,0 +1,335 @@
+{
+    "wires": [
+        {
+            "to": [
+                "ground0"
+            ], 
+            "from": [
+                "resistor0"
+            ], 
+            "name": "wireresistor"
+        }, 
+        {
+            "to": [
+                "switch0/button"
+            ], 
+            "from": [
+                "in0"
+            ], 
+            "name": "wireinput0"
+        }, 
+        {
+            "to": [
+                "switch1/button"
+            ], 
+            "from": [
+                "in1"
+            ], 
+            "name": "wireinput1"
+        }, 
+        {
+            "to": [
+                "switch2/button"
+            ], 
+            "from": [
+                "in2"
+            ], 
+            "name": "wireinput2"
+        }, 
+        {
+            "to": [
+                "switch3/button"
+            ], 
+            "from": [
+                "in3"
+            ], 
+            "name": "wireinput3"
+        }, 
+        {
+            "to": [
+                "switch4/button"
+            ], 
+            "from": [
+                "in4"
+            ], 
+            "name": "wireinput4"
+        }, 
+        {
+            "to": [
+                "switch5/button"
+            ], 
+            "from": [
+                "in5"
+            ], 
+            "name": "wireinput5"
+        }, 
+        {
+            "to": [
+                "switch6/button"
+            ], 
+            "from": [
+                "in6"
+            ], 
+            "name": "wireinput6"
+        }, 
+        {
+            "to": [
+                "switch7/button"
+            ], 
+            "from": [
+                "in7"
+            ], 
+            "name": "wireinput7"
+        }, 
+        {
+            "to": [
+                "switch8/button"
+            ], 
+            "from": [
+                "in8"
+            ], 
+            "name": "wireinput8"
+        }, 
+        {
+            "to": [
+                "switch9/button"
+            ], 
+            "from": [
+                "in9"
+            ], 
+            "name": "wireinput9"
+        }, 
+        {
+            "to": [
+                "switch10/button"
+            ], 
+            "from": [
+                "in10"
+            ], 
+            "name": "wireinput10"
+        }, 
+        {
+            "to": [
+                "switch11/button"
+            ], 
+            "from": [
+                "in11"
+            ], 
+            "name": "wireinput11"
+        }, 
+        {
+            "to": [
+                "switch12/button"
+            ], 
+            "from": [
+                "in12"
+            ], 
+            "name": "wireinput12"
+        }, 
+        {
+            "to": [
+                "switch13/button"
+            ], 
+            "from": [
+                "in13"
+            ], 
+            "name": "wireinput13"
+        }, 
+        {
+            "to": [
+                "switch14/button"
+            ], 
+            "from": [
+                "in14"
+            ], 
+            "name": "wireinput14"
+        }, 
+        {
+            "to": [
+                "switch0", 
+                "switch1", 
+                "switch2", 
+                "switch3", 
+                "switch4", 
+                "switch5", 
+                "switch6", 
+                "switch7", 
+                "switch8", 
+                "switch9", 
+                "switch10", 
+                "switch11", 
+                "switch12", 
+                "switch13", 
+                "switch14"
+            ], 
+            "from": [
+                "source0"
+            ], 
+            "name": "sourcetoswitch"
+        }, 
+        {
+            "to": [
+                "resistor0", 
+                "out"
+            ], 
+            "from": [
+                "switch0", 
+                "switch1", 
+                "switch2", 
+                "switch3", 
+                "switch4", 
+                "switch5", 
+                "switch6", 
+                "switch7", 
+                "switch8", 
+                "switch9", 
+                "switch10", 
+                "switch11", 
+                "switch12", 
+                "switch13", 
+                "switch14"
+            ], 
+            "name": "switchtoresistor"
+        }
+    ], 
+    "type": "or15", 
+    "name": "or150", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "in0"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in1"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in2"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in3"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch3"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in4"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch4"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in5"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch5"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in6"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch6"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in7"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch7"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in8"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch8"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in9"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch9"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in10"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch10"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in11"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch11"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in12"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch12"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in13"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch13"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in14"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch14"
+        }, 
+        {
+            "type": "source", 
+            "name": "source0"
+        }, 
+        {
+            "type": "resistor", 
+            "name": "resistor0"
+        }, 
+        {
+            "type": "ground", 
+            "name": "ground0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out"
+        }
+    ]
+}

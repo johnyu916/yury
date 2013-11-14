@@ -1,0 +1,272 @@
+{
+    "wires": [
+        {
+            "to": [
+                "mux160/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "mux160/in1"
+            ], 
+            "from": [
+                "input1/out0"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "mux160/in2"
+            ], 
+            "from": [
+                "input2/out0"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "mux160/in3"
+            ], 
+            "from": [
+                "input3/out0"
+            ], 
+            "name": "wire3"
+        }, 
+        {
+            "to": [
+                "mux160/in4"
+            ], 
+            "from": [
+                "input4/out0"
+            ], 
+            "name": "wire4"
+        }, 
+        {
+            "to": [
+                "mux160/in5"
+            ], 
+            "from": [
+                "input5/out0"
+            ], 
+            "name": "wire5"
+        }, 
+        {
+            "to": [
+                "mux160/in6"
+            ], 
+            "from": [
+                "input6/out0"
+            ], 
+            "name": "wire6"
+        }, 
+        {
+            "to": [
+                "mux160/in7"
+            ], 
+            "from": [
+                "input7/out0"
+            ], 
+            "name": "wire7"
+        }, 
+        {
+            "to": [
+                "mux160/in8"
+            ], 
+            "from": [
+                "input8/out0"
+            ], 
+            "name": "wire8"
+        }, 
+        {
+            "to": [
+                "mux160/in9"
+            ], 
+            "from": [
+                "input9/out0"
+            ], 
+            "name": "wire9"
+        }, 
+        {
+            "to": [
+                "mux160/in10"
+            ], 
+            "from": [
+                "input10/out0"
+            ], 
+            "name": "wire10"
+        }, 
+        {
+            "to": [
+                "mux160/in11"
+            ], 
+            "from": [
+                "input11/out0"
+            ], 
+            "name": "wire11"
+        }, 
+        {
+            "to": [
+                "mux160/in12"
+            ], 
+            "from": [
+                "input12/out0"
+            ], 
+            "name": "wire12"
+        }, 
+        {
+            "to": [
+                "mux160/in13"
+            ], 
+            "from": [
+                "input13/out0"
+            ], 
+            "name": "wire13"
+        }, 
+        {
+            "to": [
+                "mux160/in14"
+            ], 
+            "from": [
+                "input14/out0"
+            ], 
+            "name": "wire14"
+        }, 
+        {
+            "to": [
+                "mux160/in15"
+            ], 
+            "from": [
+                "input15/out0"
+            ], 
+            "name": "wire15"
+        }, 
+        {
+            "to": [
+                "mux160/select0"
+            ], 
+            "from": [
+                "input16/out0"
+            ], 
+            "name": "wire16"
+        }, 
+        {
+            "to": [
+                "mux160/select1"
+            ], 
+            "from": [
+                "input17/out0"
+            ], 
+            "name": "wire17"
+        }, 
+        {
+            "to": [
+                "mux160/select2"
+            ], 
+            "from": [
+                "input18/out0"
+            ], 
+            "name": "wire18"
+        }, 
+        {
+            "to": [
+                "mux160/select3"
+            ], 
+            "from": [
+                "input19/out0"
+            ], 
+            "name": "wire19"
+        }
+    ], 
+    "type": "mux16test2", 
+    "name": "mux16test20", 
+    "devices": [
+        {
+            "type": "mux16", 
+            "name": "mux160"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }, 
+        {
+            "type": "input", 
+            "name": "input4"
+        }, 
+        {
+            "type": "input", 
+            "name": "input5"
+        }, 
+        {
+            "type": "input", 
+            "name": "input6"
+        }, 
+        {
+            "type": "input", 
+            "name": "input7"
+        }, 
+        {
+            "type": "input", 
+            "name": "input8"
+        }, 
+        {
+            "type": "input", 
+            "name": "input9"
+        }, 
+        {
+            "type": "input", 
+            "name": "input10"
+        }, 
+        {
+            "type": "input", 
+            "name": "input11"
+        }, 
+        {
+            "type": "input", 
+            "name": "input12"
+        }, 
+        {
+            "type": "input", 
+            "name": "input13"
+        }, 
+        {
+            "type": "input", 
+            "name": "input14"
+        }, 
+        {
+            "type": "input", 
+            "name": "input15"
+        }, 
+        {
+            "type": "input", 
+            "name": "input16"
+        }, 
+        {
+            "type": "input", 
+            "name": "input17"
+        }, 
+        {
+            "type": "input", 
+            "name": "input18"
+        }, 
+        {
+            "type": "input", 
+            "name": "input19"
+        }
+    ]
+}

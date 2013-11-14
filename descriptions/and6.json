@@ -1,0 +1,199 @@
+{
+    "wires": [
+        {
+            "to": [
+                "ground0"
+            ], 
+            "from": [
+                "resistor0"
+            ], 
+            "name": "wireresistor"
+        }, 
+        {
+            "to": [
+                "switch0/button"
+            ], 
+            "from": [
+                "in0"
+            ], 
+            "name": "wireinput0"
+        }, 
+        {
+            "to": [
+                "switch1/button"
+            ], 
+            "from": [
+                "in1"
+            ], 
+            "name": "wireinput1"
+        }, 
+        {
+            "to": [
+                "switch2/button"
+            ], 
+            "from": [
+                "in2"
+            ], 
+            "name": "wireinput2"
+        }, 
+        {
+            "to": [
+                "switch3/button"
+            ], 
+            "from": [
+                "in3"
+            ], 
+            "name": "wireinput3"
+        }, 
+        {
+            "to": [
+                "switch4/button"
+            ], 
+            "from": [
+                "in4"
+            ], 
+            "name": "wireinput4"
+        }, 
+        {
+            "to": [
+                "switch5/button"
+            ], 
+            "from": [
+                "in5"
+            ], 
+            "name": "wireinput5"
+        }, 
+        {
+            "to": [
+                "switch0"
+            ], 
+            "from": [
+                "source0"
+            ], 
+            "name": "sourcetoswitch"
+        }, 
+        {
+            "to": [
+                "switch1"
+            ], 
+            "from": [
+                "switch0"
+            ], 
+            "name": "wireswitch0to1"
+        }, 
+        {
+            "to": [
+                "switch2"
+            ], 
+            "from": [
+                "switch1"
+            ], 
+            "name": "wireswitch1to2"
+        }, 
+        {
+            "to": [
+                "switch3"
+            ], 
+            "from": [
+                "switch2"
+            ], 
+            "name": "wireswitch2to3"
+        }, 
+        {
+            "to": [
+                "switch4"
+            ], 
+            "from": [
+                "switch3"
+            ], 
+            "name": "wireswitch3to4"
+        }, 
+        {
+            "to": [
+                "switch5"
+            ], 
+            "from": [
+                "switch4"
+            ], 
+            "name": "wireswitch4to5"
+        }, 
+        {
+            "to": [
+                "resistor0", 
+                "out"
+            ], 
+            "from": [
+                "switch5"
+            ], 
+            "name": "switchtoresistor"
+        }
+    ], 
+    "type": "and6", 
+    "name": "and60", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "in0"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in1"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in2"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in3"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch3"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in4"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch4"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "in5"
+        }, 
+        {
+            "type": "switch", 
+            "name": "switch5"
+        }, 
+        {
+            "type": "source", 
+            "name": "source0"
+        }, 
+        {
+            "type": "resistor", 
+            "name": "resistor0"
+        }, 
+        {
+            "type": "ground", 
+            "name": "ground0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "out"
+        }
+    ]
+}

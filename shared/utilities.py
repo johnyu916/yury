@@ -36,6 +36,7 @@ def write_json(dict_data, file_path):
     '''
     json_str = json.dumps(dict_data, indent=4)
     json_str_list = json_str.split('\n')
+    print "Writing to file: {0}".format(file_path)
     with open(file_path, 'w') as t:
         for json_st in json_str_list:
             t.write(json_st+'\n')

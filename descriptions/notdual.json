@@ -12,11 +12,11 @@
         },
         {
             "name": "and0",
-            "type": "and"
+            "type": "and2"
         },
         {
             "name": "and1",
-            "type": "and"
+            "type": "and2"
         },
         {
             "name": "indown",

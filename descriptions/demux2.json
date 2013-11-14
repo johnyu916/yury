@@ -4,19 +4,19 @@
     "devices": [
         {
             "name": "and0",
-            "type": "and"
+            "type": "and2"
         },
         {
             "name": "and1",
-            "type": "and"
+            "type": "and2"
         },
         {
             "name": "and2",
-            "type": "and"
+            "type": "and2"
         },
         {
             "name": "and3",
-            "type": "and"
+            "type": "and2"
         },
         {
             "name": "in",

@@ -359,7 +359,7 @@ def make_wires(number_inputs, is_dual=False):
         wires.extend( make_wire("wirenot"+i, ["not"+i+"/out"], [], is_dual))
     return wires
 
-def make_inputs_prim(number_inputs):
+def make_prim_part_dual(number_inputs):
     '''
     Only used by anddual and ordual devices.
     Create input bridges and not gates and bridges.
@@ -379,9 +379,8 @@ def make_inputs_prim(number_inputs):
             wires.extend( make_wire("wirein"+i+spin, ["in"+i+spin], ["not"+i+spin+"/in"]))
             # wire from not
             wires.extend( make_wire("wirenot"+i+spin, ["not"+i+spin+"/out"], [] ))
-    return wires
 
-    
+    devices.extend(make_bridge("out", True))
     return devices, wires
 
 
@@ -459,16 +458,16 @@ def get_and(inputs):
         if not value: return False
     return True
 
-def make_prim_dual(device_type, number_inputs):
+def make_prim_dual(prim_type, number_inputs):
     devices = []
     wires = []
-
-    (ds, ws) = make_inputs_prim(number_inputs)
+    device_type = prim_type+str(number_inputs)+"dual"
+    (ds, ws) = make_prim_part_dual(number_inputs)
     devices.extend(ds)
     wires.extend(ws)
     value_sets = itertools.product([False,True], repeat=number_inputs)
     and_values= []
-    logic_function = get_or if device_type =='or' else get_and
+    logic_function = get_or if prim_type =='or' else get_and
     for value_set_index, value_set in enumerate(value_sets):
         set_i = str(value_set_index)
         and_values.append(logic_function(value_set))
@@ -476,10 +475,13 @@ def make_prim_dual(device_type, number_inputs):
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
-                wire = get_wire(wires, 'wirein'+set_i)
+                wiredown = get_wire(wires, 'wirenot'+i+"down")
+                wireup = get_wire(wires, 'wirein'+i+"up")
             else:
-                wire = get_wire(wires, 'wirenot'+set_i)
-            wire['to'].append('and'+set_i+"/in"+i)
+                wiredown = get_wire(wires, 'wirein'+i+"down")
+                wireup = get_wire(wires, 'wirenot'+i+"up")
+            wiredown['to'].append('and'+set_i+"/in"+str(2*index))
+            wireup['to'].append('and'+set_i+"/in"+str(2*index+1))
 
     ones = 0
     zeros = 0
@@ -490,7 +492,7 @@ def make_prim_dual(device_type, number_inputs):
             zeros += 1
 
     if ones > 1:
-        devices.append(make_device("or1", "or"+str(len(ones))))
+        devices.append(make_device("or1", "or"+str(ones)))
         wire = {
             "name": "wireor1",
             "from": ["or1/out"],
@@ -498,7 +500,7 @@ def make_prim_dual(device_type, number_inputs):
         }
         wires.append(wire)
     if zeros > 1:
-        devices.append(make_device("or1", "or"+str(len(ones))))
+        devices.append(make_device("or0", "or"+str(zeros)))
         wire = {
             "name": "wireor0",
             "from": ["or0/out"],
@@ -506,15 +508,19 @@ def make_prim_dual(device_type, number_inputs):
         }
         wires.append(wire)
 
-            
+    onei = 0
+    zeroi = 0
     for index, value in enumerate(and_values):
-        devices.append(make_device("and"+index, "and"+str(number_inputs)))
+        i = str(index)
+        devices.append(make_device("and"+i, "and"+str(number_inputs*2)))
         if value:
-            output = "outup" if len(ones) <= 1 else "or1"
-            wires.append(make_wire("wireand1" + i, ["and1"+i], [output]))
+            output = "outup" if ones <= 1 else "or1/in"+str(onei)
+            wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
+            onei+=1
         else:
-            output = "outdown" if len(ones) <= 1 else "or0"
-            wires.append(make_wire("wireand1" + i, ["and1"+i], [output]))
+            output = "outdown" if zeros <= 1 else "or0/in"+str(zeroi)
+            wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
+            zeroi+=1
         #TODO only have or gate if there is more than one output
 
     data = {
@@ -537,9 +543,10 @@ def make_and(number_inputs):
         inext = str(index+1)
         wires.extend(make_wire("wireswitch"+i+"to"+inext, ['switch'+i], ['switch'+inext]))
 
-    wires.extend(make_wire("switchtoresistor", 'switch'+str(number_inputs-1), ['resistor0', 'out']))
+    wires.extend(make_wire("switchtoresistor", ['switch'+str(number_inputs-1)], ['resistor0', 'out']))
     device_file_path = str(DEVICE_DIR) + '/' + 'and' + str(number_inputs) + '.json'
     write_json(device_data, device_file_path)
+
 
 def make_or(number_inputs):
     device_data = make_prim_part("or", number_inputs)

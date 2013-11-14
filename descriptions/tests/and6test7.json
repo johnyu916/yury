@@ -1,0 +1,90 @@
+{
+    "wires": [
+        {
+            "to": [
+                "and60/in0"
+            ], 
+            "from": [
+                "input0/out1"
+            ], 
+            "name": "wire0"
+        }, 
+        {
+            "to": [
+                "and60/in1"
+            ], 
+            "from": [
+                "input1/out1"
+            ], 
+            "name": "wire1"
+        }, 
+        {
+            "to": [
+                "and60/in2"
+            ], 
+            "from": [
+                "input2/out1"
+            ], 
+            "name": "wire2"
+        }, 
+        {
+            "to": [
+                "and60/in3"
+            ], 
+            "from": [
+                "input3/out1"
+            ], 
+            "name": "wire3"
+        }, 
+        {
+            "to": [
+                "and60/in4"
+            ], 
+            "from": [
+                "input4/out1"
+            ], 
+            "name": "wire4"
+        }, 
+        {
+            "to": [
+                "and60/in5"
+            ], 
+            "from": [
+                "input5/out1"
+            ], 
+            "name": "wire5"
+        }
+    ], 
+    "type": "and6test7", 
+    "name": "and6test70", 
+    "devices": [
+        {
+            "type": "and6", 
+            "name": "and60"
+        }, 
+        {
+            "type": "input", 
+            "name": "input0"
+        }, 
+        {
+            "type": "input", 
+            "name": "input1"
+        }, 
+        {
+            "type": "input", 
+            "name": "input2"
+        }, 
+        {
+            "type": "input", 
+            "name": "input3"
+        }, 
+        {
+            "type": "input", 
+            "name": "input4"
+        }, 
+        {
+            "type": "input", 
+            "name": "input5"
+        }
+    ]
+}
