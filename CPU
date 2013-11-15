@@ -1,0 +1,89 @@
+A requirements:
+16 instructions
+10 bits per instructions.
+
+then:
+160 bits of memory
+16 bits reachable
+
+B requirements:
+16 instructions
+14 bits per insn (8 read bits)
+
+then:
+224 bits
+256 bits reachable
+
+read/write branch write-on1 write-else
+4-4-2
+
+
+
+== instruction reader ==
+
+OUTPUTS:
+R(0-7)= read bits
+B(0-3)= branch bits
+WONE(0) = write if one
+WZERO(0) = write else
+
+INPUTS:
+PC0-3 = program counter bits
+R0(0-15)
+..
+R7(0-15) = 16 bits per read output
+B0(0-15)
+..
+B3(0-15) = 16 bits per branch output
+WONE(0-15) = 16 bits per write one
+WZERO(0-16) = 16 bits per write zero
+
+== program counter add one ==
+INPUTS:
+PC(0-3)
+
+OUTPUTS:
+PC(0-3)
+
+== program counter setter ==
+INPUTS:
+PC(0-3)
+B(0-3)
+
+OUTPUTS:
+PC(0-3)
+
+== memory reader ==
+INPUTS:
+R(0-7)
+M(0-255)
+OUTPUTS:
+V(0)
+
+== one or zero==
+INPUTS:
+VAL(0)
+WONE(0)
+WZERO(0)
+
+OUTPUTS:
+W(0)
+
+== write decoer ==
+INPUTS:
+R(0-7)
+
+OUTPUTS:
+D(0-256)
+
+== memory ==
+INPUTS:
+W(0-255)
+D(0-255) (output from decoder. it selects W or SELF)
+SELF(0-255)
+
+OUTPUTS:
+M(0-255)
+
+
+How to work with general computing units. pipeline.
