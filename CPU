@@ -5,6 +5,8 @@ A requirements:
 then:
 160 bits of memory
 16 bits reachable
+read/write branch write-on1 write-else
+4-4-2
 
 B requirements:
 16 instructions
@@ -13,11 +15,21 @@ B requirements:
 then:
 224 bits
 256 bits reachable
-
 read/write branch write-on1 write-else
-4-4-2
+8-4-2
 
 
+C requirements:
+1024 instructions
+28 bits per insn (16 read bits)
+
+then:
+28,672 bits for insns
+65,536 bits reachable
+read/write branch write-on1 write-else
+16-10-2
+
+Specifications for A CPU:
 
 == instruction reader ==
 
@@ -38,7 +50,7 @@ B3(0-15) = 16 bits per branch output
 WONE(0-15) = 16 bits per write one
 WZERO(0-16) = 16 bits per write zero
 
-== program counter add one ==
+== program counter adder ==
 INPUTS:
 PC(0-3)
 
@@ -86,4 +98,69 @@ OUTPUTS:
 M(0-255)
 
 
-How to work with general computing units. pipeline.
+Specifications for C CPU:
+
+== insn reader (insn_read) ==
+INPUTS:
+PC(0-9)
+R0(0-1024)
+...
+R15(0-1024)
+B0(0-1024)
+...
+B9(0-1024)
+WONE(0-1024)
+WZERO(0-1024)
+
+OUTPUTS:
+R(0-15)
+B(0-9)
+WONE(0)
+WZERO(0)
+
+== program counter adder (pc_add) ==
+INPUTS:
+PC(0-9)
+OUTPUTS:
+PC(0-9)
+
+== program counter selector (pc_select) ==
+INPUT:
+PC(0-9)
+B(0-9)
+V(0)
+
+OUTPUTS:
+PC(0-9)
+
+== memory mux (mem_mux) ==
+INPUTS:
+R(0-15)
+M(0-65535)
+
+OUTPUTS:
+V(0)
+
+== write selector (write_select) ==
+INPUTS:
+VAL(0)
+WONE(0)
+WZERO(0)
+
+OUTPUTS:
+W(0)
+
+== write enabler (write_enable) ==
+INPUTS:
+R(0-15)
+OUTPUTS:
+D(0-65,535)
+
+== memory (memory) ==
+INPUTS:
+W(0-65,535)
+D(0-65,535)
+SELF(0-65535)
+
+OUTPUTS:
+M(0-65535)

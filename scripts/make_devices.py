@@ -5,150 +5,46 @@ import sys
 import string
 from settings import DEVICE_DIR
 
-def make_mux_old(number_selects):
-    '''
-    Make mux circuit.
-    A mux circuit is the following:
-    O = SA + not(S)B
-    '''
-    number_inputs = int(math.pow(2, number_selects))
-    device_type = "mux"+str(number_inputs)
-    devices = []
-
-    for index in range(number_inputs):
-        #inputs
-        device = {
-            "name": "in"+str(index),
-            "type": "bridge"
-        }
-        devices.append(device)
-        # need and gates
-        device = {
-            "name": "and"+str(index),
-            "type": "and"
-        }
-        devices.append(device)
-
-    for index in range(number_selects):
-        # selects
-        device = {
-            "name": "select"+str(index),
-            "type": "bridge"
-        }
-        devices.append(device)
-        # nots
-        device ={
-            "name": "not"+str(index),
-            "type": "not"
-        }
-        devices.append(device)
-
-        # or devices
-    device ={
-        "name": "or0",
-        "type": "or"+str(number_inputs)
-    }
-    devices.append(device)
-    device ={
-        "name": "out",
-        "type": "bridge"
-    }
-    devices.append(device)
-
-    # wires
-    wires = []
-    for i in range(number_inputs):
-        index = str(i)
-        # input to and
-        wire = {
-            "name": "wirein"+index,
-            "from": ["in"+index],
-            "to": ["and"+index+"/in" + str(number_selects)]
-        }
-        wires.append(wire)
-        # and to or
-        wire = {
-            "name": "wireand"+index,
-            "from":["and"+index+"/out"],
-            "to":["or0/in"+index]
-        }
-        wires.append(wire)
-
-    for index in range(number_selects):
-        # from selector and from not selector
-        wire = {
-            "name": "wireselect"+str(index),
-            "from": ["select"+str(index)],
-            "to": ["not"+str(index)+"/in"]
-        }
-        wires.append(wire)
-        wire = {
-            "name": "wireselectnot"+str(index),
-            "from": ["not"+str(index)+"/out"],
-            "to": []
-        }
-        wires.append(wire)
-
-    
-    value_sets = itertools.product([False,True], repeat=number_selects)
-    for value_set_index, value_set in enumerate(value_sets):
-        value_set = reversed(value_set)
-        vi = str(value_set_index)
-        for index, value in enumerate(value_set):
-            i = str(index)
-            if value:
-                wire = get_wire(wires, 'wireselect'+i)
-                wire['to'].append("and"+vi+"/in"+i)
-            else:
-                wire = get_wire(wires, 'wireselectnot'+i)
-                wire['to'].append("and"+vi+"/in"+i)
-
-    wire = {
-        "name": "wireor0",
-        "from": ["or0/out"],
-        "to": ["out"]
-    }
-    wires.append(wire)
-    data = {
-        "name": device_type+"0",
-        "type": device_type,
-        "wires": wires,
-        "devices": devices
-    }
-
-    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
-    write_json(data, device_file_path)
-
-
-def make_mux(number_selects, is_dual):
-    '''
-    Make mux circuit.
-    A mux circuit is the following:
-    O = SA + not(S)B
-    '''
+def get_mux_type(number_selects, is_dual):
     number_inputs = int(math.pow(2, number_selects))
     device_type = "mux"+str(number_inputs)
     if is_dual:
         device_type += "dual"
+    return device_type
+
+def make_mux(number_selects, is_dual):
+    mux = new_mux(number_selects, is_dual)
+    device_type = get_mux_type(number_selects, is_dual)
+    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
+    write_json(mux, device_file_path)
+
+def new_mux(number_selects, is_dual=False, in_pre='in', select_pre='select' out='out'):
+    '''
+    Make mux circuit.
+    A mux circuit is the following:
+    O = SA + not(S)B
+    '''
+    number_inputs = int(math.pow(2, number_selects))
+    device_type = get_mux_type(number_selects, is_dual)
     devices = []
     
     for index in range(number_inputs):
         #inputs
         i = str(index)
-        devices.extend(make_bridge("in"+i, is_dual))
+        devices.extend(make_bridge(in_pre+i, is_dual))
         # need and gates
         devices.append(make_device("and"+i, "and"+str(number_selects+1), is_dual))
 
     for index in range(number_selects):
         # selects
         i = str(index)
-        devices.extend(make_bridge("select"+i, is_dual))
+        devices.extend(make_bridge(select_pre+i, is_dual))
         # nots
         devices.append(make_device("not"+i, "not", is_dual))
 
     # or device
     devices.append(make_device("or0", "or"+str(number_inputs), is_dual))
-    devices.extend(make_bridge("out", is_dual))
+    devices.extend(make_bridge(out, is_dual))
 
     # wires
     wires = []
@@ -180,97 +76,13 @@ def make_mux(number_selects, is_dual):
 
 
     wires.extend(make_wire("wireor0", ["or0/out"], ["out"], is_dual))
-    data = {
+    return {
         "name": device_type+"0",
         "type": device_type,
         "wires": wires,
         "devices": devices
     }
 
-    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
-    write_json(data, device_file_path)
-
-def make_decoder_old(number_inputs):
-    number_outputs = int(math.pow(2, number_inputs))
-    device_type = "decoder" + str(number_inputs)
-    wires = []
-    devices = []
-
-    data = {
-        "name": device_type+"0",
-        "type": device_type,
-        "wires": wires,
-        "devices": devices
-    }
-
-    for index in range(number_inputs):
-        # inputs
-        i = str(index)
-        device = {
-            "name": "in"+i,
-            "type": "bridge"
-        }
-        devices.append(device)
-        device = {
-            "name": "not"+i,
-            "type": "not"
-        }
-        devices.append(device)
-
-    for index in range(number_outputs):
-        i = str(index)
-        device = {
-            "name": "out"+i,
-            "type": "bridge"
-        }
-        devices.append(device)
-        device = {
-            "name": "and"+i,
-            "type": "and" + str(number_inputs)
-        }
-        devices.append(device)
-
-    for index in range(number_inputs):
-        i = str(index)
-        wire = {
-            "name": "wirein"+i,
-            "from": ["in"+i],
-            "to": ["not"+i+"/in"]
-        }
-        wires.append(wire)
-        wire = {
-            "name": "wirenot"+i,
-            "from": ["not"+i+"/out"],
-            "to": []
-        }
-        wires.append(wire)
-
-    for index in range(number_outputs):
-        i = str(index)
-        wire = {
-            "name": "wireand"+i,
-            "from":["and"+i+"/out"],
-            "to":["out"+i]
-        }
-        wires.append(wire)
-
-    value_sets = itertools.product([False,True], repeat=number_inputs)
-    for value_set_index, value_set in enumerate(value_sets):
-        value_set = reversed(value_set)
-        vi = str(value_set_index)
-        wire = get_wire(wires,'wirein'+vi)
-
-        for index, value in enumerate(value_set):
-            i = str(index)
-            if value:
-                wire = get_wire(wires,'wirein'+i)
-                wire['to'].append("and"+vi+"/in"+i)
-            else:
-                wire = get_wire(wires,'wirenot'+i)
-                wire['to'].append("and"+vi+"/in"+i)
-
-    device_file_path = str(DEVICE_DIR) + '/' + device_type + '.json'
-    write_json(data, device_file_path)
 
 def get_wire(wires, name):
     for wire in wires:
@@ -584,6 +396,65 @@ def make_prim_part(prim_type, number_inputs):
         "devices": devices
     }
 
+
+
+def make_insn_read():
+    '''
+    Make insn reader.
+    It is basically 28 muxes with a single set of selectors.
+    
+    '''
+    pc_size = 10
+    read_size = 16
+    branch_size = 10
+
+    number_insns = math.pow(2, pc_size)
+
+    devices = []
+    wires = []
+
+    for index in range(pc_size):
+        devices.append(make_bridge("pc_"+i))
+    
+    read_muxs = []
+    for index in range(read_size):
+        i = str(index)
+        read_muxs.append(new_mux(pc_size, is_dual=True))
+        devices.append(make_bridge("ro_"+i))
+        for child_index in range(number_insns):
+            ci = i+'_'+str(child_index)
+
+            devices.append(make_bridge("ri_"+i+"_"+ci))
+            wires.append(make_wire('wireri_'+i+'_'+ci,[],[])
+
+
+    branch_muxs = []
+    for index in range(branch_size):
+        branch_muxs.append(new_mux(pc_size, is_dual=True))
+        devices.append(make_bridge("bo_"+i))
+        for child_index in range(number_insns):
+            ci = str(child_index)
+            devices.append(make_bridge("bi_"+i+"_"+ci))
+
+    wone_mux = new_mux(pc_size, is_dual=True)
+    devices.append(make_bridge("woneo_"+i))
+    for child_index in range(number_insns):
+        ci = str(child_index)
+        devices.append(make_bridge("wonei_"+i+"_"+ci))
+
+    wzero_mux = new_mux(pc_size, is_dual=True)
+    devices.append(make_bridge("wzeroo_"+i))
+    for child_index in range(number_insns):
+        ci = str(child_index)
+        devices.append(make_bridge("wzeroi_"+i+"_"+ci))
+
+    # make wire connections and outputs
+
+def make_pc_add():
+    pass
+
+def make_pc_select():
+    pass
 
 def main():
     option = sys.argv[1]
