@@ -2,6 +2,26 @@ from settings import LESS_DIR, CSS_DIR
 import shlex
 import subprocess
 import json
+import math
+
+def get_int(bools):
+    r = 0
+    for index, val in enumerate(bools):
+        if val:
+            number = math.pow(2,index)
+            r += number
+    return r
+
+def get_bools(integer, number_digits):
+    bools = [False]*number_digits
+    while(True):
+        if integer == 0 return
+        highest = int(math.log(integer,2))
+        if highest < number_digits:
+            bools[highest] = True
+        integer -= highest
+    return bools
+
 
 def get_bridge_type(bridge_name, wires_data):
     for wire in wires_data:

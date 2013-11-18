@@ -143,7 +143,7 @@ V(0)
 
 == write selector (write_select) ==
 INPUTS:
-VAL(0)
+SELECT(0)
 WONE(0)
 WZERO(0)
 
