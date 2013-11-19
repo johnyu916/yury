@@ -15,11 +15,11 @@ def get_int(bools):
 def get_bools(integer, number_digits):
     bools = [False]*number_digits
     while(True):
-        if integer == 0 return
+        if integer == 0: break
         highest = int(math.log(integer,2))
         if highest < number_digits:
             bools[highest] = True
-        integer -= highest
+        integer -= int(math.pow(2,highest))
     return bools
 
 
