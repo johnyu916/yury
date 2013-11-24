@@ -128,7 +128,7 @@ def check_device(filepath):
         wire_names = {}
         for wire in wires:
             wire_name = wire['name']
-            assert not wire_name in wire_names
+            assert not wire_name in wire_names, "{0} is already defined".format(wire_name)
             wire_names[wire_name] = True
             for from_device in wire['from']:
                 names = from_device.split('/')
@@ -137,7 +137,7 @@ def check_device(filepath):
                 assert name in child_infos, "{0} not one of the devices".format(name)
                 child_type = child_infos[name]
                 if not child_type in DEVICE_PRIMITIVES:
-                    assert len(names) == 2, "{0} needs port".format(from_device)
+                    assert len(names) == 2, "{0} needs port to be referenced from wire[from]".format(from_device)
                 if len(names) == 2:
                     port = names[1]
                     if child_type in DEVICE_PRIMITIVES:
@@ -150,7 +150,7 @@ def check_device(filepath):
                 assert names[0] in child_infos, "{0} not in device names".format(names[0])
                 child_type = child_infos[name]
                 if not child_type in DEVICE_PRIMITIVES:
-                    assert len(names) == 2, "{0}, type {1} needs port".format(to_device, child_type)
+                    assert len(names) == 2, "{0}, type {1} needs port to be referenced from wire[to]".format(to_device, child_type)
                 if len(names) == 2:
                     port = names[1]
                     if child_type in DEVICE_PRIMITIVES:

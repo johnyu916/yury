@@ -5,12 +5,35 @@ import sys
 import string
 from settings import DEVICE_DIR
 
+def make_wire(name, from_list, to_list, is_dual=False):
+    wires = []
+    if is_dual:
+        for spin in ['down', 'up']:
+            froms = [pin+spin for pin in from_list]
+            tos = [pin+spin for pin in to_list]
+            wire = {
+                "name": name+spin,
+                "from": froms,
+                "to": tos
+            }
+            wires.append(wire)
+    else:
+        wire = {
+            "name": name,
+            "from": from_list,
+            "to": to_list
+        }
+        wires.append(wire)
+    return wires
+
+
 def get_mux_type(number_selects, is_dual):
     number_inputs = int(math.pow(2, number_selects))
-    device_type = "mux"+str(number_inputs)
+    device_type = "mux_"+str(number_inputs)
     if is_dual:
         device_type += "dual"
     return device_type
+
 
 def make_mux(number_selects, is_dual):
     mux = new_mux(number_selects, is_dual)
@@ -63,7 +86,6 @@ def new_mux(number_selects, is_dual=False, in_pre='in', select_pre='select', out
         wires.extend(make_wire("wireselect"+i, ["select"+i], ["not"+i+"/in"], is_dual))
         wires.extend(make_wire("wireselectnot"+i, ["not"+i+"/out"], [], is_dual))
 
-    
     value_sets = itertools.product([False,True], repeat=number_selects)
     for value_set_index, value_set in enumerate(value_sets):
         value_set = reversed(value_set)
@@ -126,26 +148,6 @@ def append_name(pin, text):
 
 
 
-def make_wire(name, from_list, to_list, is_dual=False):
-    wires = []
-    if is_dual:
-        for spin in ['down', 'up']:
-            froms = [pin+spin for pin in from_list]
-            tos = [pin+spin for pin in to_list]
-            wire = {
-                "name": name+spin,
-                "from": froms,
-                "to": tos
-            }
-            wires.append(wire)
-    else:
-        wire = {
-            "name": name,
-            "from": from_list,
-            "to": to_list
-        }
-        wires.append(wire)
-    return wires
 
 def make_input_and_nots(number_inputs, is_dual=False):
     '''
@@ -273,50 +275,67 @@ def get_and(inputs):
     return True
 
 
-def new_boolean(inputs, function, outputs, device_type):
+def new_boolean(inputs, outputs, function, device_type):
     '''
-    inputs is a list of input names
+    inputs - list of input names
+    outputs - list of output names
+    function - a truth table. 
+        it takes 1 parameter, a list of booleans.
+        it return a list of booleans, one for each output.
+    device_type - device_type
+    ex: device = new_boolean(['a0','a1'], ['o0', o1'], get_add, 'add1')
     '''
     devices = []
     wires = []
     number_inputs = len(inputs)
 
     for in_name in inputs:
-        not_name = 'not_'+in_name
+        # construct inputs
         in_dev = make_bridge(in_name)
+        # not gates for every input
+        not_name = 'not_'+in_name
         not_dev = make_device(not_name, 'not')
         devices.extend(in_dev)
         devices.append(not_dev)
-    
-        wireas = make_wire('wire_'+in_name, [in_name],[])
-        wirebs = make_wire('wire_'+not_name, [not_name],[])
+
+        # wire from input
+        wireas = make_wire('wire_'+in_name, [in_name],[not_name+"/in"])
+        # wire from not gate
+        wirenots = make_wire('wire_'+not_name, [not_name+"/out"],[])
         wires.extend(wireas)
-        wires.extend(wirebs)
+        wires.extend(wirenots)
 
     for out_name in outputs:
+        # outputs
         out = make_bridge(out_name)
         devices.extend(out)
 
-    value_sets = itertools.product([False,True], repeat=number_inputs)
+    # wire from input to and gates
+    input_sets = itertools.product([False,True], repeat=number_inputs)
     output_sets= []
-    for value_set_index, value_set in enumerate(value_sets):
-        set_i = str(value_set_index)
-        output_sets.append(function(value_set))
+    for input_set_index, input_set in enumerate(input_sets):
+        # the input_set is a single row on truth table
+        set_i = str(input_set_index)
+        output_sets.append(function(input_set))
 
-        for index, value in enumerate(value_set):
+        for index, value in enumerate(input_set):
+            # each value in the input row need to be and'ed
             i = str(index)
             if value:
                 wire = get_wire(wires, 'wire_'+inputs[index])
                 wire['to'].append('and_'+set_i+"/in"+i)
                 #wiredown = get_wire(wires, 'wirenot'+i+"down")
                 #wireup = get_wire(wires, 'wirein'+i+"up")
-            #else:
-            #    wire = get_wire(wires, 'wire_not_'+inputs[index]
+            else:
+                wire = get_wire(wires, 'wire_not_'+inputs[index])
+                wire['to'].append('and_'+set_i+"/in"+i)
                 #wiredown = get_wire(wires, 'wirein'+i+"down")
                 #wireup = get_wire(wires, 'wirenot'+i+"up")
             #wire['to'].append('and_'+set_i+"/in"+str(2*index))
             #wireup['to'].append('and_'+set_i+"/in"+str(2*index+1))
 
+    # each output is an or of one or more and gates.
+    # ones is necessary to see whether an or gate is necessary.
     ones = [0]* len(outputs)  #track how many '1's for every output.
     zeros = [0]*len(outputs)
     for output_set in output_sets:
@@ -329,13 +348,14 @@ def new_boolean(inputs, function, outputs, device_type):
             #    zeros[index] += 1
 
     for index, one in enumerate(ones):
+        # create or gate and connect to out
         i = "_"+str(index)
         if one > 1:
             devices.append(make_device("or_1"+i, "or"+str(one)))
             wire = {
                 "name": "wire_or_1"+i,
                 "from": ["or_1"+i+"/out"],
-                "to": ["out"]
+                "to": [outputs[index]]
             }
             wires.append(wire)
 
@@ -350,29 +370,35 @@ def new_boolean(inputs, function, outputs, device_type):
             }
             wires.append(wire)
 
-    onei = 0
+    oneis = [0] * len(outputs)
     zeroi = 0
 
+    # each row in truth table is an 'and' gate
     number_rows = int(math.pow(2,number_inputs))
     for index in range(number_rows):
-        # each row in truth table is an 'and' gate
         i = "_"+str(index)
-        devices.append(make_device("and"+i, "and"+str(number_inputs)))
+        and_name = "and"+i
+        devices.append(make_device(and_name, "and"+str(number_inputs)))
+        wireands = make_wire('wire_'+and_name, [and_name+"/out"], [])
+        wires.extend(wireands)
 
+    # and gate to or gate
     for set_index, output_set in enumerate(output_sets):
         # for each row in truth table
+        set_i = str(set_index)
         for index, value in enumerate(output_set):
             # for each output in the row
             i = "_"+str(index)
             one = ones[index]
             if value:
-                output = "out"+i if one <= 1 else "or_1"+i+"/in"+str(onei)
-                wires.extend(make_wire("wire_and" + i, ["and"+i+"/out"], [output]))
-                onei+=1
-            else:
-                output = "outdown" if zeros <= 1 else "or_0/in"+str(zeroi)
-                wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
-                zeroi+=1
+                output = "out"+i if one <= 1 else "or_1"+i+"/in"+str(oneis[index])
+                wire = get_wire(wires, "wire_and_"+set_i)
+                wire['to'].append(output)
+                oneis[index]+=1
+            #else:
+            #    output = "outdown" if zeros <= 1 else "or_0"+i+"/in"+str(zeroi)
+            #    wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
+            #    zeroi+=1
 
     return {
         "name": device_type+"0",
@@ -510,39 +536,50 @@ def make_prim_part(prim_type, number_inputs):
 
 def make_group_mux(input_maps, selects):
     '''
-    make_group_mux([['wone', 'wzero'], ['one',two]], ['pc_0', 'pc_1'])
-    {
-        'output':'r_0',
-        'inputs':['wone', 'wzero']
-    }
+    many muxes that share the same selects
+    input_maps - map if inputs to output
+    make_group_mux( 
+        [
+            {
+                'output':'r_0',
+                'inputs':['wone', 'wzero']
+            },
+            ...
+        ]
+        ,['pc_0', 'pc_1'])
     '''
 
     # number of inputs per mux
     number_selects = len(selects)
-    #number_inputs = int(math.pow(2,number_selects))
     devices = []
     wires = []
 
     #first make selects
     for select in selects:
-        devices.append(make_bridge(select))
+        devices.extend(make_bridge(select))
+        wires.extend(make_wire('wire_'+select,[select],[]))
 
     # make mux per input group
     for index, input_map in enumerate(input_maps):
+        inputs = input_map['inputs']
         output = input_map['output']
-        #i = "_" +str(index)
         mux_name = "mux_" + output
-        devices.append(new_mux(number_selects, is_dual=True))
-        devices.append(make_bridge(output))
-        wires.append(make_wire('wire_'+mux_name, [mux_name+"/out"], [output]))
+        mux = make_device(mux_name, "mux_"+str(len(inputs)))
+        devices.append(mux)
+        devices.extend(make_bridge(output))
+        wires.extend(make_wire('wire_'+mux_name, [mux_name+"/out"], [output]))
 
         # make inputs and wires
-        inputs = input_map['inputs']
         for child_index, input_name in enumerate(inputs):
             ci = str(child_index)
-            devices.append(make_bridge(input_name))
-            wires.append(make_wire('wire_'+input_name,[input_name],[mux_name+"/in"+ci]))
+            devices.extend(make_bridge(input_name))
+            wires.extend(make_wire('wire_'+input_name,[input_name],[mux_name+"/in"+ci]))
 
+        # wire select to mux
+        for index, select in enumerate(selects):
+            wire = get_wire(wires, 'wire_'+select)
+            wire['to'].append(mux_name+"/select"+str(index))
+        
     return {
         'devices': devices,
         'wires': wires
@@ -586,7 +623,7 @@ def make_insn_read():
     return device
 
 
-def make_pc_select():
+def new_pc_select():
     pc_size = 10  # PC is not selector here.
     input_maps = []
     for index in range(pc_size):
@@ -599,10 +636,16 @@ def make_pc_select():
         }
         input_maps.append(input_map)
     device = make_group_mux(input_maps, ['v'])
-    device.upate({
+    device.update({
         'name': 'pc_select0',
         'type': 'pc_select',
     })
+    return device
+
+def make_pc_select():
+    device = new_pc_select()
+    device_file_path = str(DEVICE_DIR) + '/' + device['type'] + '.json'
+    write_json(device, device_file_path)
 
 
 def make_mem_mux():
@@ -652,7 +695,7 @@ def get_add(inputs):
 def new_add(number_inputs):
     '''
     number_inputs is number of digits.
-    device = make_add(5) 
+    device = new_add(5) 
     '''
     inputs = []
     for name in ['a_','b_']:
@@ -663,7 +706,7 @@ def new_add(number_inputs):
     for index in range(number_inputs):
         outputs.append("o_"+str(index))
 
-    return new_boolean(inputs, get_add, outputs, "add"+str(number_inputs))
+    return new_boolean(inputs, outputs, get_add, "add"+str(number_inputs))
 
 def make_add(number_inputs):
     device = new_add(number_inputs)
@@ -744,6 +787,8 @@ def main():
     elif option == 'add':
         number_inputs = int(sys.argv[2])
         make_add(number_inputs)
+    elif option == 'pc_select':
+        make_pc_select()
     else:
         pass
 

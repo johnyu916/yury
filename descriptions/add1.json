@@ -1,0 +1,131 @@
+{
+    "wires": [
+        {
+            "to": [
+                "not_a_0/in", 
+                "and_2/in0", 
+                "and_3/in0"
+            ], 
+            "from": [
+                "a_0"
+            ], 
+            "name": "wire_a_0"
+        }, 
+        {
+            "to": [
+                "and_0/in0", 
+                "and_1/in0"
+            ], 
+            "from": [
+                "not_a_0/out"
+            ], 
+            "name": "wire_not_a_0"
+        }, 
+        {
+            "to": [
+                "not_b_0/in", 
+                "and_1/in1", 
+                "and_3/in1"
+            ], 
+            "from": [
+                "b_0"
+            ], 
+            "name": "wire_b_0"
+        }, 
+        {
+            "to": [
+                "and_0/in1", 
+                "and_2/in1"
+            ], 
+            "from": [
+                "not_b_0/out"
+            ], 
+            "name": "wire_not_b_0"
+        }, 
+        {
+            "to": [
+                "o_0"
+            ], 
+            "from": [
+                "or_1_0/out"
+            ], 
+            "name": "wire_or_1_0"
+        }, 
+        {
+            "to": [], 
+            "from": [
+                "and_0/out"
+            ], 
+            "name": "wire_and_0"
+        }, 
+        {
+            "to": [
+                "or_1_0/in0"
+            ], 
+            "from": [
+                "and_1/out"
+            ], 
+            "name": "wire_and_1"
+        }, 
+        {
+            "to": [
+                "or_1_0/in1"
+            ], 
+            "from": [
+                "and_2/out"
+            ], 
+            "name": "wire_and_2"
+        }, 
+        {
+            "to": [], 
+            "from": [
+                "and_3/out"
+            ], 
+            "name": "wire_and_3"
+        }
+    ], 
+    "type": "add1", 
+    "name": "add10", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "a_0"
+        }, 
+        {
+            "type": "not", 
+            "name": "not_a_0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_0"
+        }, 
+        {
+            "type": "not", 
+            "name": "not_b_0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "o_0"
+        }, 
+        {
+            "type": "or2", 
+            "name": "or_1_0"
+        }, 
+        {
+            "type": "and2", 
+            "name": "and_0"
+        }, 
+        {
+            "type": "and2", 
+            "name": "and_1"
+        }, 
+        {
+            "type": "and2", 
+            "name": "and_2"
+        }, 
+        {
+            "type": "and2", 
+            "name": "and_3"
+        }
+    ]
+}

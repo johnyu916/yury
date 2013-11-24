@@ -1,0 +1,460 @@
+{
+    "wires": [
+        {
+            "to": [
+                "mux_pcb_0/select0", 
+                "mux_pcb_1/select0", 
+                "mux_pcb_2/select0", 
+                "mux_pcb_3/select0", 
+                "mux_pcb_4/select0", 
+                "mux_pcb_5/select0", 
+                "mux_pcb_6/select0", 
+                "mux_pcb_7/select0", 
+                "mux_pcb_8/select0", 
+                "mux_pcb_9/select0"
+            ], 
+            "from": [
+                "v"
+            ], 
+            "name": "wire_v"
+        }, 
+        {
+            "to": [
+                "pcb_0"
+            ], 
+            "from": [
+                "mux_pcb_0/out"
+            ], 
+            "name": "wire_mux_pcb_0"
+        }, 
+        {
+            "to": [
+                "mux_pcb_0/in0"
+            ], 
+            "from": [
+                "pc_0"
+            ], 
+            "name": "wire_pc_0"
+        }, 
+        {
+            "to": [
+                "mux_pcb_0/in1"
+            ], 
+            "from": [
+                "b_0"
+            ], 
+            "name": "wire_b_0"
+        }, 
+        {
+            "to": [
+                "pcb_1"
+            ], 
+            "from": [
+                "mux_pcb_1/out"
+            ], 
+            "name": "wire_mux_pcb_1"
+        }, 
+        {
+            "to": [
+                "mux_pcb_1/in0"
+            ], 
+            "from": [
+                "pc_1"
+            ], 
+            "name": "wire_pc_1"
+        }, 
+        {
+            "to": [
+                "mux_pcb_1/in1"
+            ], 
+            "from": [
+                "b_1"
+            ], 
+            "name": "wire_b_1"
+        }, 
+        {
+            "to": [
+                "pcb_2"
+            ], 
+            "from": [
+                "mux_pcb_2/out"
+            ], 
+            "name": "wire_mux_pcb_2"
+        }, 
+        {
+            "to": [
+                "mux_pcb_2/in0"
+            ], 
+            "from": [
+                "pc_2"
+            ], 
+            "name": "wire_pc_2"
+        }, 
+        {
+            "to": [
+                "mux_pcb_2/in1"
+            ], 
+            "from": [
+                "b_2"
+            ], 
+            "name": "wire_b_2"
+        }, 
+        {
+            "to": [
+                "pcb_3"
+            ], 
+            "from": [
+                "mux_pcb_3/out"
+            ], 
+            "name": "wire_mux_pcb_3"
+        }, 
+        {
+            "to": [
+                "mux_pcb_3/in0"
+            ], 
+            "from": [
+                "pc_3"
+            ], 
+            "name": "wire_pc_3"
+        }, 
+        {
+            "to": [
+                "mux_pcb_3/in1"
+            ], 
+            "from": [
+                "b_3"
+            ], 
+            "name": "wire_b_3"
+        }, 
+        {
+            "to": [
+                "pcb_4"
+            ], 
+            "from": [
+                "mux_pcb_4/out"
+            ], 
+            "name": "wire_mux_pcb_4"
+        }, 
+        {
+            "to": [
+                "mux_pcb_4/in0"
+            ], 
+            "from": [
+                "pc_4"
+            ], 
+            "name": "wire_pc_4"
+        }, 
+        {
+            "to": [
+                "mux_pcb_4/in1"
+            ], 
+            "from": [
+                "b_4"
+            ], 
+            "name": "wire_b_4"
+        }, 
+        {
+            "to": [
+                "pcb_5"
+            ], 
+            "from": [
+                "mux_pcb_5/out"
+            ], 
+            "name": "wire_mux_pcb_5"
+        }, 
+        {
+            "to": [
+                "mux_pcb_5/in0"
+            ], 
+            "from": [
+                "pc_5"
+            ], 
+            "name": "wire_pc_5"
+        }, 
+        {
+            "to": [
+                "mux_pcb_5/in1"
+            ], 
+            "from": [
+                "b_5"
+            ], 
+            "name": "wire_b_5"
+        }, 
+        {
+            "to": [
+                "pcb_6"
+            ], 
+            "from": [
+                "mux_pcb_6/out"
+            ], 
+            "name": "wire_mux_pcb_6"
+        }, 
+        {
+            "to": [
+                "mux_pcb_6/in0"
+            ], 
+            "from": [
+                "pc_6"
+            ], 
+            "name": "wire_pc_6"
+        }, 
+        {
+            "to": [
+                "mux_pcb_6/in1"
+            ], 
+            "from": [
+                "b_6"
+            ], 
+            "name": "wire_b_6"
+        }, 
+        {
+            "to": [
+                "pcb_7"
+            ], 
+            "from": [
+                "mux_pcb_7/out"
+            ], 
+            "name": "wire_mux_pcb_7"
+        }, 
+        {
+            "to": [
+                "mux_pcb_7/in0"
+            ], 
+            "from": [
+                "pc_7"
+            ], 
+            "name": "wire_pc_7"
+        }, 
+        {
+            "to": [
+                "mux_pcb_7/in1"
+            ], 
+            "from": [
+                "b_7"
+            ], 
+            "name": "wire_b_7"
+        }, 
+        {
+            "to": [
+                "pcb_8"
+            ], 
+            "from": [
+                "mux_pcb_8/out"
+            ], 
+            "name": "wire_mux_pcb_8"
+        }, 
+        {
+            "to": [
+                "mux_pcb_8/in0"
+            ], 
+            "from": [
+                "pc_8"
+            ], 
+            "name": "wire_pc_8"
+        }, 
+        {
+            "to": [
+                "mux_pcb_8/in1"
+            ], 
+            "from": [
+                "b_8"
+            ], 
+            "name": "wire_b_8"
+        }, 
+        {
+            "to": [
+                "pcb_9"
+            ], 
+            "from": [
+                "mux_pcb_9/out"
+            ], 
+            "name": "wire_mux_pcb_9"
+        }, 
+        {
+            "to": [
+                "mux_pcb_9/in0"
+            ], 
+            "from": [
+                "pc_9"
+            ], 
+            "name": "wire_pc_9"
+        }, 
+        {
+            "to": [
+                "mux_pcb_9/in1"
+            ], 
+            "from": [
+                "b_9"
+            ], 
+            "name": "wire_b_9"
+        }
+    ], 
+    "type": "pc_select", 
+    "name": "pc_select0", 
+    "devices": [
+        {
+            "type": "bridge", 
+            "name": "v"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_0"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_0"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_1"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_1"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_2"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_2"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_3"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_3"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_3"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_3"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_4"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_4"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_4"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_4"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_5"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_5"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_5"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_5"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_6"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_6"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_6"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_6"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_7"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_7"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_7"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_7"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_8"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_8"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_8"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_8"
+        }, 
+        {
+            "type": "mux_2", 
+            "name": "mux_pcb_9"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pcb_9"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "pc_9"
+        }, 
+        {
+            "type": "bridge", 
+            "name": "b_9"
+        }
+    ]
+}
