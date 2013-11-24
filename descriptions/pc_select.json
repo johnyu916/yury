@@ -2,16 +2,16 @@
     "wires": [
         {
             "to": [
-                "mux_pcb_0/select0", 
-                "mux_pcb_1/select0", 
-                "mux_pcb_2/select0", 
-                "mux_pcb_3/select0", 
-                "mux_pcb_4/select0", 
-                "mux_pcb_5/select0", 
-                "mux_pcb_6/select0", 
-                "mux_pcb_7/select0", 
-                "mux_pcb_8/select0", 
-                "mux_pcb_9/select0"
+                "mux_out_0/select0", 
+                "mux_out_1/select0", 
+                "mux_out_2/select0", 
+                "mux_out_3/select0", 
+                "mux_out_4/select0", 
+                "mux_out_5/select0", 
+                "mux_out_6/select0", 
+                "mux_out_7/select0", 
+                "mux_out_8/select0", 
+                "mux_out_9/select0"
             ], 
             "from": [
                 "v"
@@ -20,16 +20,16 @@
         }, 
         {
             "to": [
-                "pcb_0"
+                "out_0"
             ], 
             "from": [
-                "mux_pcb_0/out"
+                "mux_out_0/out"
             ], 
-            "name": "wire_mux_pcb_0"
+            "name": "wire_mux_out_0"
         }, 
         {
             "to": [
-                "mux_pcb_0/in0"
+                "mux_out_0/in0"
             ], 
             "from": [
                 "pc_0"
@@ -38,7 +38,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_0/in1"
+                "mux_out_0/in1"
             ], 
             "from": [
                 "b_0"
@@ -47,16 +47,16 @@
         }, 
         {
             "to": [
-                "pcb_1"
+                "out_1"
             ], 
             "from": [
-                "mux_pcb_1/out"
+                "mux_out_1/out"
             ], 
-            "name": "wire_mux_pcb_1"
+            "name": "wire_mux_out_1"
         }, 
         {
             "to": [
-                "mux_pcb_1/in0"
+                "mux_out_1/in0"
             ], 
             "from": [
                 "pc_1"
@@ -65,7 +65,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_1/in1"
+                "mux_out_1/in1"
             ], 
             "from": [
                 "b_1"
@@ -74,16 +74,16 @@
         }, 
         {
             "to": [
-                "pcb_2"
+                "out_2"
             ], 
             "from": [
-                "mux_pcb_2/out"
+                "mux_out_2/out"
             ], 
-            "name": "wire_mux_pcb_2"
+            "name": "wire_mux_out_2"
         }, 
         {
             "to": [
-                "mux_pcb_2/in0"
+                "mux_out_2/in0"
             ], 
             "from": [
                 "pc_2"
@@ -92,7 +92,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_2/in1"
+                "mux_out_2/in1"
             ], 
             "from": [
                 "b_2"
@@ -101,16 +101,16 @@
         }, 
         {
             "to": [
-                "pcb_3"
+                "out_3"
             ], 
             "from": [
-                "mux_pcb_3/out"
+                "mux_out_3/out"
             ], 
-            "name": "wire_mux_pcb_3"
+            "name": "wire_mux_out_3"
         }, 
         {
             "to": [
-                "mux_pcb_3/in0"
+                "mux_out_3/in0"
             ], 
             "from": [
                 "pc_3"
@@ -119,7 +119,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_3/in1"
+                "mux_out_3/in1"
             ], 
             "from": [
                 "b_3"
@@ -128,16 +128,16 @@
         }, 
         {
             "to": [
-                "pcb_4"
+                "out_4"
             ], 
             "from": [
-                "mux_pcb_4/out"
+                "mux_out_4/out"
             ], 
-            "name": "wire_mux_pcb_4"
+            "name": "wire_mux_out_4"
         }, 
         {
             "to": [
-                "mux_pcb_4/in0"
+                "mux_out_4/in0"
             ], 
             "from": [
                 "pc_4"
@@ -146,7 +146,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_4/in1"
+                "mux_out_4/in1"
             ], 
             "from": [
                 "b_4"
@@ -155,16 +155,16 @@
         }, 
         {
             "to": [
-                "pcb_5"
+                "out_5"
             ], 
             "from": [
-                "mux_pcb_5/out"
+                "mux_out_5/out"
             ], 
-            "name": "wire_mux_pcb_5"
+            "name": "wire_mux_out_5"
         }, 
         {
             "to": [
-                "mux_pcb_5/in0"
+                "mux_out_5/in0"
             ], 
             "from": [
                 "pc_5"
@@ -173,7 +173,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_5/in1"
+                "mux_out_5/in1"
             ], 
             "from": [
                 "b_5"
@@ -182,16 +182,16 @@
         }, 
         {
             "to": [
-                "pcb_6"
+                "out_6"
             ], 
             "from": [
-                "mux_pcb_6/out"
+                "mux_out_6/out"
             ], 
-            "name": "wire_mux_pcb_6"
+            "name": "wire_mux_out_6"
         }, 
         {
             "to": [
-                "mux_pcb_6/in0"
+                "mux_out_6/in0"
             ], 
             "from": [
                 "pc_6"
@@ -200,7 +200,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_6/in1"
+                "mux_out_6/in1"
             ], 
             "from": [
                 "b_6"
@@ -209,16 +209,16 @@
         }, 
         {
             "to": [
-                "pcb_7"
+                "out_7"
             ], 
             "from": [
-                "mux_pcb_7/out"
+                "mux_out_7/out"
             ], 
-            "name": "wire_mux_pcb_7"
+            "name": "wire_mux_out_7"
         }, 
         {
             "to": [
-                "mux_pcb_7/in0"
+                "mux_out_7/in0"
             ], 
             "from": [
                 "pc_7"
@@ -227,7 +227,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_7/in1"
+                "mux_out_7/in1"
             ], 
             "from": [
                 "b_7"
@@ -236,16 +236,16 @@
         }, 
         {
             "to": [
-                "pcb_8"
+                "out_8"
             ], 
             "from": [
-                "mux_pcb_8/out"
+                "mux_out_8/out"
             ], 
-            "name": "wire_mux_pcb_8"
+            "name": "wire_mux_out_8"
         }, 
         {
             "to": [
-                "mux_pcb_8/in0"
+                "mux_out_8/in0"
             ], 
             "from": [
                 "pc_8"
@@ -254,7 +254,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_8/in1"
+                "mux_out_8/in1"
             ], 
             "from": [
                 "b_8"
@@ -263,16 +263,16 @@
         }, 
         {
             "to": [
-                "pcb_9"
+                "out_9"
             ], 
             "from": [
-                "mux_pcb_9/out"
+                "mux_out_9/out"
             ], 
-            "name": "wire_mux_pcb_9"
+            "name": "wire_mux_out_9"
         }, 
         {
             "to": [
-                "mux_pcb_9/in0"
+                "mux_out_9/in0"
             ], 
             "from": [
                 "pc_9"
@@ -281,7 +281,7 @@
         }, 
         {
             "to": [
-                "mux_pcb_9/in1"
+                "mux_out_9/in1"
             ], 
             "from": [
                 "b_9"
@@ -298,11 +298,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_0"
+            "name": "mux_out_0"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_0"
+            "name": "out_0"
         }, 
         {
             "type": "bridge", 
@@ -314,11 +314,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_1"
+            "name": "mux_out_1"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_1"
+            "name": "out_1"
         }, 
         {
             "type": "bridge", 
@@ -330,11 +330,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_2"
+            "name": "mux_out_2"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_2"
+            "name": "out_2"
         }, 
         {
             "type": "bridge", 
@@ -346,11 +346,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_3"
+            "name": "mux_out_3"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_3"
+            "name": "out_3"
         }, 
         {
             "type": "bridge", 
@@ -362,11 +362,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_4"
+            "name": "mux_out_4"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_4"
+            "name": "out_4"
         }, 
         {
             "type": "bridge", 
@@ -378,11 +378,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_5"
+            "name": "mux_out_5"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_5"
+            "name": "out_5"
         }, 
         {
             "type": "bridge", 
@@ -394,11 +394,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_6"
+            "name": "mux_out_6"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_6"
+            "name": "out_6"
         }, 
         {
             "type": "bridge", 
@@ -410,11 +410,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_7"
+            "name": "mux_out_7"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_7"
+            "name": "out_7"
         }, 
         {
             "type": "bridge", 
@@ -426,11 +426,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_8"
+            "name": "mux_out_8"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_8"
+            "name": "out_8"
         }, 
         {
             "type": "bridge", 
@@ -442,11 +442,11 @@
         }, 
         {
             "type": "mux_2", 
-            "name": "mux_pcb_9"
+            "name": "mux_out_9"
         }, 
         {
             "type": "bridge", 
-            "name": "pcb_9"
+            "name": "out_9"
         }, 
         {
             "type": "bridge", 

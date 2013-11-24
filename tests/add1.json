@@ -1,6 +1,6 @@
 {
     "name": "add1test",
-    "device": "and1",
+    "device": "add1",
     "steps": 3,
     "input": ["a_0", "b_0"],
     "output": ["o_0"],
