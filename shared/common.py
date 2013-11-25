@@ -4,15 +4,22 @@ import subprocess
 import json
 import math
 
-def get_int(bools):
+def power(exponent):
+    return int(math.pow(2,exponent))
+
+def get_uint(bools):
     r = 0
     for index, val in enumerate(bools):
         if val:
-            number = math.pow(2,index)
+            number = power(index)
+            #print "index: {0} uint number: {1}".format(index, number)
             r += number
     return r
 
 def get_bools(integer, number_digits):
+    '''
+    keep decreasing integer as binary digits are filled.
+    '''
     bools = [False]*number_digits
     while(True):
         if integer == 0: break
