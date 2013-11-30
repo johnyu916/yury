@@ -1,11 +1,12 @@
 from shared.common import write_json, get_uint, get_bools, power
 import math
+from copy import copy
 import itertools
 import sys
 import string
 from settings import DEVICE_DIR
 
-def set_wire(wires, name, from_list, to_list, is_dual=False):
+def set_wire(wires, name, from_list=[], to_list=[], is_dual=False):
     '''
     Make wire. If not dual, then returns a single wire.
     Else, returns 2 wires, up and down.
@@ -84,9 +85,9 @@ def make_wires(number_inputs, is_dual=False):
     wires = []
     for index in range(number_inputs):
         i = str(index)
-        wires.extend( make_wire("wirein"+i, ["in"+i], ["not"+i+"/in"], is_dual))
+        set_wire(wires, "wirein"+i, ["in"+i], ["not"+i+"/in"], is_dual)
         # wire from not
-        wires.extend( make_wire("wirenot"+i, ["not"+i+"/out"], [], is_dual))
+        set_wire(wires, "wirenot"+i, ["not"+i+"/out"], [], is_dual)
     return wires
 
 
@@ -243,9 +244,9 @@ def make_prim_part_dual(number_inputs):
         i = str(index)
 
         for spin in ['down', 'up']:
-            wires.extend( make_wire("wirein"+i+spin, ["in"+i+spin], ["not"+i+spin+"/in"]))
+            set_wire(wires, "wirein"+i+spin, ["in"+i+spin], ["not"+i+spin+"/in"])
             # wire from not
-            wires.extend( make_wire("wirenot"+i+spin, ["not"+i+spin+"/out"], [] ))
+            set_wire(wires, "wirenot"+i+spin, ["not"+i+spin+"/out"], [] )
 
     append_bridge(devices, "out", True)
     return devices, wires
@@ -308,7 +309,7 @@ def new_decoder_old(number_inputs, is_dual):
     for index in range(number_outputs):
         # wire from and to out
         i = str(index)
-        wires.extend( make_wire("wireand"+i, ["and"+i+"/out"], ["out"+i], is_dual))
+        set_wire(wires, "wireand"+i, ["and"+i+"/out"], ["out"+i], is_dual)
 
     value_sets = itertools.product([False,True], repeat=number_inputs)
     for value_set_index, value_set in enumerate(value_sets):
@@ -319,9 +320,9 @@ def new_decoder_old(number_inputs, is_dual):
         for index, value in enumerate(value_set):
             i = str(index)
             if value:
-                wire_append(wires, 'wirein'+i, 'to', 'and'+vi+"/in"+i, is_dual)
+                set_wire(wires, 'wirein'+i, 'to', 'and'+vi+"/in"+i, is_dual)
             else:
-                wire_append(wires, 'wirenot'+i, 'to', 'and'+vi+"/in"+i, is_dual)
+                set_wire(wires, 'wirenot'+i, 'to', 'and'+vi+"/in"+i, is_dual)
 
     return data
 
@@ -472,7 +473,7 @@ def new_boolean(inputs, outputs, function, device_type):
                 oneis[index]+=1
             #else:
             #    output = "outdown" if zeros <= 1 else "or_0"+i+"/in"+str(zeroi)
-            #    wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
+            #    set_wire(wires, "wireand" + i, ["and"+i+"/out"], [output]))
             #    zeroi+=1
 
     print "setting wires"
@@ -545,11 +546,11 @@ def make_prim_dual(prim_type, number_inputs):
         devices.append(make_device("and"+i, "and"+str(number_inputs*2)))
         if value:
             output = "outup" if ones <= 1 else "or1/in"+str(onei)
-            wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
+            set_wire(wires, "wireand" + i, ["and"+i+"/out"], [output])
             onei+=1
         else:
             output = "outdown" if zeros <= 1 else "or0/in"+str(zeroi)
-            wires.extend(make_wire("wireand" + i, ["and"+i+"/out"], [output]))
+            set_wire(wires, "wireand" + i, ["and"+i+"/out"], [output])
             zeroi+=1
         #TODO only have or gate if there is more than one output
 
@@ -567,13 +568,13 @@ def make_prim_dual(prim_type, number_inputs):
 def make_and(number_inputs):
     device_data = make_prim_part("and", number_inputs)
     wires = device_data['wires']
-    wires.extend(make_wire("sourcetoswitch", ['source0'], ['switch0']))
+    set_wire(wires, "sourcetoswitch", ['source0'], ['switch0'])
     for index in range(number_inputs-1):
         i = str(index)
         inext = str(index+1)
-        wires.extend(make_wire("wireswitch"+i+"to"+inext, ['switch'+i], ['switch'+inext]))
+        set_wire(wires, "wireswitch"+i+"to"+inext, ['switch'+i], ['switch'+inext])
 
-    wires.extend(make_wire("switchtoresistor", ['switch'+str(number_inputs-1)], ['resistor0', 'out']))
+    set_wire(wires, "switchtoresistor", ['switch'+str(number_inputs-1)], ['resistor0', 'out'])
     device_file_path = str(DEVICE_DIR) + '/' + 'and' + str(number_inputs) + '.json'
     write_json(device_data, device_file_path)
 
@@ -582,8 +583,8 @@ def make_or(number_inputs):
     device_data = make_prim_part("or", number_inputs)
     switch_list = ['switch'+str(i) for i in range(number_inputs)]
     wires = device_data['wires']
-    wires.extend(make_wire("sourcetoswitch", ['source0'], switch_list))
-    wires.extend(make_wire("switchtoresistor", switch_list, ['resistor0', 'out']))
+    set_wire(wires, "sourcetoswitch", ['source0'], switch_list)
+    set_wire(wires, "switchtoresistor", switch_list, ['resistor0', 'out'])
     device_file_path = str(DEVICE_DIR) + '/' + 'or' + str(number_inputs) + '.json'
     write_json(device_data, device_file_path)
 
@@ -603,10 +604,10 @@ def make_prim_part(prim_type, number_inputs):
     append_bridge(devices,"out")
 
     wires = []
-    wires.extend(make_wire("wireresistor", ['resistor0'], ['ground0']))
+    set_wire(wires, "wireresistor", ['resistor0'], ['ground0'])
     for index in range(number_inputs):
         i = str(index)
-        wires.extend(make_wire('wireinput'+i, ['in'+i], ['switch'+i+"/button"]))
+        set_wire(wires, 'wireinput'+i, ['in'+i], ['switch'+i+"/button"])
     
     return {
         "name": device_type+"0",
@@ -614,6 +615,144 @@ def make_prim_part(prim_type, number_inputs):
         "wires": wires,
         "devices": devices
     }
+
+def new_tree_decoder(lengths):
+    '''
+    basically how this works is that the child
+    decoders are turned on or off by the parent decoder.
+    each of the parent decoder's output is AND'd with 
+    all child inputs.
+    '''
+    devices = []
+    wires = []
+    device = {
+        'devices': devices,
+        'wires': wires
+    }
+    ranges = []
+    index = 0
+    for length in lengths:
+        ranges.append((index, length))
+        index += length
+    new_tree_decoder_help(ranges, devices, wires)
+
+    # now add inputs
+
+
+    # and output
+   
+def new_tree_decoder_help(ranges, devices, wires, wire, level=0, index=0):
+    in_range = ranges[level]
+    num_ins= in_range[1] - in_range[0]
+    slevel = str(level)
+    sindex = str(index)
+    num_outs = len(power(num_ins))
+    name = 'decoder_'+slevel+'_'+sindex
+    
+    decoder = {
+        'type': 'decoder'+str(num_ins),
+        'name': name
+    }
+
+    for index, offset in enumerate(in_range[0], in_range[1]):
+        i = str(index)
+        and_name = 'and2'+ i
+        and_device = make_device('and2', and_name)
+        wire['to'].append(and_name+'/in0')
+        in_name = 'in'+ str(offset)
+        append_bridge(devices, in_name)
+        set_wire(wires, 'wire'+in_name, [in_name], [and_name+'/in1'])
+        set_wire(wires, 'wire'+and_name, [and_name+'/out'], [name+'/in'+i])
+
+
+    devices.append(decoder)
+    for child_index in range(num_ins):
+        slevelc = str(level+1)
+        sindexc = str(child_index)
+        child_name = 'decoder_'+slevelc+'_'+sindexc
+        wire_name = 'wiremux'+slevelc+'_'+sindexc,
+        set_wire(wires,  wire_name, [name],[])
+        new_tree_decoder_help(ranges, devices, wires, wires[wire_name], level+1, child_index)
+
+
+
+def new_tree_mux(selector_sets):
+    '''
+    Make a hierarchy of muxes. Ex. instead of having a single mux64 device, make 2 mux 32's, etc.
+    '''
+    #TODO: move from decoder to mux
+    devices = []
+    wires = []
+    device = {
+        'devices': devices,
+        'wires': wires
+    }
+    new_tree_mux_help(selector_sets, device)
+    ranges = []
+    index = 0
+    for select_set in selector_sets:
+        num = len(select_set)
+        ranges.append((index, num))
+        index += num
+
+    ins = []
+    for select_set in selector_sets:
+        for select in select_set:
+            append_bridge(devices, select)
+            set_wire(wires, 'wire_'+select,[select],[])
+
+    num_ins = power(ranges[-1][1])
+    for in_i in range(num_ins):
+        i = str(in_i)
+        append_bridge(devices, 'in'+i)
+        set_wire(wires, 'wirein'+i,[select],[])
+
+
+    # now hookup selects to device selects.
+    for child in device['devices']:
+        name = child['name']
+        level = int(name.split('_')[1])
+        select_set = selector_sets[level]
+        for index, select in enumerate(select_set):
+            wire = get_wire(wires, 'wire_'+select)
+            wire['to'].append(name+'/in'+index)
+
+    # inputs. parent gets child inputs. 
+    num_select_sets = len(selector_sets)
+    num_ins = [power(len(select_set)) for select_set in selector_sets]
+    for child in device['devices']:
+        tokens= int(name.split('_')[1])
+        level = tokens[1]
+        index = tokens[2]
+            # bottom level
+        ins_per_mux = num_ins[level]
+        offset = index*ins_per_mux
+        if level == num_select_sets - 1:
+            for step, in_i in enumerate(range(offset,ins_per_mux)):
+                wire= get_wire(wires, 'wirein'+str(in_i))
+                wire['to'].append(child['name']+'/in'+step)
+        else:
+            from_id = str(level-1)+'_'
+            for step, in_i in enumerate(range(offset, ins_per_mux)):
+                set_wire(wires, 'wire_'+from_id+str(in_i))
+                wire['to'].append(child['name']+'/in'+step)
+
+    append_bridge(devices,'out')
+    set_wire(wires, 'wireout', ['mux'+level+'_0'],['out'])
+    return device
+
+
+def new_tree_mux_help(src_tree, device, level=0, index=0):
+    tree = copy(src_tree)
+    root = tree.pop()
+    number_selects = len(root)
+    mux = {
+        'type': 'mux'+str(number_selects),
+        'name': 'mux_'+str(level)+'_'+str(index)
+    }
+    device['devices'].append(mux)
+    for child_index in range(number_selects):
+        new_tree_mux_help(tree, level+1, child_index)
 
 
 def make_group_mux(input_maps, selects):
@@ -639,7 +778,7 @@ def make_group_mux(input_maps, selects):
     #first make selects
     for select in selects:
         append_bridge(devices,select)
-        wires.extend(make_wire('wire_'+select,[select],[]))
+        set_wire(wires, 'wire_'+select,[select],[])
 
     # make mux per input group
     for index, input_map in enumerate(input_maps):
@@ -649,13 +788,13 @@ def make_group_mux(input_maps, selects):
         mux = make_device(mux_name, "mux_"+str(len(inputs)))
         devices.append(mux)
         append_bridge(devices,output)
-        wires.extend(make_wire('wire_'+mux_name, [mux_name+"/out"], [output]))
+        set_wire(wires, 'wire_'+mux_name, [mux_name+"/out"], [output])
 
         # make inputs and wires
         for child_index, input_name in enumerate(inputs):
             ci = str(child_index)
             append_bridge(devices,input_name)
-            wires.extend(make_wire('wire_'+input_name,[input_name],[mux_name+"/in"+ci]))
+            set_wire(wires, 'wire_'+input_name,[input_name],[mux_name+"/in"+ci])
 
         # wire select to mux
         for index, select in enumerate(selects):
@@ -725,6 +864,7 @@ def new_pc_select():
     return device
 
 def make_pc_select():
+    
     device = new_pc_select()
     device_file_path = str(DEVICE_DIR) + '/' + device['type'] + '.json'
     write_json(device, device_file_path)
@@ -732,24 +872,31 @@ def make_pc_select():
 def make_mem_mux():
     '''
     64x32x32
+
     '''
-    device = new_mem_mux()
+    sizes = [6,5,5]
+    select_sets = []
+    for size in sizes:
+        select_set = ['select'+str(index) for index in range(size)]
+        select_sets.append(select_set)
+    device = new_mem_mux(select_sets)
     device_file_path = str(DEVICE_DIR) + '/' + device['type'] + '.json'
     write_json(device, device_file_path)
 
 
-def new_mem_mux():
+def new_mem_mux(select_sets):
     '''
     One very large mux
     '''
-    address_size = 16
 
-    device = new_mux(address_size)
+    device = new_tree_mux(select_sets)
+    
     device.update({
         'name': 'mem_mux0',
         'type': 'mem_mux'
     })
     return device
+
 
 def make_write_select():
     '''
@@ -764,7 +911,8 @@ def make_write_select():
 
 def make_write_enable():
     number_inputs = 16
-    device = new_decoder(number_inputs, False)
+    device = new_tree_decoder([8,8])
+    #device = new_decoder(number_inputs, False)
     device['type'] = 'write_enable'
     device['name'] = 'write_enable_0'
     device_file_path = str(DEVICE_DIR) + '/' + device['type'] + '.json'
@@ -792,7 +940,7 @@ def make_pc_add():
     digits = 10
     half = digits/2
 
-    wire_map = {}
+    wires_map = {}
     first = new_add(half)
     first['name'] = 'first'
     second = new_add(half)
