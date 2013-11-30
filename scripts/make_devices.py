@@ -623,56 +623,75 @@ def new_tree_decoder(lengths):
     each of the parent decoder's output is AND'd with 
     all child inputs.
     '''
-    devices = []
-    wires = []
-    device = {
-        'devices': devices,
-        'wires': wires
-    }
     ranges = []
     index = 0
+    device_type = 'decoder'
     for length in lengths:
         ranges.append((index, length))
         index += length
-    new_tree_decoder_help(ranges, devices, wires)
+        device_type += ('_'+str(length))
+    devices = []
+    wire_map = {}
+    new_tree_decoder_help(ranges, devices, wire_map)
+    wires = [wire for wire in wire_map.values()]
+    return {
+        'devices': devices,
+        'wires': wires,
+        'type': device_type,
+        'name': device_type+'_0'
+    }
 
-    # now add inputs
-
-
-    # and output
+    # add output
    
-def new_tree_decoder_help(ranges, devices, wires, wire, level=0, index=0):
+def new_tree_decoder_help(ranges, devices, wires, parent_index=0, level=0, index=0):
+    sindex = str(index)
+    if level>0:
+        sparentl = str(parent_index)
+        parent_name = 'decoder_'+str(level-1)+'_'+ sparentl+'/out'+sindex
+        wire_name = 'wiredecoder'+str(level-1)+'_'+ sparentl
+        set_wire(wires,  wire_name, [parent_name],[])
+        wire = wires[wire_name]
+
+
+    if level >= len(ranges):
+        # write outputs
+        parent_ins = ranges[-1]
+        num_outs = power(parent_ins[1] - parent_ins[0])
+        out_range = (num_outs*parent_index, num_outs*(parent_index+1))
+        for offset in range(out_range[0], out_range[1]):
+            out_name = 'out'+str(offset)
+            append_bridge(devices, out_name)
+            wire['to'].append(out_name)
+        return
+
     in_range = ranges[level]
     num_ins= in_range[1] - in_range[0]
     slevel = str(level)
-    sindex = str(index)
-    num_outs = len(power(num_ins))
+    num_outs = power(num_ins)
+    # wire from parent output
+
     name = 'decoder_'+slevel+'_'+sindex
-    
+   
+    # level < end
     decoder = {
         'type': 'decoder'+str(num_ins),
         'name': name
     }
-
-    for index, offset in enumerate(in_range[0], in_range[1]):
-        i = str(index)
-        and_name = 'and2'+ i
-        and_device = make_device('and2', and_name)
-        wire['to'].append(and_name+'/in0')
-        in_name = 'in'+ str(offset)
-        append_bridge(devices, in_name)
-        set_wire(wires, 'wire'+in_name, [in_name], [and_name+'/in1'])
-        set_wire(wires, 'wire'+and_name, [and_name+'/out'], [name+'/in'+i])
-
-
     devices.append(decoder)
-    for child_index in range(num_ins):
-        slevelc = str(level+1)
-        sindexc = str(child_index)
-        child_name = 'decoder_'+slevelc+'_'+sindexc
-        wire_name = 'wiremux'+slevelc+'_'+sindexc,
-        set_wire(wires,  wire_name, [name],[])
-        new_tree_decoder_help(ranges, devices, wires, wires[wire_name], level+1, child_index)
+
+    if level > 0:
+        for index, offset in enumerate(range(in_range[0], in_range[1])):
+            i = str(index)
+            and_name = 'and2'+ i
+            and_device = make_device('and2', and_name)
+            wire['to'].append(and_name+'/in0')
+            in_name = 'in'+ str(offset)
+            append_bridge(devices, in_name)
+            set_wire(wires, 'wire'+in_name, [in_name], [and_name+'/in1'])
+            set_wire(wires, 'wire'+and_name, [and_name+'/out'], [name+'/in'+i])
+
+    for child_index in range(num_outs):
+        new_tree_decoder_help(ranges, devices, wires, index, level+1, child_index)
 
 
 
@@ -682,77 +701,93 @@ def new_tree_mux(selector_sets):
     '''
     #TODO: move from decoder to mux
     devices = []
-    wires = []
-    device = {
-        'devices': devices,
-        'wires': wires
-    }
-    new_tree_mux_help(selector_sets, device)
-    ranges = []
-    index = 0
-    for select_set in selector_sets:
-        num = len(select_set)
-        ranges.append((index, num))
-        index += num
+    wires = {}
 
-    ins = []
+    # make device and wires for selects.
     for select_set in selector_sets:
         for select in select_set:
             append_bridge(devices, select)
             set_wire(wires, 'wire_'+select,[select],[])
 
-    num_ins = power(ranges[-1][1])
-    for in_i in range(num_ins):
-        i = str(in_i)
-        append_bridge(devices, 'in'+i)
-        set_wire(wires, 'wirein'+i,[select],[])
+    new_tree_mux_help(selector_sets, devices, wires, len(selector_sets)-1)
+    #ranges = []
+    #index = 0
+    #for select_set in selector_sets:
+    #    num = len(select_set)
+    #    ranges.append((index, num))
+    #    index += num
+
+    #ins = []
+
+    #num_ins = power(ranges[-1][1])
+    #for in_i in range(num_ins):
+    #    i = str(in_i)
+    #    append_bridge(devices, 'in'+i)
+    #    set_wire(wires, 'wirein'+i,[select],[])
 
 
-    # now hookup selects to device selects.
-    for child in device['devices']:
-        name = child['name']
-        level = int(name.split('_')[1])
-        select_set = selector_sets[level]
-        for index, select in enumerate(select_set):
-            wire = get_wire(wires, 'wire_'+select)
-            wire['to'].append(name+'/in'+index)
 
-    # inputs. parent gets child inputs. 
-    num_select_sets = len(selector_sets)
-    num_ins = [power(len(select_set)) for select_set in selector_sets]
-    for child in device['devices']:
-        tokens= int(name.split('_')[1])
-        level = tokens[1]
-        index = tokens[2]
-            # bottom level
-        ins_per_mux = num_ins[level]
-        offset = index*ins_per_mux
-        if level == num_select_sets - 1:
-            for step, in_i in enumerate(range(offset,ins_per_mux)):
-                wire= get_wire(wires, 'wirein'+str(in_i))
-                wire['to'].append(child['name']+'/in'+step)
-        else:
-            from_id = str(level-1)+'_'
-            for step, in_i in enumerate(range(offset, ins_per_mux)):
-                set_wire(wires, 'wire_'+from_id+str(in_i))
-                wire['to'].append(child['name']+'/in'+step)
+    ## inputs. parent gets child inputs. 
+    #num_select_sets = len(selector_sets)
+    #num_ins = [power(len(select_set)) for select_set in selector_sets]
+    #for child in device['devices']:
+    #    tokens= int(name.split('_')[1])
+    #    level = tokens[1]
+    #    index = tokens[2]
+    #        # bottom level
+    #    ins_per_mux = num_ins[level]
+    #    offset = index*ins_per_mux
+    #    if level == num_select_sets - 1:
+    #        for step, in_i in enumerate(range(offset,ins_per_mux)):
+    #            wire= get_wire(wires, 'wirein'+str(in_i))
+    #            wire['to'].append(child['name']+'/in'+step)
+    #    else:
 
-    append_bridge(devices,'out')
-    set_wire(wires, 'wireout', ['mux'+level+'_0'],['out'])
+    #append_bridge(devices,'out')
+    #set_wire(wires, 'wireout', ['mux'+level+'_0'],['out'])
+    device = {
+        'devices': devices,
+        'wires': [wire for wire in wires.values()]
+    }
     return device
 
 
-def new_tree_mux_help(src_tree, device, level=0, index=0):
-    tree = copy(src_tree)
-    root = tree.pop()
-    number_selects = len(root)
+def new_tree_mux_help(select_sets, devices, wires, level, index=0, parent_index=0):
+    select_set = select_sets[level]
+    number_selects = len(select_set)
+    sindex = str(index)
+
+    parent_name = 'mux_'+str(level+1)+'_'+str(parent_index)
+    if (level <= -1):
+        in_name = 'in'+sindex
+        append_bridge(devices, in_name)
+        wire = set_wire(wires, 'wire_'+in_name,[in_name],[parent_name+'/in'+str(parent_index)])
+        return
+
+    name = 'mux_'+str(level)+'_'+str(index)
     mux = {
         'type': 'mux'+str(number_selects),
-        'name': 'mux_'+str(level)+'_'+str(index)
+        'name': name
     }
-    device['devices'].append(mux)
+
+    # make selects and hook them up
+    # now hookup selects to device selects.
+    for index, select in enumerate(select_set):
+        wire = wires['wire_'+select]
+        wire['to'].append(name+'/in'+str(index))
+
+    # wire from output to parent's input
+    if level >= len(select_sets) - 1:
+        #parent set.
+        append_bridge(devices, 'out')
+        set_wire(wires, 'wire_'+name, [name+'/out'], ['out'])
+    else:
+        set_wire(wires, 'wire_'+name, [name+'/out'], [parent_name+'/in'+str(index)])
+
+
+    devices.append(mux)
     for child_index in range(number_selects):
-        new_tree_mux_help(tree, level+1, child_index)
+        new_tree_mux_help(select_sets, devices, wires, level-1, child_index, index)
 
 
 def make_group_mux(input_maps, selects):
