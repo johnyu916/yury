@@ -5,9 +5,15 @@ import json
 import math
 
 def power(exponent):
+    '''
+    Return 2^exponent.
+    '''
     return int(math.pow(2,exponent))
 
 def get_uint(bools):
+    '''
+    Get unsigned integer from list of True/False.
+    '''
     r = 0
     for index, val in enumerate(bools):
         if val:
@@ -18,6 +24,7 @@ def get_uint(bools):
 
 def get_bools(integer, number_digits):
     '''
+    Get list of bools from integer
     keep decreasing integer as binary digits are filled.
     '''
     bools = [False]*number_digits
@@ -49,6 +56,7 @@ def get_inputs_outputs(device_data):
         else:
             outputs.append(bridge_name)
     return (inputs, outputs)
+
 
 def get_primitive_dict():
     '''

@@ -1,5 +1,5 @@
 {
-    "name": "pc_select_test",
+    "name": "pc_selecttest",
     "device": "pc_select",
     "steps": 3,
     "input": ["pc_0","pc_1","pc_2","pc_3","pc_4","pc_5","pc_6","pc_7","pc_8","pc_9", "b_0","b_1","b_2","b_3","b_4","b_5","b_6","b_7","b_8","b_9","v"],

@@ -27,9 +27,8 @@ def fill_devices(device_documents, device_type, prefix=''):
         return False
     if type_in_documents(device_type): return
 
-    print "type: {0}".format(device_type)
+    print "looking for type: {0}".format(device_type)
     document = database()['devices'].find_one({'type':device_type})
-    print document
     document['_id'] = str(document['_id'])
     device_documents.append(document)
     for child_data in document['devices']:
@@ -62,7 +61,7 @@ def get_tests():
 
 def get_test_package(test_document):
     ''' 
-    Return all files necessary for test
+    Return all documents necessary for test
     '''
     test_document['_id'] = str(test_document['_id'])
     test_name = test_document['name']

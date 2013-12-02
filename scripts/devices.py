@@ -179,6 +179,6 @@ def main():
         make_tests_devices()
     elif option == 'update_tests':
         update_tests()
-
+_
 if __name__ == '__main__':
     main()
