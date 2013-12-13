@@ -167,3 +167,20 @@ M(0-65535)
 
 
 The idea of clearing inputs is that clearing forces consistency. devices will not act unless all have a set value. however, totally parallel systems will need another syncing mechanism.
+
+== NETWORKING ==
+
+Requirements:
+subsequent interrupts will not do anything. so lets just have one register. 
+
+Receiving information: 
+set registers, and set the interrupt bit.
+
+if CPU is listening for interrupts, then:
+CPU immediately sets register to 0. it also sets listening to 0. then it does what it needs to do. then it sets listening to 1 again.
+
+Sending information:
+CPU sets a bunch of registers.
+CPU sets a interrupt register.
+
+
