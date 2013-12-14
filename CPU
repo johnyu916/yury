@@ -167,3 +167,8 @@ M(0-65535)
 
 
 The idea of clearing inputs is that clearing forces consistency. devices will not act unless all have a set value. however, totally parallel systems will need another syncing mechanism.
+
+
+RECEIVE DATA:
+
+interrupt flag. if it is on, then it will be checked. both sides ack it.
