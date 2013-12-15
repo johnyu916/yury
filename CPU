@@ -29,6 +29,20 @@ then:
 read/write branch write-on1 write-else
 16-10-2
 
+C2 requirements:
+4096 insns
+18-12-2
+128k for insns
+256k reachable
+
+D requirements:
+65536 insns
+24+16+2 = 42 bits per insn
+
+2.7 MB for insns
+16.7 mb reachable
+
+
 Specifications for A CPU:
 
 == instruction reader ==
@@ -165,10 +179,49 @@ SELF(0-65535)
 OUTPUTS:
 M(0-65535)
 
+== 4 instructions ==
+branch
+
+
 
 The idea of clearing inputs is that clearing forces consistency. devices will not act unless all have a set value. however, totally parallel systems will need another syncing mechanism.
 
+=======
+== NETWORKING ==
 
-RECEIVE DATA:
+Requirements:
+send and receive packets. packet contains src address, dst address, and the actual content.
+subsequent interrupts will not do anything. so lets just have one register. 
 
-interrupt flag. if it is on, then it will be checked. both sides ack it.
+Receiving information: 
+set registers, and set the interrupt bit.
+
+if CPU is listening for interrupts, then:
+CPU immediately sets register to 0. it also sets busy bit to 1. then it does what it needs to do. then it sets busy to 0 again.
+
+Sending information:
+CPU check if other guy is busy.  if not busy, then set registers.
+CPU sets a interrupt register.
+
+Flow:
+A wants to send B something.
+
+A checks B's interrupt bit.
+A sets B's memory.
+A sets B's interrupt.
+B is interrupted. B's busy is set.
+B does processing. 
+B sets interrupt to false.
+B sets busy to false.
+A will not attempt to send again until interrupt is 0.
+
+Memory Address Assignments:
+PC: 10k
+PC_INT: 10k+16
+I = 32 - 0 interruptable. 1 interrupted.
+B = 33  - 0 means not available. 1 available.
+save 34-64 for future.
+
+some portion of memory must be nvram.
+
+1. first set the pc_int to some address.

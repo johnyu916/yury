@@ -1,169 +1,140 @@
-/*
- * CPU class.
- */
+//has everything
+function World(){
+    
+}
+var block_size_log = 5;
+var block_size = Math.pow(2, block_size_log);
+// computer for any intelligent beings.
 function CPU(args){
-    var log_rows = args['STORAGE']['ROWS'];
-    var log_cols = args['STORAGE']['COLUMNS'];
-    var rows = Math.pow(2, log_rows);
-    var cols = Math.pow(2, log_cols);
-    var log_insns = args['STORAGE']['INSTRUCTIONS'];
-    var insns = Math.pow(2, log_insns);
+    //need memory.
+    //each number stores 32-bits. so we need bits - 5.
+    this.memory_size_log = arg['MEMORY_SIZE_LOG'];
+    var num_bits = args['MEMORY_SIZE_LOG'] - block_size_log;
+    var len_ints = Math.pow(2, num_bits);
+    var memory = new Array();
+    this.pc = args['PC'];
+    this.pc_signal = args['PC_INT'];
+    this.pc_size = args['PC_SIZE'];
 
-    this.storageSize = rows*cols;
-    this.logStorageSize = log_rows+log_cols;
-    this.instructionsSize = insns;
-    this.logInstructionSize = log_insns;
-    this.storage = new Array();
-    this.instructions = new Array();
-    this.instructionCodes = [
-        {
-            'name': 'STORE',
-        },
-        {
-            'name': 'BRANCH',
+    // idle address must be even.
+    this.idle = args['IDLE'];
+
+    // precalculations
+    this.idle_block = this.idle / this.block_size;
+    this.idle_off = this.idle % this.block_size;
+
+    this.pc_block = this.pc / this.block_size;
+    this.pc_off = this.pc % this.block_size;
+
+    this.pc_signal_block = this.pc_signal / this.block_size;
+    this.pc_signal_off = this.pc_signal % this.block_size;
+    // return list of booleans
+    function signal_and_idle(){
+        var memory = this.memory[this.idle_block];
+        if (value(memory, this.idle_off, 2) == 3) return true;
+        else return false;
+    }
+
+    function run_cycle(){
+        //1. which pc should i read?
+        var block = this.memory[this.pc_block];
+        var pc_off = this.pc_off;
+
+        if (this.signal_and_idle()){
+            block = this.memory[this.pc_signal_block];
+            pc_off = this.pc_signal_off;
         }
-    ]
-    this.logInstructionCodesSize = log2(this.instructionCodes.length);
-    this.program_counter = 0; // current instruction location
-    this.status = "RUNNING";
-    this.interval = null; // setInterval variable to run periodically.
-    function getStorageSize(){
-        return this.storageSize;
+        var pc = value(block, pc_off, this.pc_size);
+
+        //2. read next instruction.
+        // NOTE THIS ASSUMES INSN FITS IN ONE BLOCK.
+        var insn = cpu.memory[pc];
+
+        var read_addr = get_int_value(insn, 0, this.memory_size_log);
+        var branch = get_int_value(insn, this.memory_size_log, this.pc_size);
+        var r_and_b = this.memory_size_log + this.pc_size;
+        var on_one = get_int_value(insn, r_and_b, 1);
+        var on_zero = get_int_value(insn, r_and_b+1, 1);
+
+        //3. read memory
+        var read_addr_block = read_addr / block_size;
+        var read_addr_block_off = read_addr % block_size;
+        var read = get_int_value(this.memory[read_addr_block], read_addr_block_off, 1);
+
+        //4. write and set next pc
+        if (read == 1) {
+            cpu.memory[this.pc] = branch;
+            cpu.memory[read_addr] = on_one;
+        }
+        else {
+            cpu.memory[this.pc] = pc + 1;
+            cpu.memory[read_addr] = on_zero;
+        }
     }
 }
 
+/* get the mask as a 2's compleemnt integer given the
+ * offset and size.
+ */
 
-function cpu_run_instruction(cpu){
-    if (cpu.program_counter >= cpu.instructions.length) return;
-
-    var insn = cpu.instructions[cpu.program_counter];
-    var index = 0;
-    var insnCode = binaryToDecimal(insn, index, cpu.logInstructionCodesSize);
-    index += cpu.logInstructionCodesSize;
-    var storage_location = binaryToDecimal(insn, index, cpu.logStorageSize);
-    index += cpu.logStorageSize;
-    //insn is a boolean array
-    var insnName = cpu.instructionCodes[insnCode].name;
-    if (insnName == 'BRANCH'){
-        var value = cpu.storage[storage_location];
-        if (value){
-            insn_location = binaryToDecimal(insn, index, cpu.logInstructionSize);
-            cpu.program_counter = insn_location;
-        }
-    }
-    else if (insnName == 'STORE'){
-        var value = binaryToDecimal(insn, index, 1);
-        cpu.storage[storage_location] = value;
-        cpu.program_counter += 1;
-    }
-}
-
-function cpu_run_cycle(cpu){
-    console.log("running single cpu cycle");
-    if (cpu.program_counter >= cpu.instructions.length){
-        clearInterval(cpu.interval);
-        return;
-    }
-    cpu_run_instruction(cpu);
-}
-
-function cpu_run(cpu, sleep_ms){
-    // read instructions. TODO: do this at every instruction rather than here.
-    $('.instruction').each(function( index ){
-        //extract
-        var instrutionType = $('.instruction-type option:selected', this).text();
-        var instruction = new Array();
-        instruction.push(instructionType);
-        $('.read-location', this).each(function( index){
-            var location = $(this, 'option:selected').text();
-            instruction.push(location);
-        });
-        if (instructionType == 'Store'){
-
-            var writeValue = $('.write-value option:selected', this).text();
-            instruction.push(writeValue);
-        }
-        else{
-            $('.branch-location', this).each(function(index){
-                var location = $(this, 'option:selected').text();
-                instruction.push(location);
-            });
-        }
-        cpu.instructions.push(instruction);
-    });
-
-    // schedule
-    cpu.interval = setInterval(cpu_run_cycle(cpu), sleep_ms);
-}
-
-function cpu_stop(cpu){
-    cpu.program_counter = cpu.instructions.length;
-}
-
-//utility functions.
-function log2(number){
-    return Math.log(number)/Math.log(2);
-}
-
-function binaryToDecimal(array, begin, size){
+function get_mask(offset, size){
     var value = 0;
-    var multiplier = 1;
-    for (var i = begin; i < begin+size; i++){
-        if (array[i]) value += multiplier;
-        multiplier *= 2;
+    if (offset == 0){
+        value -= math.pow(2, block_size - 1);
     }
-    return value;
+    var end = offset+size;
+    for (var i = 
 }
 
-function new_instruction(){
-    //add instruction by copying an existing instruction
-    var template = $('.instruction-template');
-    var clone = template.clone();
-    clone.removeClass('instruction-template');
-    clone.addClass('instruction');
-    clone.appendTo('#instructions');
-    
-    $('.write-div', clone).hide();
-    $('.branch-div', clone).hide();
-    $('.instruction-type', clone).change(function(){
-        var type = $(this).val();
-        console.log('type: '+type);
-        
-        if (type == 'Store'){
-            $('.write-div', clone).show();
-            $('.branch-div', clone).hide();
-        }
-        else{
-            $('.write-div', clone).hide();
-            $('.branch-div', clone).show();
-        }
-        
-    });
-    
+// return some bits
+function get_int_value(memory, offset, size){
+    var temp = memory << offset;
+    var last = temp >> (block_size - size);
+    return last;
 }
 
-// input handlers
-$(document).ready(function() {
-    // Handler for .ready() called.
+function set_int_value(memory, offset, size, value){
+    var end = offset + size;
+    var value_new = value << (block_size - end);
+    var left = memory >> (block_size - offset);
+    left = left <<
+    var temp = memory << offset;
+}
+
+
+
+/*
+ * Return true if both signal and idle are set
+ *
+ */
+
+function cpu_get_memory(cpu, addr, size){
+
+}
+
+function cpu_set_memory(cpu, addr, size){
+
+}
+
+
+function main_iteration(world){
+
+
+    cpu_run_cycle(world.cpu);
+    return true;
+}
+
+$(document).ready(function(){
+    //get some settings.
     var args = $('#cpu-info').data('cpu');
-    var data = jQuery.parseJSON(args.replace(/'/g, '"'))
+    var data = jQuery.parseJSON(args.replace(/'/g, '"'));
+    var world = new World();
     var cpu = new CPU(data);
-    var cpuSpeed = 1000;
-    $('#run-cpu').click(function(){
-        console.log("running cpu");
-        cpu_run(cpu, cpuSpeed);
-    });
-
-    $('#stop-cpu').click(function(){
-        console.log("stopping cpu");
-        cpu_stop(cpu);
-    });
-
-    $('#new-instruction').click(function(){
-        console.log("new instruction");
-        new_instruction(cpu);
-    });
-
-    
-   
+    world.cpu = cpu;
+    //just loop as quickly as possible
+    while (true){
+        if (!main_iteration(world)){
+            break;
+        }
+    }
 });

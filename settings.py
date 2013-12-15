@@ -12,6 +12,14 @@ SERVER = {
 
 DEBUG = True
 
+CPU = {
+    "MEMORY_SIZE_LOG": 18,  # 24-bit address space.
+    "PC_SIZE": 12
+}
+CPU["PC"] = (CPU['MEMORY'] + CPU['PC_SIZE']+2)*power(CPU['PC_SIZE'])  # where is pc stored?
+CPU["PC_INT"] = CPU['PC'] + CPU['PC_SIZE']  # pc in interrupt
+CPU["IDLE"] = CPU['PC_INT'] + CPU['PC_SIZE']  # currently idle, interrupt is right after.
+
 # CPU
 CPU = {
     "STORAGE": {

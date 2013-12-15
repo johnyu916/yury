@@ -1,0 +1,10 @@
+simplified ethernet protocol
+SRC_ADDRESS
+DST_ADDRESS
+DATA
+
+disk protocol
+address start
+size
+data
+

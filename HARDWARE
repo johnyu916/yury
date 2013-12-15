@@ -1,0 +1,12 @@
+
+=== javascript simulation ===
+
+can do parallel operaitons.
+
+
+two ways so far:
+
+1. 00 is the "no input" state. 01 and 10 are signals. after every computation, remember the signal and propagate 00 before sending again.
+    problem: no way to remember what the previous state was.
+
+2. first digit is cycle, second digit is signal.
