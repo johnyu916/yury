@@ -14,20 +14,13 @@ DEBUG = True
 
 CPU = {
     "MEMORY_SIZE_LOG": 18,  # 24-bit address space.
-    "PC_SIZE": 12
+    "NUM_INSNS_LOG": 12  # log of number of insns.
 }
-CPU["PC"] = (CPU['MEMORY'] + CPU['PC_SIZE']+2)*power(CPU['PC_SIZE'])  # where is pc stored?
-CPU["PC_INT"] = CPU['PC'] + CPU['PC_SIZE']  # pc in interrupt
-CPU["IDLE"] = CPU['PC_INT'] + CPU['PC_SIZE']  # currently idle, interrupt is right after.
+CPU["INSN_SIZE"] = CPU['MEMORY_SIZE_LOG'] + CPU['NUM_INSNS_LOG'] + 2
+CPU["PC_ADDR"] = CPU['INSN_SIZE']*power(CPU['INSN_SIZE_LOG'])  # pc is stored right after all insns?
+CPU["PC_SIGNAL_ADDR"] = CPU['PC_ADDR'] + CPU['INSN_SIZE_LOG']  # pc in interrupt
+CPU["IDLE_ADDR"] = CPU['PC_SIGNAL_ADDR'] + CPU['INSN_SIZE_LOG']  # currently idle, interrupt is right after.
 
-# CPU
-CPU = {
-    "STORAGE": {
-        "ROWS" : 3, # log of actual size. i.e, if ROWS = 3, then size = 2^3 = 8
-        "COLUMNS": 3 # ditto.
-    },
-    "INSTRUCTIONS": 4 # ditto.
-}
 
 DEVICE_PRIMITIVES = ['resistor', 'source', 'ground', 'switch', 'bridge'];
 

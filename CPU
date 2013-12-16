@@ -209,7 +209,7 @@ A wants to send B something.
 A checks B's interrupt bit.
 A sets B's memory.
 A sets B's interrupt.
-B is interrupted. B's busy is set.
+B is interrupted. B's idle is 0
 B does processing. 
 B sets interrupt to false.
 B sets busy to false.

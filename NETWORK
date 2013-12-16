@@ -1,7 +1,8 @@
 simplified ethernet protocol
-SRC_ADDRESS
-DST_ADDRESS
-DATA
+SRC_ADDRESS - 16 bits
+DST_ADDRESS - 16 bits
+SIZE - 16 bits
+DATA - upto 1024
 
 disk protocol
 address start

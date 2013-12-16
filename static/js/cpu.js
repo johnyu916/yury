@@ -1,7 +1,34 @@
 //has everything
 function World(){
-    
+    this.cpu = null;
+    this.router = null;
+    this.booter = null;
 }
+
+
+function Router(args){
+    //Router's responsibility is to route packets.
+}
+
+function boot_insns(){
+
+}
+
+function load_boot_disk(cpu){
+    var memory = cpu.memory;
+    // 1. set idle to 0
+    // 2. copy everything to memory.
+    // 3. read state.
+    // 4. if reading src_address, read.
+}
+
+function Instruction(read, branch, on_one, on_zero){
+    this.read = read;
+    this.branch = branch;
+    this.on_one = on_one;
+    this.on_zero = on_zero;
+}
+
 var block_size_log = 5;
 var block_size = Math.pow(2, block_size_log);
 // computer for any intelligent beings.
@@ -9,25 +36,26 @@ function CPU(args){
     //need memory.
     //each number stores 32-bits. so we need bits - 5.
     this.memory_size_log = arg['MEMORY_SIZE_LOG'];
-    var num_bits = args['MEMORY_SIZE_LOG'] - block_size_log;
-    var len_ints = Math.pow(2, num_bits);
-    var memory = new Array();
-    this.pc = args['PC'];
-    this.pc_signal = args['PC_INT'];
-    this.pc_size = args['PC_SIZE'];
+    var size_log = args['MEMORY_SIZE_LOG'] - block_size_log;
+    var memory_size = Math.pow(2, size_log);
+    this.memory = new Array();
+    this.pc_addr = args['PC_ADDR'];
+    this.pc_signal_addr = args['PC_SIGNAL_ADDR'];
+    this.pc_size = args['NUM_INSNS_LOG'];
+    this.insn_size = args['INSN_SIZE'];
 
     // idle address must be even.
-    this.idle = args['IDLE'];
+    this.idle_addr = args['IDLE_ADDR'];
 
     // precalculations
-    this.idle_block = this.idle / this.block_size;
-    this.idle_off = this.idle % this.block_size;
+    this.idle_block_addr = this.idle_addr / this.block_size;
+    this.idle_off = this.idle_addr % this.block_size;
 
-    this.pc_block = this.pc / this.block_size;
-    this.pc_off = this.pc % this.block_size;
+    this.pc_block_addr = this.pc_addr / this.block_size;
+    this.pc_off = this.pc_addr % this.block_size;
 
-    this.pc_signal_block = this.pc_signal / this.block_size;
-    this.pc_signal_off = this.pc_signal % this.block_size;
+    this.pc_signal_block_addr = this.pc_signal_addr / this.block_size;
+    this.pc_signal_off = this.pc_signal_addr % this.block_size;
     // return list of booleans
     function signal_and_idle(){
         var memory = this.memory[this.idle_block];
@@ -37,39 +65,47 @@ function CPU(args){
 
     function run_cycle(){
         //1. which pc should i read?
-        var block = this.memory[this.pc_block];
+        var pc_block_value = this.memory[this.pc_block_addr];
         var pc_off = this.pc_off;
 
         if (this.signal_and_idle()){
-            block = this.memory[this.pc_signal_block];
+            pc_block_value = this.memory[this.pc_signal_block_addr];
             pc_off = this.pc_signal_off;
         }
-        var pc = value(block, pc_off, this.pc_size);
+        var pc_value = get_int_value(block, pc_off, this.pc_size);
+        var insn_addr = pc_value * this.insn_size;
+        var insn_block_addr = insn_addr / this.block_size;
+        var insn_off = insn_addr % this.block_size;
 
         //2. read next instruction.
         // NOTE THIS ASSUMES INSN FITS IN ONE BLOCK.
-        var insn = cpu.memory[pc];
+        var insn_block_value = this.memory[insn_block_addr];
+        var insn = get_int_value(insn_block_value, insn_off, this.insn_size);
 
         var read_addr = get_int_value(insn, 0, this.memory_size_log);
-        var branch = get_int_value(insn, this.memory_size_log, this.pc_size);
+        var branch_addr = get_int_value(insn, this.memory_size_log, this.pc_size);
         var r_and_b = this.memory_size_log + this.pc_size;
         var on_one = get_int_value(insn, r_and_b, 1);
         var on_zero = get_int_value(insn, r_and_b+1, 1);
 
         //3. read memory
-        var read_addr_block = read_addr / block_size;
-        var read_addr_block_off = read_addr % block_size;
-        var read = get_int_value(this.memory[read_addr_block], read_addr_block_off, 1);
+        var read_block_addr = read_addr / block_size;
+        var read_off = read_addr % block_size;
+        var read_block_value = this.memory[read_block_addr];
+        var read_value = get_int_value(read_block_value, read_off, 1);
 
         //4. write and set next pc
-        if (read == 1) {
-            cpu.memory[this.pc] = branch;
-            cpu.memory[read_addr] = on_one;
+        var new_pc_block, new_read_block;
+        if (read_value == 1) {
+            new_pc_block = new_int_value(pc_block_value, pc_off, this.pc_size, branch_addr);
+            new_read_block = new_int_value(read_block_value, read_off, 1, on_one);
         }
         else {
-            cpu.memory[this.pc] = pc + 1;
-            cpu.memory[read_addr] = on_zero;
+            new_pc_block = new_int_value(pc_block_value, pc_off, this.pc_size, pc_value + 1);
+            new_read_block = new_int_value(read_block_value, read_off, 1, on_zero);
         }
+        cpu.memory[pc_block_addr] = new_pc_block;
+        cpu.memory[read_block_addr] = new_read_block;
     }
 }
 
@@ -79,26 +115,37 @@ function CPU(args){
 
 function get_mask(offset, size){
     var value = 0;
-    if (offset == 0){
-        value -= math.pow(2, block_size - 1);
+    for (var i = offset; i < offset+size; i++){
+        if (i == block_size - 1) value -= math.pow(2,i);
+        else value += math.pow(2, i);
     }
-    var end = offset+size;
-    for (var i = 
+    return value;
 }
 
-// return some bits
+function get_mask(offset, size){
+    var value = -1; // all 1's
+    var right = value >> (block_size - size);
+    var placed = right << offset;
+    return placed;
+}
+
+// return some bits. read from lowest to highest.
 function get_int_value(memory, offset, size){
-    var temp = memory << offset;
-    var last = temp >> (block_size - size);
+    //clear the more significant bits
+    var last = temp << (block_size - (size+offset));
+    //slide all the way to 0
+    var temp = memory >> (block_size - size);
     return last;
 }
 
-function set_int_value(memory, offset, size, value){
+function new_int_value(memory, offset, size, value){
     var end = offset + size;
-    var value_new = value << (block_size - end);
-    var left = memory >> (block_size - offset);
-    left = left <<
-    var temp = memory << offset;
+    var value_new = value << offset;
+    var right_mask = get_mask(0, offset);
+    var right = memory & right_mask;
+    var left_mask = get_mask(end, block_size - end);
+    var left = memory & left_mask;
+    return left+value_new+right;
 }
 
 
@@ -118,7 +165,6 @@ function cpu_set_memory(cpu, addr, size){
 
 
 function main_iteration(world){
-
 
     cpu_run_cycle(world.cpu);
     return true;
