@@ -10,6 +10,10 @@ def power(exponent):
     '''
     return int(math.pow(2,exponent))
 
+
+def log(integer):
+    return int(math.log(integer,2))
+
 def get_uint(bools):
     '''
     Get unsigned integer from list of True/False.
@@ -30,10 +34,12 @@ def get_bools(integer, number_digits):
     bools = [False]*number_digits
     while(True):
         if integer == 0: break
-        highest = int(math.log(integer,2))
+        #highest = int(math.log(integer,2))
+        highest = log(integer)
         if highest < number_digits:
             bools[highest] = True
-        integer -= int(math.pow(2,highest))
+        #integer -= int(math.pow(2,highest))
+        integer -= power(highest)
     return bools
 
 
@@ -44,6 +50,7 @@ def get_bridge_type(bridge_name, wires_data):
             if device_name == bridge_name:
                 return 'input'
     return 'output'
+
 
 def get_inputs_outputs(device_data):
     inputs = []

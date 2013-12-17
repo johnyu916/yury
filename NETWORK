@@ -4,6 +4,8 @@ DST_ADDRESS - 16 bits
 SIZE - 16 bits
 DATA - upto 1024
 
+Send 8 bits at a time.
+
 disk protocol
 address start
 size

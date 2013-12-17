@@ -1,0 +1,7 @@
+
+set idle to 0.
+save the pc somewhere.
+Have a counter that remembers how much we've read so far.
+save message somewhere.
+if message is done, then jump to processing code.
+

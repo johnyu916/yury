@@ -2,11 +2,11 @@ Goal: transparency, simplicity
 
 The user should know exactly what is going on at all times.
 
-3 instructions:
+1 instruction:
 write value at some location.
 if something, go here, else go there.
 
-functions: labels for line numbers
+functions: labels for line numbers.
 
 function is just namespace. variables are named with slashes
 like dictionaries.
@@ -15,5 +15,38 @@ write 0 to 100000.
 if 100000 equals 1, go to 1000, else go to 500.
 
 write 0-128 to bob
+
+libraries define: functions, structs.
+only one executable named main()
+
+sample:
+
+int handle_signal(int32 count, 
+    SYSTEM_IDLE = 0
+    PC 
+
+
+Example 1: Fibonacci sequence
+int fibonacci(int index):
+    last = 1
+    current = 1
+    while (index != 0):
+        current += last
+        index -=1
+    return current
+
+counter = 5
+value = fibonacci(counter)
+
+Example 2: 
+
+
+
+
+== Compiler ==
+Compiler's job is to read program text and spit out executable.
+
+assume stack begins at top.
+int is 16 bits. starting from top - 16, write 5
 
 

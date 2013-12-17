@@ -1,0 +1,5 @@
+Simulator
+Machines must be simulated at more abstract level.
+
+a function that takes an input bitarray, returns output.
+it also needs to keep state.
