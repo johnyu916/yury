@@ -27,21 +27,28 @@ int handle_signal(int32 count,
 
 
 Example 1: Fibonacci sequence
-int fibonacci(int index):
+# if no arguments, just parenthesis
+(int current) : fibonacci(int index)
     last = 1
     current = 1
-    while (index != 0):
+    while(index != 0):
         current += last
         index -=1
-    return current
 
 counter = 5
 value = fibonacci(counter)
 
 Example 2: 
+a = (b + (c + d))
+a = (b + (c + d * (hello)))
+# if, else
+if a == 5:
+    b = 5
+    return
+elif b == 6:
 
-
-
+operation:
+a + 5
 
 == Compiler ==
 Compiler's job is to read program text and spit out executable.
