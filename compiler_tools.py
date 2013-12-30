@@ -10,6 +10,7 @@ class Instruction(object):
         self.on_one = on_one
         self.on_zero = on_zero
 
+
 class Block(object):
     '''
     Represents a block of code (function and segmented block)
@@ -17,8 +18,6 @@ class Block(object):
     def __init__(self, stack_pointer=0):
         self.stack_pointer = stack_pointer
         self.insns = []
-
-
 
 
 class Builder(object):
@@ -174,150 +173,75 @@ class Builder(object):
         Instruction(0, jump_to, True, False)
 
 
-class Parser(object):
-    # parse program text.
-    def __init__(self, text):
-        self.variables = []
-        self.functions = []
-        self.block = Block()
-        self.lines = text.split('\n')
-        for line in self.lines:
-            # syntax checker
-            self.check(line)
-    
-    def check(self, line):
-        # just read from beginning.
-        line = line.rstrip()
 
-        # Function definition
-        is_read = read_function_definition(line)
-        if is_read:
-            return
+class Type(object):
+    '''
+    Type
+    '''
+    types = ['int', 'double', 'string', 'list', 'dict']
+    def __init__(self, name, size)
+    self.size = 1 # 1 byte
+    self.name = 'int'
 
-        is_read = read_statement(line)
+int_type = Primitive('int', 4)
+double_type = Primitive('double', 8)
 
-        if is_read:
-            return
 
-        is_read = read_function_call(line)
+class Variable(object):
+    '''
+    Type and name. Type can be primitive or defined from library.
+    '''
+    self.type = 'int'
+    self.name = 'count'
 
-        if is_read:
-            return
 
-        # hmm boing
+class Function(object):
+    self.name = 'add'
+    self.inputs = []
+    self.outputs = []
+    self.code = []  # code is expressions and blocks
 
-    def is_function_name(name):
-        for function in self.functions:
-            if function == name:
-                return True
-        return False
+    def __init__(self, name, inputs, outputs):
+        pass
 
-    def is_var_name(name):
-        for var in self.variables:
-            if var == name:
-                return True
-        return False
+class IfBlock(object):
+    self.code = []
 
-    def name_end('='):
-        name = string.join(name_chars, '')
-        # is name a function call? variable?
-        if self.is_function_name(name):
-            state = 'FUNCTION'
-        elif self.is_var_name(name):
-            state = 'VAR'
+class ElIfBlock(object):
+    self.code = []
+
+class ElseBlock(object):
+    self.code = []
+
+class WhileBlock(object):
+    self.condition = Expression()
+    self.code = []
+
+class Statement(object):
+    self.dest = Variable()
+    self.expression = Expression()
+
+
+class Expression(object):
+    '''
+    Function call (could be nested)
+    '''
+    self.data = 'add'  # data is either function names or variables
+    self.arguments = []
+    def __init__(self, data, arguments=()):
+        if type(arguments) != tuple:
+            arguments = tuple(arguments)
+        if type(data) != Operator:
+            assert len(arguments) == 0
+
         else:
-            raise Exception("unknown name")
-
-    def read_function_definition(line):
-        '''
-        ex1: (int current) fibonacci(int index):
-        '''
-
-    def read_function_call(text):
-        '''
-        ex1: add(a,b)
-        '''
-        # read text
-        # read any spaces
-        name = read_name(text)
-        if not is_function_name(name):
-            raise Exception("Unknown function: {0}".format(name))
-        char = text.pop(0)
-        assert char == '('
-        name = read_name(text)
-        if not is_variable_name(name):
-            raise Exception("Unknown variable: {1}".format(name))
-        assert char == ')'
-
-
-    def read_name(text):
-        name_chars = []
-        text.strip(' ')  # strip beginning spaces
-        while True:
-            char = text.pop()
-            alpha = re.compile('[a-zA-Z]')
-            numeric = re.compile('[0-9]')
-            if alpha.match(char):
-                name_chars.append(char)
-            elif alpha.match(char):
-                name_chars.append(char)
+            if data == NOT:
+                assert len(children) == 1
             else:
-                return string.join(name_chars, '')
+                assert len(children) > 1
 
-    def read_statement(text):
-        '''
-        Statement example: counter = 5
-        '''
-        [dest, exp] = line.split('=')
-        read_name(dest)
-        read_function_call(exp)
-
-
-    def read_function_call_old(text):
-        # states:
-        # INIT, NAME
-        name_chars = []
-        alpha = re.compile('[a-zA-Z]')
-        numric = re.compile('[0-9]')
-        state = 'INIT'  # initial state
-
-        char = line.pop()
-        if char == '(':
-            if state == 'NAME':
-                name_end()
-        elif char == ')':
-            if state == 'NAME':
-                name_end()
-        elif char == ',':
-        elif char == ' ':
-            # name ended
-            if state == 'NAME':
-                name_end()
-        elif alpha.match(char):
-            if state != 'NAME':
-                name_chars = []
-                state == 'NAME'
-            # read name
-            name_chars.push(char)
-
-        elif numeric.match(char):
-            name_chars.push(char)
-
-
-
-    def read_operation(text):
-        operators = ['+', '-', '*', '/', '%']
-        stack = []
-        for char in line:
-            if char == '(':
-                pass
-            elif char == ')':
-                pass
-            elif char == ' ':
-                pass
-            elif char in operators:
-                # needs an operand
-                pass
+        self.data = data
+        self.arguments = arguments
 
 
 class Operator(object):
@@ -375,6 +299,345 @@ class OperationNode(object):
     def value():
         pass
 
+def get_num_front_spaces(line):
+    line2 = line.rstrip()
+    line3 = line.strip()
+    return len(line2) - len(line3)
+
+def get_stack_index(line):
+    num = get_num_front_spaces(line):
+    if not (num % 4) == 0:
+        raise Exception("Wrong number of spaces")
+    return num/4
+
+
+class Program(object):
+    def __init__(self, functions=[], structs=[]):
+        self.functions = []
+        self.structs = []
+        self.counter = 0
+        #main = get_function(functions, '__main__')
+        #self.stack = [main]
+        #self.index = 0
+
+
+class Parser(object):
+    # parse program text.
+    def __init__(self, lines):
+        self.variables = []
+        main_function = Function("__main__", [],[])
+        self.program = Program([main_function])
+        self.lines = lines
+        self.stack = [main_function]
+        for line in self.lines:
+            # syntax checker
+            self.check(line)
+
+    def check(self, line):
+        # just read from beginning.
+        line = line.rstrip()
+
+        # how many spaces are in front?
+        stack_index = get_stack_index(line)
+        if stack_index < len(self.stack) - 1:
+            num_pop = (len(self.stack) - 1) - stack_index
+            while num_pop > 0:
+                self.stack.pop()
+        elif stack_index >= len(self.stack):
+            raise Exception("spaced too much")
+
+        # Function definition
+        if stack_index == 0:
+            function = read_function_definition(line)
+            if function:
+                self.program.functions.append(function)
+                self.stack.push(function)
+                return
+
+        block = self.stack[-1]
+        function_call = read_function_call(line)
+        if function_call:
+            block.code.append(function_call)
+            return
+
+        statement = read_statement(line)
+        if  statement:
+            block.code.append(statement)
+            return
+
+        # conditional (if, elif, else, while)
+        if_clause = read_conditional(line)
+        if if_clause:
+            block.code.append(if_clause)
+            self.stack.append(if_clause) 
+
+        # read return, break
+
+        raise Exception("Something wrong bud")
+
+
+    def is_function_name(name):
+        for function in self.functions:
+            if function == name:
+                return True
+        return False
+
+    def is_var_name(name):
+        for var in self.variables:
+            if var == name:
+                return True
+        return False
+
+    def name_end('='):
+        name = string.join(name_chars, '')
+        # is name a function call? variable?
+        if self.is_function_name(name):
+            state = 'FUNCTION'
+        elif self.is_var_name(name):
+            state = 'VAR'
+        else:
+            raise Exception("unknown name")
+
+
+    def read_function_definition(text):
+        '''
+        ex1: (int current) fibonacci(int index):
+        return None if not function
+        '''
+        outputs = read_arguments_definition(text)
+        function_name = read_name(text)
+        inputs = read_arguments_definition(text)
+        return Function(function_name, inputs, outputs)
+
+
+    def read_arg_definition(text):
+        regex = re.compile('(?<type>>[a-zA-Z0-9]+) (?<name>[a-zA-Z0-9])')
+        var = Variable(arg_type, name)
+        return var
+
+
+    def read_arguments_definition(text):
+        regex = re.compile('\((?<arguments>[a-zA-Z0-9]+)\)')
+        match = regex.match(text)
+        if not match:
+            return
+        arguments = match.group('arguments')
+        variables = []
+        variables.append(read_arg_definitions(text))
+        return variables
+
+
+    def read_function_call(text):
+        '''
+        ex1: add(a,b)
+        '''
+        # read text
+        # read any spaces
+        regex = re.compile('(?<function_name>)[a-zA-z]+)\(arguments[a-zA-Z]+\)')
+        match = regex.match(text)
+        if not match:
+            return None
+
+        function_name = match.group('function_name')
+        arguments = match.group('arguments')
+
+        # only reads one level deep
+        return Expression(function_name, arguments)
+
+
+
+    def read_statement(text):
+        '''
+        Statement example: counter = 5
+        '''
+        name = read_name(text)
+        read_equals(text)
+        function_call = read_function_call(exp)
+        return Statement(Variable(dest), Expression(function_call))
+
+
+    def read_conditional(text):
+        # if, elif ,else, while
+
+    def read_name(text):
+        '''
+        Read alphanumeric.
+        Return "" if nothing read.
+        '''
+        #text.strip(' ')  # strip beginning spaces
+        regex = re.compile('(?<name>)[a-zA-z]+)\([a-zA-Z]+\)')
+        match = regex.match(text)
+        if match:
+            return match.group('name')
+
+
+    def read_function_call_old(text):
+        # states:
+        # INIT, NAME
+        name_chars = []
+        alpha = re.compile('[a-zA-Z]')
+        numric = re.compile('[0-9]')
+        state = 'INIT'  # initial state
+
+        char = line.pop()
+        if char == '(':
+            if state == 'NAME':
+                name_end()
+        elif char == ')':
+            if state == 'NAME':
+                name_end()
+        elif char == ',':
+        elif char == ' ':
+            # name ended
+            if state == 'NAME':
+                name_end()
+        elif alpha.match(char):
+            if state != 'NAME':
+                name_chars = []
+                state == 'NAME'
+            # read name
+            name_chars.push(char)
+
+        elif numeric.match(char):
+            name_chars.push(char)
+
+
+
+    def read_operation(text):
+        operators = ['+', '-', '*', '/', '%']
+        stack = []
+        for char in line:
+            if char == '(':
+                pass
+            elif char == ')':
+                pass
+            elif char == ' ':
+                pass
+            elif char in operators:
+                # needs an operand
+                pass
+
+
+def expression_check(exp, variables, functions):
+    function = get_function(functions, exp.data):
+    if function:
+        # read children
+        
+    elif is_variable(exp.data):
+
+    else:
+        raise Exception("Undeclared name: {0}".format(exp.data))
+
+
+class Semantics(object):
+    '''
+    '''
+    def __init__(self, program):
+        self.program = program
+        
+        # function names overlap?
+        function_names = []
+        for function in program.functions:
+            if function.name in function_names:
+                raise Exception("function: {0} exists".format(function.name))
+            function_names.append(function_names)
+            
+            variables = []
+
+            for input in function.inputs:
+                variables.append(input)
+
+            for output in funciton.outputs:
+                variables.append(output)
+
+            for block in function.code:
+                b_type = type(block)
+                if b_type == Expression:
+                    # all functions must be defined, inputs properly defined.
+                    
+                elif b_type == Statement:
+                    # in addition to expression, outputs also properly defined.
+                elif b_type == Function:
+                    # inner functions not allowed
+                elif b_type == Conditional:
+                    # check variables are same type
+
+
+class Converter(object):
+    '''
+    Read objects and spit out bytecode.
+    '''
+    def __init__(self):
+        self.memory_size = 4096
+        self.block = Block()
+        self.builder = Builder(block)
+
+    def spit(self):
+        pass
+
+    def spit_function(self, function):
+        # print a single function
+        vars = {}
+        for input in function.inputs:
+            vars[input] = self.builder.new_pointer()
+
+        for output in funciton.outputs:
+            vars[input] = self.builder.new_pointer()
+        
+        for block in function.code:
+            b_type = type(block)
+            if b_type == Expression:
+                spit_expression(self, block)
+            elif b_type == Statement:
+                spit_statement(self,block)
+            elif b_type == Function:
+                spit_function(block)
+            elif b_type == Conditional:
+                spit_conditional(block)
+            elif b_type == While:
+                spit_while(block)
+
+        # function conclusion
+        insns.insns[loop_start].branch_to = loop_end
+        # return statement
+        insns.copy_short(f_vars['return'], f_vars['current'])
+
+    def spit_expression(self, exp):
+        # perform operation and store in temporary variable
+        self.builder.store_short(vars[exp.dest], exp.ex 
+
+    def spit_statement(self, statement):
+        self.builder.store_short(vars[statement.dest], statement.exp)
+
+    def spit_while(self, while_block):
+        # if condition met, enter loop, else exit.
+        # must clear any unused variables after its done.
+        loop_start = len(self.builder.insns)
+        spit_condition(block.condition)
+        insns.branch_short(f_vars['index'], 0, 1000)
+
+        for block in while_block:
+            spit_statement(block)
+
+        # end loop
+        insns.jump(loop_start)
+        loop_end = len(insns.insns)
+
+
+class Machine(object):
+    # TODO: should decide whether machine only runs
+    # compiled code, real-time, or some combination.
+    # 1. run parser with everything.
+    # 2. run semantics and converter as needed.
+    def __init__(self, text):
+        self.lines = text.split('\n')
+        self.parser = Parser(self.lines)
+        self.semantics = Semantics(self.parser.program)
+        self.converter = Converter(self.parser.program)
+
+    def run(self):
+        self.semantics.run()
+        self.converter.run()
 
 
 def test():
