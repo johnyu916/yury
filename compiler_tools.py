@@ -1,3 +1,9 @@
+import json
+import re
+import string
+import sys
+from shared.common import get_bools
+from settings import BAM_DIR
 USHORT_SIZE = 16
 # insns is a set of instructions.
 class Instruction(object):
@@ -32,7 +38,7 @@ class Builder(object):
         self.block = block
 
 
-    def _new_insn(read_addr, branch_to, on_one, on_zero)
+    def _new_insn(self, read_addr, branch_to, on_one, on_zero):
         i = Instruction(read_addr, branch_to, on_one, on_zero)
         self.block.insns.append(i)
 
@@ -60,6 +66,7 @@ class Builder(object):
         '''
         # turn value into a bool array
         bools = get_bools(value, USHORT_SIZE)
+        pc = len(self.builder.insns)
         for digit, binary in zip(addr, bools):
             self.branch(digit, pc+2)
             # digit is zero
@@ -68,6 +75,7 @@ class Builder(object):
             # digit is one
             self.branch(binary, pc+3)
             self.branch(binary, branch_to)
+            pc = len(self.builder.insns)
         # reached end, 
 
 
@@ -77,16 +85,11 @@ class Builder(object):
         self.store_short(self, self.stack_pointer, value)
 
 
-    def new_short(self):
-        self.block.stack_pointer -= USHORT_SIZE
-        return self.stack_pointer
-
-
     def store_short(self, addr, value):
         '''
         short is 16 bits long unsigned integer
         '''
-        value_bools = get_bools(integer, USHORT_SIZE)
+        value_bools = get_bools(value, USHORT_SIZE)
         num_insns = len(self.insns)
         # convert value into bits
         for binary in value_bools:
@@ -108,8 +111,8 @@ class Builder(object):
         result = one + two.
         '''
         carry_in = 0
-        for index range(USHORT_SIZE):
-            self.add_bit(one+indx, two+index, carry_in, carry_in, result+index)
+        for index in range(USHORT_SIZE):
+            self.add_bit(one+index, two+index, carry_in, carry_in, result+index)
         # TODO: All additions can probably be kept in one part of code. with temporary registers.
 
     def add_bit(self, one, two, carry_in, carry_out, result):
@@ -119,6 +122,8 @@ class Builder(object):
 
         one two carry
         '''
+        pc = len(self.builder.insns)
+        three = carry_in
         self.branch(one, pc+10)
         # one = 0
         self.branch(two, pc+10)
@@ -179,67 +184,78 @@ class Type(object):
     Type
     '''
     types = ['int', 'double', 'string', 'list', 'dict']
-    def __init__(self, name, size)
-    self.size = 1 # 1 byte
-    self.name = 'int'
+    def __init__(self, name, size):
+        self.size = 1 # 1 byte
+        self.name = 'int'
 
-int_type = Primitive('int', 4)
-double_type = Primitive('double', 8)
+#int_type = Variable('int', 4)
+#double_type = Variable('double', 8)
 
 
 class Variable(object):
     '''
     Type and name. Type can be primitive or defined from library.
     '''
-    self.type = 'int'
-    self.name = 'count'
+    def __init__(self, name, inputs, outputs):
+        self.type = 'int'
+        self.name = 'count'
 
 
 class Function(object):
-    self.name = 'add'
-    self.inputs = []
-    self.outputs = []
-    self.code = []  # code is expressions and blocks
 
     def __init__(self, name, inputs, outputs):
+        self.name = 'add'
+        self.inputs = []
+        self.outputs = []
+        self.code = []  # code is expressions and blocks
         pass
 
-class IfBlock(object):
-    self.code = []
+class Conditional(object):
+    def __init__(self):
+        pass
 
-class ElIfBlock(object):
-    self.code = []
+class While(object):
+    def __init__(self):
+        pass
 
-class ElseBlock(object):
-    self.code = []
+class IfBlock(Conditional):
+    def __init__(self):
+        self.code = []
 
-class WhileBlock(object):
-    self.condition = Expression()
-    self.code = []
+class ElIfBlock(Conditional):
+    def __init__(self):
+        self.code = []
+
+
+class ElseBlock(Conditional):
+    def __init__(self):
+        self.code = []
+
+
+class WhileBlock(Conditional):
+    def __init__(self):
+        self.code = []
+
 
 class Statement(object):
-    self.dest = Variable()
-    self.expression = Expression()
+    def __init__(self, expression):
+        self.dest = Variable()
+        self.expression = expression
 
 
 class Expression(object):
     '''
-    Function call (could be nested)
+    Function call node (could be nested)
+    data is a function name or the variables/constant.
+    arguments are also expression objects.
     '''
-    self.data = 'add'  # data is either function names or variables
-    self.arguments = []
     def __init__(self, data, arguments=()):
         if type(arguments) != tuple:
             arguments = tuple(arguments)
         if type(data) != Operator:
             assert len(arguments) == 0
 
-        else:
-            if data == NOT:
-                assert len(children) == 1
-            else:
-                assert len(children) > 1
-
+        #self.data = 'add'  # data is either function names or variables
         self.data = data
         self.arguments = arguments
 
@@ -262,12 +278,6 @@ class OperationNode(object):
         if type(data) != Operator:
             assert len(children) == 0
 
-        else:
-            if data == NOT:
-                assert len(children) == 1
-            else:
-                assert len(children) > 1
-
         self.data = data
         self.children = children
 
@@ -288,14 +298,6 @@ class OperationNode(object):
         return json.dumps(self.dictionary())
 
 
-    def permutations(self):
-        '''
-        Return all permutations of the current Operation Node tree
-        '''
-        trees = []
-        operation_node_permutations(self, trees)
-        return trees
-
     def value():
         pass
 
@@ -305,7 +307,7 @@ def get_num_front_spaces(line):
     return len(line2) - len(line3)
 
 def get_stack_index(line):
-    num = get_num_front_spaces(line):
+    num = get_num_front_spaces(line)
     if not (num % 4) == 0:
         raise Exception("Wrong number of spaces")
     return num/4
@@ -319,6 +321,112 @@ class Program(object):
         #main = get_function(functions, '__main__')
         #self.stack = [main]
         #self.index = 0
+
+
+# Parsing functions
+def read_name(text):
+    '''
+    Read alphanumeric.
+    Return "" if nothing read.
+    '''
+    #text.strip(' ')  # strip beginning spaces
+    regex = re.compile('(?<name>)[a-zA-z]+)\([a-zA-Z]+\)')
+    match = regex.match(text)
+    if match:
+        return match.group('name')
+
+def read_equals(text):
+    return
+
+
+def read_conditional(text):
+    # if, elif ,else, while
+    pass
+
+
+def read_statement(text):
+    '''
+    Statement example: counter = 5
+    '''
+    dest = read_name(text)
+    read_equals(text)
+    function_call = read_function_call(text)
+    return Statement(Variable(dest), Expression(function_call))
+
+
+def read_function_definition(text):
+    '''
+    ex1: (int current) fibonacci(int index):
+    return None if not function
+    '''
+    outputs = read_arguments_definition(text)
+    function_name = read_name(text)
+    inputs = read_arguments_definition(text)
+    return Function(function_name, inputs, outputs)
+
+
+def read_arg_definition(text):
+    regex = re.compile('(?<type>>[a-zA-Z0-9]+) (?<name>[a-zA-Z0-9])')
+    match = regex.match(text)
+    if not match:
+        return None
+    arg_type = match.group('type')
+    name = match.group('name')
+    var = Variable(arg_type, name)
+    return var
+
+
+def read_arguments_definition(text):
+    regex = re.compile('\((?<arguments>[a-zA-Z0-9]+)\)')
+    match = regex.match(text)
+    if not match:
+        return None
+    arguments = match.group('arguments')
+    variables = []
+    variables.append(read_arg_definition(text))
+    return variables
+
+
+def read_function_call(text):
+    '''
+    ex1: add(a,b)
+    '''
+    # read text
+    # read any spaces
+    regex = re.compile('(?<function_name>)[a-zA-z]+)\(arguments[a-zA-Z]+\)')
+    match = regex.match(text)
+    if not match:
+        return None
+
+    function_name = match.group('function_name')
+    arguments = match.group('arguments')
+
+    # only reads one level deep
+    return Expression(function_name, arguments)
+
+
+def is_function_name_old(functions, name):
+    for function in functions:
+        if function == name:
+            return True
+    return False
+
+def is_var_name_old(variables, name):
+    for var in variables:
+        if var == name:
+            return True
+    return False
+
+
+def name_end_old(name_chars):
+    name = string.join(name_chars, '')
+    # is name a function call? variable?
+    if is_function_name_old(name):
+        state = 'FUNCTION'
+    elif is_var_name_old(name):
+        state = 'VAR'
+    else:
+        raise Exception("unknown name")
 
 
 class Parser(object):
@@ -375,138 +483,41 @@ class Parser(object):
 
         raise Exception("Something wrong bud")
 
+    #def read_function_call_old(text):
+    #    # states:
+    #    # INIT, NAME
+    #    name_chars = []
+    #    alpha = re.compile('[a-zA-Z]')
+    #    numric = re.compile('[0-9]')
+    #    state = 'INIT'  # initial state
 
-    def is_function_name(name):
-        for function in self.functions:
-            if function == name:
-                return True
-        return False
+    #    char = line.pop()
+    #    if char == '(':
+    #        if state == 'NAME':
+    #            name_end()
+    #    elif char == ')':
+    #        if state == 'NAME':
+    #            name_end()
+    #    elif char == ',':
+    #        pass
+    #    elif char == ' ':
+    #        # name ended
+    #        if state == 'NAME':
+    #            name_end()
+    #    elif alpha.match(char):
+    #        if state != 'NAME':
+    #            name_chars = []
+    #            state == 'NAME'
+    #        # read name
+    #        name_chars.push(char)
 
-    def is_var_name(name):
-        for var in self.variables:
-            if var == name:
-                return True
-        return False
-
-    def name_end('='):
-        name = string.join(name_chars, '')
-        # is name a function call? variable?
-        if self.is_function_name(name):
-            state = 'FUNCTION'
-        elif self.is_var_name(name):
-            state = 'VAR'
-        else:
-            raise Exception("unknown name")
-
-
-    def read_function_definition(text):
-        '''
-        ex1: (int current) fibonacci(int index):
-        return None if not function
-        '''
-        outputs = read_arguments_definition(text)
-        function_name = read_name(text)
-        inputs = read_arguments_definition(text)
-        return Function(function_name, inputs, outputs)
-
-
-    def read_arg_definition(text):
-        regex = re.compile('(?<type>>[a-zA-Z0-9]+) (?<name>[a-zA-Z0-9])')
-        var = Variable(arg_type, name)
-        return var
-
-
-    def read_arguments_definition(text):
-        regex = re.compile('\((?<arguments>[a-zA-Z0-9]+)\)')
-        match = regex.match(text)
-        if not match:
-            return
-        arguments = match.group('arguments')
-        variables = []
-        variables.append(read_arg_definitions(text))
-        return variables
-
-
-    def read_function_call(text):
-        '''
-        ex1: add(a,b)
-        '''
-        # read text
-        # read any spaces
-        regex = re.compile('(?<function_name>)[a-zA-z]+)\(arguments[a-zA-Z]+\)')
-        match = regex.match(text)
-        if not match:
-            return None
-
-        function_name = match.group('function_name')
-        arguments = match.group('arguments')
-
-        # only reads one level deep
-        return Expression(function_name, arguments)
-
-
-
-    def read_statement(text):
-        '''
-        Statement example: counter = 5
-        '''
-        name = read_name(text)
-        read_equals(text)
-        function_call = read_function_call(exp)
-        return Statement(Variable(dest), Expression(function_call))
-
-
-    def read_conditional(text):
-        # if, elif ,else, while
-
-    def read_name(text):
-        '''
-        Read alphanumeric.
-        Return "" if nothing read.
-        '''
-        #text.strip(' ')  # strip beginning spaces
-        regex = re.compile('(?<name>)[a-zA-z]+)\([a-zA-Z]+\)')
-        match = regex.match(text)
-        if match:
-            return match.group('name')
-
-
-    def read_function_call_old(text):
-        # states:
-        # INIT, NAME
-        name_chars = []
-        alpha = re.compile('[a-zA-Z]')
-        numric = re.compile('[0-9]')
-        state = 'INIT'  # initial state
-
-        char = line.pop()
-        if char == '(':
-            if state == 'NAME':
-                name_end()
-        elif char == ')':
-            if state == 'NAME':
-                name_end()
-        elif char == ',':
-        elif char == ' ':
-            # name ended
-            if state == 'NAME':
-                name_end()
-        elif alpha.match(char):
-            if state != 'NAME':
-                name_chars = []
-                state == 'NAME'
-            # read name
-            name_chars.push(char)
-
-        elif numeric.match(char):
-            name_chars.push(char)
-
+    #    elif numeric.match(char):
+    #        name_chars.push(char)
 
 
     def read_operation(text):
         operators = ['+', '-', '*', '/', '%']
-        stack = []
-        for char in line:
+        for char in text:
             if char == '(':
                 pass
             elif char == ')':
@@ -517,13 +528,21 @@ class Parser(object):
                 # needs an operand
                 pass
 
+def get_function(functions, data):
+    return None
+
+def get_variable(variables, data):
+    return None
+
 
 def expression_check(exp, variables, functions):
-    function = get_function(functions, exp.data):
+    function = get_function(functions, exp.data)
     if function:
         # read children
+        pass
         
-    elif is_variable(exp.data):
+    elif get_variable(variables, exp.data):
+        pass
 
     else:
         raise Exception("Undeclared name: {0}".format(exp.data))
@@ -547,20 +566,24 @@ class Semantics(object):
             for input in function.inputs:
                 variables.append(input)
 
-            for output in funciton.outputs:
+            for output in function.outputs:
                 variables.append(output)
 
             for block in function.code:
                 b_type = type(block)
                 if b_type == Expression:
                     # all functions must be defined, inputs properly defined.
+                    pass
                     
                 elif b_type == Statement:
                     # in addition to expression, outputs also properly defined.
+                    pass
                 elif b_type == Function:
                     # inner functions not allowed
+                    pass
                 elif b_type == Conditional:
                     # check variables are same type
+                    pass
 
 
 class Converter(object):
@@ -570,61 +593,65 @@ class Converter(object):
     def __init__(self):
         self.memory_size = 4096
         self.block = Block()
-        self.builder = Builder(block)
+        self.builder = Builder(self.block)
+        self.vars = {}
+
 
     def spit(self):
         pass
 
+
     def spit_function(self, function):
         # print a single function
-        vars = {}
+        self.vars = {}
         for input in function.inputs:
             vars[input] = self.builder.new_pointer()
 
-        for output in funciton.outputs:
+        for output in function.outputs:
             vars[input] = self.builder.new_pointer()
         
         for block in function.code:
             b_type = type(block)
             if b_type == Expression:
-                spit_expression(self, block)
+                self.spit_expression(self, block)
             elif b_type == Statement:
-                spit_statement(self,block)
+                self.spit_statement(self,block)
             elif b_type == Function:
-                spit_function(block)
+                self.spit_function(block)
             elif b_type == Conditional:
-                spit_conditional(block)
+                self.spit_conditional(block)
             elif b_type == While:
-                spit_while(block)
+                self.spit_while(block)
 
-        # function conclusion
-        insns.insns[loop_start].branch_to = loop_end
         # return statement
-        insns.copy_short(f_vars['return'], f_vars['current'])
+        self.builder.copy_short(self.vars['return'], self.vars['current'])
 
     def spit_expression(self, exp):
         # perform operation and store in temporary variable
-        self.builder.store_short(vars[exp.dest], exp.ex 
+        #self.builder.store_short(vars[exp.dest], exp.ex 
+        pass
 
     def spit_statement(self, statement):
-        self.builder.store_short(vars[statement.dest], statement.exp)
+        self.builder.store_short(self.vars[statement.dest], statement.exp)
 
     def spit_while(self, while_block):
         # if condition met, enter loop, else exit.
         # must clear any unused variables after its done.
         loop_start = len(self.builder.insns)
-        spit_condition(block.condition)
-        insns.branch_short(f_vars['index'], 0, 1000)
+        self.spit_condition(self.block.condition)
+        self.builder.branch_short(self.vars['index'], 0, 1000)
 
         for block in while_block:
-            spit_statement(block)
+            self.spit_statement(block)
 
         # end loop
-        insns.jump(loop_start)
-        loop_end = len(insns.insns)
+        self.builder.jump(loop_start)
+        loop_end = len(self.builder.insns)
+        # function conclusion
+        self.builder.insns[loop_start].branch_to = loop_end
 
 
-class Machine(object):
+class Compiler(object):
     # TODO: should decide whether machine only runs
     # compiled code, real-time, or some combination.
     # 1. run parser with everything.
@@ -642,7 +669,7 @@ class Machine(object):
 
 def test():
     # set memory to 4k
-    memory_size = 4096
+    #memory_size = 4096
     block = Block()
     insns = Builder(block)
     variables = {}
@@ -691,3 +718,10 @@ def test():
     # TODO: clean up after function complete. 
     #  save and jump to original insn after function complete.
     #  list the function insns first, then main line. jump in first insn.
+
+
+if __name__ == '__main__':
+    filename = sys.argv[1]
+    with open(BAM_DIR / filename) as f:
+        text = f.read()
+        compiler = Compiler(text)
