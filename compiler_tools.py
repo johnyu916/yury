@@ -722,6 +722,7 @@ def test():
 
 if __name__ == '__main__':
     filename = sys.argv[1]
-    with open(BAM_DIR / filename) as f:
+    #with open(BAM_DIR / filename) as f:
+    with open(filename) as f:
         text = f.read()
         compiler = Compiler(text)
