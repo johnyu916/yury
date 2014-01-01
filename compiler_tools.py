@@ -366,6 +366,9 @@ def read_function_definition(text):
 
 
 def read_arg_definition(text):
+    '''
+    Read int continue
+    '''
     regex = re.compile('(?<type>>[a-zA-Z0-9]+) (?<name>[a-zA-Z0-9])')
     match = regex.match(text)
     if not match:
@@ -375,8 +378,17 @@ def read_arg_definition(text):
     var = Variable(arg_type, name)
     return var
 
+def match_char(match, text):
+    re.match(match, text)
 
 def read_arguments_definition(text):
+    '''
+    (int a)
+    ()
+    (int a, string b)
+    Either return list of Variable objects, or None
+    '''
+    tex
     regex = re.compile('\((?<arguments>[a-zA-Z0-9]+)\)')
     match = regex.match(text)
     if not match:
