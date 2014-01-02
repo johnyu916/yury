@@ -354,23 +354,43 @@ def read_equals(text):
 
 def read_conditional(text):
     # if, elif ,else, while
-    pass
+    whil, text = re_match('while', text):
+    if whil == None:
+        return None, text
+    
+    # read space
 
+    # read left parenthesis
+
+    # read expression
+
+    # read right parenthesis and colon
+
+    # create while object
 
 def read_statement(text):
     '''
     Statement example: counter = 5
     '''
-    dest = read_name(text)
-    read_equals(text)
-    function_call = read_function_call(text)
+    dest, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
+
+    # try reading space
+    space, text = re_match(' ', text)
+
+    equ, text = re_match('=', text)
+    if equ == None:
+        return None, text
+    function_call, text = read_function_call(text)
+    if function_call == None:
+        return None, text
     return Statement(Variable(dest), Expression(function_call))
 
 
 def read_function_definition(text):
     '''
     ex1: (int current) fibonacci(int index):
-    return None if not function
+    return (Function, text_left)
+    return (None, input_text) if not function
     '''
     print "text matching against: " + text
     outputs, text = read_arguments_definition(text)
@@ -435,7 +455,8 @@ def read_arguments_definition(text):
     (int a)
     ()
     (int a, string b)
-    Either return list of Variable objects, or None
+    return variabes, text_left
+    return None, text if not matched.
     '''
 
     # left paren
@@ -475,19 +496,40 @@ def read_arguments_definition(text):
 def read_function_call(text):
     '''
     ex1: add(a,b)
+    return (Expression, text_left)
+    return (None, arg_text) if not expression
     '''
     # read text
     # read any spaces
-    regex = re.compile('(?<function_name>)[a-zA-z]+)\(arguments[a-zA-Z]+\)')
-    match = regex.match(text)
-    if not match:
-        return None
+    pattern = '[a-zA-z][a-zA-Z0-9]*'
+    function_name, text = re_match(pattern, text)
+    if function_name == None:
+        return None, text
 
-    function_name = match.group('function_name')
-    arguments = match.group('arguments')
+    par, text = re_match('\(', text)
+    if par == None:
+        return None, text
+
+    # one or more parameters
+    params = []
+    while True:
+        # match type name
+        name, text = re_match(pattern, text)
+        if name != None:
+            params.append(name)
+
+        # try reading comma
+        com, text = re_match(',', text)
+        if com == None:
+            break
+
+        # try reading space
+        space, text = re_match(' ', text)
+        if space == None:
+            continue
 
     # only reads one level deep
-    return Expression(function_name, arguments)
+    return Expression(function_name, params)
 
 
 def is_function_name_old(functions, name):
@@ -543,9 +585,9 @@ class Parser(object):
         if stack_index == 0:
             function, line = read_function_definition(line)
             if function:
-                print function.get_dict()
+                print "function_definition: {0}".format(function.get_dict())
                 self.program.functions.append(function)
-                self.stack.push(function)
+                self.stack.append(function)
                 return
 
         block = self.stack[-1]
