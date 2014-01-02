@@ -196,19 +196,27 @@ class Variable(object):
     '''
     Type and name. Type can be primitive or defined from library.
     '''
-    def __init__(self, name, inputs, outputs):
-        self.type = 'int'
-        self.name = 'count'
+    def __init__(self, arg_type, name):
+        self.arg_type = arg_type
+        self.name = name
 
 
 class Function(object):
 
-    def __init__(self, name, inputs, outputs):
-        self.name = 'add'
-        self.inputs = []
-        self.outputs = []
+    def __init__(self, name, inputs=[], outputs=[]):
+        self.name = name
+        self.inputs = inputs
+        self.outputs = outputs
         self.code = []  # code is expressions and blocks
-        pass
+
+    def get_dict(self):
+        return {
+            'name': self.name,
+            'inputs': self.inputs,
+            'outputs': self.outputs,
+            'code': self.code,
+        }
+
 
 class Conditional(object):
     def __init__(self):
@@ -330,10 +338,15 @@ def read_name(text):
     Return "" if nothing read.
     '''
     #text.strip(' ')  # strip beginning spaces
-    regex = re.compile('(?<name>)[a-zA-z]+)\([a-zA-Z]+\)')
+    regex = re.compile('[a-zA-z][a-zA-Z0-9]*')
     match = regex.match(text)
     if match:
         return match.group('name')
+
+
+def read_space(text):
+    par, text = re_match(' ', text)
+
 
 def read_equals(text):
     return
@@ -359,27 +372,63 @@ def read_function_definition(text):
     ex1: (int current) fibonacci(int index):
     return None if not function
     '''
-    outputs = read_arguments_definition(text)
-    function_name = read_name(text)
-    inputs = read_arguments_definition(text)
-    return Function(function_name, inputs, outputs)
+    print "text matching against: " + text
+    outputs, text = read_arguments_definition(text)
+    if outputs == None:
+        return None, text
+    print outputs
+    print ' text: ' + text
+    # try reading space
+    space, text = re_match(' ', text)
+    if space == None:
+        return None, text
+
+    function_name, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
+    if function_name == None:
+        return None, text
+    print 'function_name: ' + function_name + ' text: ' + text
+    inputs, text = read_arguments_definition(text)
+    if inputs == None:
+        return None, text
+    print inputs
+    print ' text: ' + text
+        
+    return Function(function_name, inputs, outputs), text
 
 
 def read_arg_definition(text):
     '''
     Read int continue
     '''
-    regex = re.compile('(?<type>>[a-zA-Z0-9]+) (?<name>[a-zA-Z0-9])')
-    match = regex.match(text)
-    if not match:
-        return None
-    arg_type = match.group('type')
-    name = match.group('name')
-    var = Variable(arg_type, name)
-    return var
+    pattern = '[a-zA-z][a-zA-Z0-9]*'
 
-def match_char(match, text):
-    re.match(match, text)
+    # type
+    arg_type, text = re_match(pattern, text)
+    if arg_type == None:
+        return None, text
+
+    print "arg_type: " + arg_type + " text: " + text
+    # space
+    space, text = re_match(' ', text)
+    if space == None:
+        return None, text
+    print "soace: " + space+ " text: " + text
+
+    # name
+    name, text = re_match(pattern, text)
+    if name == None:
+        return None, text
+    print "name: " + name+ " text: " + text
+    var = Variable(arg_type, name)
+    return var, text
+
+def re_match(regex, text):
+    m = re.match(regex, text)
+    if m:
+        return m.group(), text[m.end():]
+    else:
+        return None, text
+
 
 def read_arguments_definition(text):
     '''
@@ -388,15 +437,39 @@ def read_arguments_definition(text):
     (int a, string b)
     Either return list of Variable objects, or None
     '''
-    tex
-    regex = re.compile('\((?<arguments>[a-zA-Z0-9]+)\)')
-    match = regex.match(text)
-    if not match:
-        return None
-    arguments = match.group('arguments')
+
+    # left paren
+    par, text = re_match('\(', text)
+    if par == None:
+        return None, text
+
+    print "par: " + par + " text: " + text
+
+    # arguments
     variables = []
-    variables.append(read_arg_definition(text))
-    return variables
+    while True:
+        # match type name
+        var, text = read_arg_definition(text)
+        if var != None:
+            variables.append(var)
+
+        # try reading comma
+        com, text = re_match(',', text)
+        if com == None:
+            break
+
+        # try reading space
+        space, text = re_match(' ', text)
+        if space == None:
+            continue
+
+    # see if ended
+    print "text: " + text
+    par, text = re_match('\)', text)
+    if par == None:
+        return None, text
+    print "par: " + par + " text: " + text
+    return variables, text
 
 
 def read_function_call(text):
@@ -468,8 +541,9 @@ class Parser(object):
 
         # Function definition
         if stack_index == 0:
-            function = read_function_definition(line)
+            function, line = read_function_definition(line)
             if function:
+                print function.get_dict()
                 self.program.functions.append(function)
                 self.stack.push(function)
                 return
