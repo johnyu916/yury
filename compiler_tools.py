@@ -1,189 +1,23 @@
 import json
+import copy
 import re
 import string
 import sys
 from shared.common import get_bools
+from code_writer import Converter
 from settings import BAM_DIR
 USHORT_SIZE = 16
+PRIMITIVE_TYPES = ['int', 'double', 'string', 'list', 'dict']
+CONDITIONAL_WORDS = ['if', 'elif', 'else', 'while']
+RESERVED_WORDS = copy.copy(PRIMITIVE_TYPES)
+RESERVED_WORDS.extend(CONDITIONAL_WORDS)
 # insns is a set of instructions.
-class Instruction(object):
-    def __init__(self, read_addr = 0, branch_to = 0, on_one = False, on_zero = False):
-        '''
-        if read is one, branch and set to on_one, else next insn and set to on_zero.
-        '''
-        self.read_addr = read_addr
-        self.branch_to = branch_to
-        self.on_one = on_one
-        self.on_zero = on_zero
-
-
-class Block(object):
-    '''
-    Represents a block of code (function and segmented block)
-    '''
-    def __init__(self, stack_pointer=0):
-        self.stack_pointer = stack_pointer
-        self.insns = []
-
-
-class Builder(object):
-    '''
-    Instruction builder.
-    '''
-    
-    def __init__(self, block=None):
-        '''
-        Memory size in bits.
-        '''
-        self.block = block
-
-
-    def _new_insn(self, read_addr, branch_to, on_one, on_zero):
-        i = Instruction(read_addr, branch_to, on_one, on_zero)
-        self.block.insns.append(i)
-
-
-    def write(self, addr, value):
-        '''
-        value is boolean
-        '''
-        num_insns = len(self.insns)
-        self._new_insn(addr, num_insns, value, value) 
-
-
-    def branch(self, read_addr, branch_to):
-        '''
-        if value at read_addr is 1, then go to branch_to.
-        else, go to pc+1
-        '''
-        self._new_insn(read_addr, branch_to, True,False)
-
-
-    def branch_short(self, addr, value, branch_to):
-        '''
-        if value at addr is value, then branch_to.
-        else go to pc+1.
-        '''
-        # turn value into a bool array
-        bools = get_bools(value, USHORT_SIZE)
-        pc = len(self.builder.insns)
-        for digit, binary in zip(addr, bools):
-            self.branch(digit, pc+2)
-            # digit is zero
-            self.branch(binary, branch_to)
-            self.branch(binary, pc+3)
-            # digit is one
-            self.branch(binary, pc+3)
-            self.branch(binary, branch_to)
-            pc = len(self.builder.insns)
-        # reached end, 
-
-
-    def new_short(self, value):
-        # create on stack
-        self.block.stack_pointer -= USHORT_SIZE
-        self.store_short(self, self.stack_pointer, value)
-
-
-    def store_short(self, addr, value):
-        '''
-        short is 16 bits long unsigned integer
-        '''
-        value_bools = get_bools(value, USHORT_SIZE)
-        num_insns = len(self.insns)
-        # convert value into bits
-        for binary in value_bools:
-            self._new_insn(addr, num_insns, binary, binary)
-            num_insns += 1
-
-
-    def copy_short(self, dest, src):
-        num_insns = len(self.insns)
-        for index in range(USHORT_SIZE):
-            self.branch(src+index, num_insns+1)
-            # src is zero
-            self.write(dest+index, True)
-            self.write(dest+index, False)
-            # TODO: can make a loop rather than having insns be linaer to size.
-
-    def add_short(self, result, one, two):
-        '''
-        result = one + two.
-        '''
-        carry_in = 0
-        for index in range(USHORT_SIZE):
-            self.add_bit(one+index, two+index, carry_in, carry_in, result+index)
-        # TODO: All additions can probably be kept in one part of code. with temporary registers.
-
-    def add_bit(self, one, two, carry_in, carry_out, result):
-        '''
-        parameters are addresses.
-        truth table:
-
-        one two carry
-        '''
-        pc = len(self.builder.insns)
-        three = carry_in
-        self.branch(one, pc+10)
-        # one = 0
-        self.branch(two, pc+10)
-        # one = 0, two = 1
-        self.branch(three, pc+10)
-        # one = 0, two = 1, three = 1
-        self.write(carry_out, 1)
-        self.write(result, 0)
-        # one = 0, two = 1, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 1)
-        # one = 0, two = 0
-        self.branch(three, pc+10)
-        # one = 0, two = 0, three = 1
-        self.write(carry_out, 0)
-        self.write(result, 1)
-        # one = 0, two = 0, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 0)
-
-        # one = 1
-        self.branch(two, pc+10)
-        # one = 1, two = 1
-        self.branch(carry_in, pc+10)
-        # one = 1, two = 1, carry_in = 1
-        self.write(carry_out, True)
-        self.write(result, True)
-        # one = 1, two = 1, carry_in = 0
-        self.write(carry_out, True)
-        self.write(result, False)
-        # one = 1, two = 0
-        self.branch(three, pc+10)
-        # one = 1, two = 0, three = 1
-        self.write(carry_out, 1)
-        self.write(result, 0)
-        # one = 1, two = 0, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 1)
-
-
-    def complement_short_i(self, dest, value):
-        '''
-        Return complement of value
-        '''
-        # convert value into bools
-        bools = get_bools(value)
-        for index, binary in enumerate(bools):
-            self.write(index, not binary)
-
-
-    def jump(jump_to):
-        Instruction(0, jump_to, True, False)
-
 
 
 class Type(object):
     '''
     Type
     '''
-    types = ['int', 'double', 'string', 'list', 'dict']
     def __init__(self, name, size):
         self.size = 1 # 1 byte
         self.name = 'int'
@@ -196,18 +30,22 @@ class Variable(object):
     '''
     Type and name. Type can be primitive or defined from library.
     '''
-    def __init__(self, arg_type, name):
+    def __init__(self, arg_type, name, value):
         self.arg_type = arg_type
         self.name = name
+        self.value = value
 
+class CodeBlock(object):
+    def __init__(self, code=[]):
+        self.code = code  # code is expressions and blocks
 
-class Function(object):
+class Function(CodeBlock):
 
     def __init__(self, name, inputs=[], outputs=[]):
         self.name = name
         self.inputs = inputs
         self.outputs = outputs
-        self.code = []  # code is expressions and blocks
+        super(Function, self).__init__()
 
     def get_dict(self):
         return {
@@ -218,36 +56,39 @@ class Function(object):
         }
 
 
-class Conditional(object):
-    def __init__(self):
-        pass
+class Conditional(CodeBlock):
+    def __init__(self, condition):
+        self.condition = condition
+        super(Conditional, self).__init__()
 
-class While(object):
-    def __init__(self):
-        pass
+class While(Conditional):
+    def __init__(self, expression):
+        super(While, self).__init__(expression)
+
+    def get_dict(self):
+        return {
+            'expression': self.condition.get_dict()
+        }
+        
 
 class IfBlock(Conditional):
-    def __init__(self):
-        self.code = []
+    def __init__(self, expression):
+        super(IfBlock, self).__init__(expression)
 
 class ElIfBlock(Conditional):
-    def __init__(self):
-        self.code = []
+    def __init__(self, expression):
+        super(ElIfBlock, self).__init__(expression)
 
 
 class ElseBlock(Conditional):
-    def __init__(self):
-        self.code = []
+    def __init__(self, expression):
+        super(ElseBlock, self).__init__(expression)
 
-
-class WhileBlock(Conditional):
-    def __init__(self):
-        self.code = []
 
 
 class Statement(object):
-    def __init__(self, expression):
-        self.dest = Variable()
+    def __init__(self, dest, expression):
+        self.dest = dest
         self.expression = expression
 
 
@@ -260,12 +101,24 @@ class Expression(object):
     def __init__(self, data, arguments=()):
         if type(arguments) != tuple:
             arguments = tuple(arguments)
-        if type(data) != Operator:
-            assert len(arguments) == 0
 
         #self.data = 'add'  # data is either function names or variables
         self.data = data
         self.arguments = arguments
+
+    def get_dict(self):
+        data = self.data
+        if type(self.data) == Operator:
+            data = str(self.data)
+        children = []
+        for child in self.arguments:
+            #print child
+            children.append(child.get_dict())
+        return {
+            'data':data,
+            'children':children
+        }
+        
 
 
 class Operator(object):
@@ -354,93 +207,141 @@ def read_equals(text):
 
 def read_conditional(text):
     # if, elif ,else, while
-    whil, text = re_match('while', text):
+    print "conditional text matching against: " + text
+    orig = text
+    whil, text = re_match('while', text)
     if whil == None:
-        return None, text
+        return None, orig
     
     # read space
+    space, text = re_match(' ', text)
+    if space == None:
+        return None, orig
+    
 
     # read left parenthesis
+    par, text = re_match('\(', text)
+    if par == None:
+        return None, orig
 
     # read expression
-
+    expr, text = read_expression(text)
+    if expr == None:
+        return None, orig
+    print 'while read exp: {0}. text: {1}'.format(expr, text)
     # read right parenthesis and colon
+    par, text = re_match('\):', text)
+    if par == None:
+        return None, orig
 
     # create while object
+    return While(expr), text
 
-def read_statement(text):
+
+def read_expression(orig):
+    text = orig
+    function_call, text = read_function_call(orig)
+    if function_call != None:
+        return function_call, text
+
+    operation, text = read_operation(orig)
+    if operation != None:
+        return operation, text
+
+    constant, text = read_constant_or_variable(orig)
+    if constant != None:
+        return Expression(constant), text
+
+    return None, orig
+
+
+def read_statement(orig):
     '''
     Statement example: counter = 5
     '''
+    text = orig
     dest, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
+    if dest == None:
+        return None, orig
 
     # try reading space
     space, text = re_match(' ', text)
 
     equ, text = re_match('=', text)
     if equ == None:
-        return None, text
-    function_call, text = read_function_call(text)
-    if function_call == None:
-        return None, text
-    return Statement(Variable(dest), Expression(function_call))
+        return None, orig
 
+    dest_var = Variable(None, dest, None)
+    # either constant, variable, function call, or operation
+   
+    # try reading space
+    space, text = re_match(' ', text)
 
-def read_function_definition(text):
+    expression, text = read_expression(text)
+    if expression != None:
+        return Statement(dest_var, expression), text
+
+    return None, orig
+
+def read_function_definition(orig):
     '''
     ex1: (int current) fibonacci(int index):
     return (Function, text_left)
-    return (None, input_text) if not function
+    return (None, orig) if not function
     '''
+    text = orig
     print "text matching against: " + text
     outputs, text = read_arguments_definition(text)
     if outputs == None:
-        return None, text
+        return None, orig
     print outputs
     print ' text: ' + text
     # try reading space
     space, text = re_match(' ', text)
     if space == None:
-        return None, text
+        return None, orig
 
     function_name, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
     if function_name == None:
-        return None, text
+        return None, orig
     print 'function_name: ' + function_name + ' text: ' + text
+
     inputs, text = read_arguments_definition(text)
     if inputs == None:
-        return None, text
+        return None, orig
     print inputs
     print ' text: ' + text
         
     return Function(function_name, inputs, outputs), text
 
 
-def read_arg_definition(text):
+def read_arg_definition(orig):
     '''
     Read int continue
     '''
     pattern = '[a-zA-z][a-zA-Z0-9]*'
+    text = orig
 
     # type
     arg_type, text = re_match(pattern, text)
     if arg_type == None:
-        return None, text
+        return None, orig
 
     print "arg_type: " + arg_type + " text: " + text
     # space
     space, text = re_match(' ', text)
     if space == None:
-        return None, text
+        return None, orig
     print "soace: " + space+ " text: " + text
 
     # name
     name, text = re_match(pattern, text)
     if name == None:
-        return None, text
+        return None, orig
     print "name: " + name+ " text: " + text
-    var = Variable(arg_type, name)
+    var = Variable(arg_type, name, None)
     return var, text
+
 
 def re_match(regex, text):
     m = re.match(regex, text)
@@ -450,7 +351,7 @@ def re_match(regex, text):
         return None, text
 
 
-def read_arguments_definition(text):
+def read_arguments_definition(orig):
     '''
     (int a)
     ()
@@ -458,11 +359,11 @@ def read_arguments_definition(text):
     return variabes, text_left
     return None, text if not matched.
     '''
-
+    text = orig
     # left paren
     par, text = re_match('\(', text)
     if par == None:
-        return None, text
+        return None, orig
 
     print "par: " + par + " text: " + text
 
@@ -488,10 +389,83 @@ def read_arguments_definition(text):
     print "text: " + text
     par, text = re_match('\)', text)
     if par == None:
-        return None, text
+        return None, orig 
     print "par: " + par + " text: " + text
     return variables, text
 
+def is_reserved(text):
+    return text in RESERVED_WORDS
+
+def read_constant(orig):
+    text = orig
+    dest, text = re_match('[0-9]+', text)
+    if dest != None:
+        return Variable('int', None, dest), text
+    else:
+        return None, orig
+
+
+def read_variable(orig):
+    text = orig
+    dest, text = re_match('[a-zA-Z][a-zA-Z0-9]*', orig)
+    if dest != None and not is_reserved(dest):
+        return Variable(None, dest, None), text
+    else:
+        return None, orig
+
+
+def read_constant_or_variable(text):
+    '''
+    Constant is a integer or variable name.
+    '''
+    # read int
+    orig = text
+    variable, text = read_constant(text)
+    if variable != None:
+        return variable, text
+
+    variable, text = read_variable(text)
+    if variable != None:
+        return variable, text
+
+    # read variable name
+    return None, orig
+
+
+def read_operation(text):
+    '''
+    ex1: index == 0
+    Operation is like a function in that it can return something.
+    supported:
+    ==
+    !=
+    '''
+    orig = text
+    left, text = read_constant_or_variable(text)
+    if left == None:
+        return None, orig
+
+    # read space
+    space, text = re_match(' ', text)
+    
+    # operator
+    oper, text = re_match('==|!=', text)
+    if oper == None:
+        return None, orig
+
+    # read_space
+    space, text = re_match(' ', text)
+    # right
+    right, text = read_constant_or_variable(text)
+    if right == None:
+        return None, orig
+
+
+    left_ex = Expression(left)
+    right_ex = Expression(right)
+
+    return Expression(oper, [left_ex, right_ex]), text
+    
 
 def read_function_call(text):
     '''
@@ -501,14 +475,15 @@ def read_function_call(text):
     '''
     # read text
     # read any spaces
+    orig = text
     pattern = '[a-zA-z][a-zA-Z0-9]*'
     function_name, text = re_match(pattern, text)
     if function_name == None:
-        return None, text
+        return None, orig
 
     par, text = re_match('\(', text)
     if par == None:
-        return None, text
+        return None, orig
 
     # one or more parameters
     params = []
@@ -571,6 +546,7 @@ class Parser(object):
     def check(self, line):
         # just read from beginning.
         line = line.rstrip()
+        print "processing: {0}".format(line)
 
         # how many spaces are in front?
         stack_index = get_stack_index(line)
@@ -578,8 +554,11 @@ class Parser(object):
             num_pop = (len(self.stack) - 1) - stack_index
             while num_pop > 0:
                 self.stack.pop()
+                num_pop -= 1
         elif stack_index >= len(self.stack):
             raise Exception("spaced too much")
+
+        line = line.strip()
 
         # Function definition
         if stack_index == 0:
@@ -591,21 +570,26 @@ class Parser(object):
                 return
 
         block = self.stack[-1]
-        function_call = read_function_call(line)
-        if function_call:
-            block.code.append(function_call)
+
+        expression, line = read_expression(line)
+        if expression:
+            print "expression read: {0}".format(expression)
+            block.code.append(expression)
             return
 
-        statement = read_statement(line)
+        statement, line = read_statement(line)
         if  statement:
+            print "statement read: {0}".format(statement)
             block.code.append(statement)
             return
 
         # conditional (if, elif, else, while)
-        if_clause = read_conditional(line)
+        if_clause, line = read_conditional(line)
         if if_clause:
+            print "conditional read: {0}".format(if_clause.get_dict())
             block.code.append(if_clause)
-            self.stack.append(if_clause) 
+            self.stack.append(if_clause)
+            return
 
         # read return, break
 
@@ -643,7 +627,7 @@ class Parser(object):
     #        name_chars.push(char)
 
 
-    def read_operation(text):
+    def read_operation_old(text):
         operators = ['+', '-', '*', '/', '%']
         for char in text:
             if char == '(':
@@ -714,69 +698,6 @@ class Semantics(object):
                     pass
 
 
-class Converter(object):
-    '''
-    Read objects and spit out bytecode.
-    '''
-    def __init__(self):
-        self.memory_size = 4096
-        self.block = Block()
-        self.builder = Builder(self.block)
-        self.vars = {}
-
-
-    def spit(self):
-        pass
-
-
-    def spit_function(self, function):
-        # print a single function
-        self.vars = {}
-        for input in function.inputs:
-            vars[input] = self.builder.new_pointer()
-
-        for output in function.outputs:
-            vars[input] = self.builder.new_pointer()
-        
-        for block in function.code:
-            b_type = type(block)
-            if b_type == Expression:
-                self.spit_expression(self, block)
-            elif b_type == Statement:
-                self.spit_statement(self,block)
-            elif b_type == Function:
-                self.spit_function(block)
-            elif b_type == Conditional:
-                self.spit_conditional(block)
-            elif b_type == While:
-                self.spit_while(block)
-
-        # return statement
-        self.builder.copy_short(self.vars['return'], self.vars['current'])
-
-    def spit_expression(self, exp):
-        # perform operation and store in temporary variable
-        #self.builder.store_short(vars[exp.dest], exp.ex 
-        pass
-
-    def spit_statement(self, statement):
-        self.builder.store_short(self.vars[statement.dest], statement.exp)
-
-    def spit_while(self, while_block):
-        # if condition met, enter loop, else exit.
-        # must clear any unused variables after its done.
-        loop_start = len(self.builder.insns)
-        self.spit_condition(self.block.condition)
-        self.builder.branch_short(self.vars['index'], 0, 1000)
-
-        for block in while_block:
-            self.spit_statement(block)
-
-        # end loop
-        self.builder.jump(loop_start)
-        loop_end = len(self.builder.insns)
-        # function conclusion
-        self.builder.insns[loop_start].branch_to = loop_end
 
 
 class Compiler(object):
@@ -794,58 +715,6 @@ class Compiler(object):
         self.semantics.run()
         self.converter.run()
 
-
-def test():
-    # set memory to 4k
-    #memory_size = 4096
-    block = Block()
-    insns = Builder(block)
-    variables = {}
-
-    f_vars = {}
-    sys_vars = {}  # vars only used internally. not referenced by program.
-    variables['fibonacci'] = f_vars
-
-    # memory for return variable
-    f_vars['return'] = insns.new_short()
-    # memory for parameters
-    f_vars['index'] = insns.new_short()
-    # copy from parent variable to child
-    insns.copy_short(f_vars['index'], variables['counter'])
-    # entered function
-    f_vars['last'] = insns.new_short()
-    insns.store_short(f_vars['last'], 1)
-    f_vars['current'] = insns.new_short()
-    insns.store_short(f_vars['current'], 1)
-
-    # while loop
-    # if condition met, enter loop, else exit.
-    # must clear any unused variables after its done.
-    loop_start = len(insns.insns)
-    insns.branch_short(f_vars['index'], 0, 1000)
-    insns.add_short(f_vars['current'], f_vars['current'], f_vars['last'])
-    sys_vars['complement'] = insns.new_short()
-    insns.complement(sys_vars['complement'], 1)
-    insns.add_short(f_vars['index'], f_vars['index'], sys_vars['complement'])
-    insns.jump(loop_start)
-    loop_end = len(insns.insns)
-
-    # set the branch point
-    insns.insns[loop_start].branch_to = loop_end
-    # return statement
-    insns.copy_short(f_vars['return'], f_vars['current'])
-
-
-    # back in main function.
-    variables['counter'] = insns.new_short()
-    insns.store_short(variables['counter'], 5)
-    variables['value'] = insns.new_short()
-    insns.copy_short(variables['value'], f_vars['return'])
-
-
-    # TODO: clean up after function complete. 
-    #  save and jump to original insn after function complete.
-    #  list the function insns first, then main line. jump in first insn.
 
 
 if __name__ == '__main__':
