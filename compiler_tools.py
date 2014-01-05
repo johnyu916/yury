@@ -515,7 +515,7 @@ def read_operation(text):
     
     # operator
     # TODO: fix here
-    oper, text = re_match('==|!=|+|-', text)
+    oper, text = re_match('==|!=|\+|-', text)
     if oper == None:
         return None, orig
 
@@ -737,14 +737,14 @@ class Semantics(object):
     '''
     def __init__(self, program):
         self.program = program
-        
+
         # function names overlap?
         function_names = []
         for function in program.functions:
             if function.name in function_names:
                 raise Exception("function: {0} exists".format(function.name))
             function_names.append(function_names)
-            
+
             variables = []
 
             for input in function.inputs:
@@ -758,7 +758,7 @@ class Semantics(object):
                 if b_type == Expression:
                     # all functions must be defined, inputs properly defined.
                     pass
-                    
+
                 elif b_type == Statement:
                     # in addition to expression, outputs also properly defined.
                     pass

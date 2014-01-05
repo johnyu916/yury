@@ -170,11 +170,13 @@ class Converter(object):
     '''
     Read objects and spit out bytecode.
     '''
-    def __init__(self):
+    def __init__(self, program):
         self.memory_size = 4096
         self.block = Block()
         self.builder = Builder(self.block)
         self.vars = {}
+        for function in program.functions:
+            self.spit_function(function)
 
 
     def spit(self):
