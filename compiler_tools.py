@@ -28,16 +28,32 @@ class Type(object):
 
 class Variable(object):
     '''
-    Type and name. Type can be primitive or defined from library.
+    Type, name and value. Type can be primitive or defined from library. Constant is also represented as variable
     '''
     def __init__(self, arg_type, name, value):
         self.arg_type = arg_type
         self.name = name
         self.value = value
 
+    def get_dict(self):
+        return {
+            'arg_type': self.arg_type,
+            'name': self.name,
+            'value': self.value
+        }
+
 class CodeBlock(object):
     def __init__(self, code=[]):
         self.code = code  # code is expressions and blocks
+
+    def get_dict(self):
+        codes = []
+        for line in self.code:
+            codes.append(line.get_dict())
+        return {
+            'code': codes
+        }
+
 
 class Function(CodeBlock):
 
@@ -48,18 +64,34 @@ class Function(CodeBlock):
         super(Function, self).__init__()
 
     def get_dict(self):
-        return {
+        inputs = []
+        for inpu in self.inputs:
+            inputs.append(inpu.get_dict())
+
+        outputs = []
+        for output in self.outputs:
+            outputs.append(output.get_dict())
+
+        codes = super(Function, self).get_dict()
+
+        this_dict = {
             'name': self.name,
-            'inputs': self.inputs,
-            'outputs': self.outputs,
-            'code': self.code,
+            'inputs': inputs,
+            'outputs': outputs
         }
+        this_dict.update(codes)
+        return this_dict
 
 
 class Conditional(CodeBlock):
     def __init__(self, condition):
         self.condition = condition
         super(Conditional, self).__init__()
+
+    def get_dict(self):
+        codes = super(Function, self).get_dict()
+        return codes
+
 
 class While(Conditional):
     def __init__(self, expression):
@@ -88,37 +120,53 @@ class ElseBlock(Conditional):
 
 class Statement(object):
     def __init__(self, dest, expression):
+        '''
+        a = add(3,5)
+        dest is Variable
+        expression is Expression
+        '''
         self.dest = dest
         self.expression = expression
+
+    def get_dict(self):
+        return {
+            'dest': self.dest.get_dict(),
+            'expression': self.expression.get_dict()
+
+        }
 
 
 class Expression(object):
     '''
-    Function call node (could be nested)
-    data is a function name or the variables/constant.
-    arguments are also expression objects.
+    Expression is a node that carries data.
+    arguments can be Expressions or empty.
+    data can be function name or Variable
     '''
-    def __init__(self, data, arguments=()):
-        if type(arguments) != tuple:
-            arguments = tuple(arguments)
+    def __init__(self, data, children=()):
+        if type(children) != tuple:
+            children = tuple(children)
+        if type(data) == Variable:
+            assert len(children) == 0
 
         #self.data = 'add'  # data is either function names or variables
         self.data = data
-        self.arguments = arguments
+        self.children = children
 
     def get_dict(self):
-        data = self.data
-        if type(self.data) == Operator:
-            data = str(self.data)
         children = []
-        for child in self.arguments:
+        for child in self.children:
             #print child
             children.append(child.get_dict())
+
+        if type(self.data) == str:
+            data = self.data
+        else:
+            data = self.data.get_dict()
+
         return {
-            'data':data,
+            'data': data,
             'children':children
         }
-        
 
 
 class Operator(object):
@@ -182,6 +230,19 @@ class Program(object):
         #main = get_function(functions, '__main__')
         #self.stack = [main]
         #self.index = 0
+
+    def get_dict(self):
+        functions = []
+        for function in self.functions:
+            functions.append(function.get_dict())
+        structs = []
+        for struct in self.structs:
+            structs.append(struct.get_dict())
+
+        return {
+            'functions': functions,
+            'structs': structs
+        }
 
 
 # Parsing functions
@@ -318,6 +379,7 @@ def read_function_definition(orig):
 def read_arg_definition(orig):
     '''
     Read int continue
+    Return Variable()
     '''
     pattern = '[a-zA-z][a-zA-Z0-9]*'
     text = orig
@@ -397,6 +459,9 @@ def is_reserved(text):
     return text in RESERVED_WORDS
 
 def read_constant(orig):
+    '''
+    Return Variable with name set to None
+    '''
     text = orig
     dest, text = re_match('[0-9]+', text)
     if dest != None:
@@ -449,7 +514,8 @@ def read_operation(text):
     space, text = re_match(' ', text)
     
     # operator
-    oper, text = re_match('==|!=', text)
+    # TODO: fix here
+    oper, text = re_match('==|!=|+|-', text)
     if oper == None:
         return None, orig
 
@@ -491,7 +557,8 @@ def read_function_call(text):
         # match type name
         name, text = re_match(pattern, text)
         if name != None:
-            params.append(name)
+            var = Variable(None, name, None)
+            params.append(Expression(var))
 
         # try reading comma
         com, text = re_match(',', text)
@@ -504,7 +571,7 @@ def read_function_call(text):
             continue
 
     # only reads one level deep
-    return Expression(function_name, params)
+    return Expression(function_name, params), text
 
 
 def is_function_name_old(functions, name):
@@ -543,10 +610,12 @@ class Parser(object):
             # syntax checker
             self.check(line)
 
+        print "Parser finished. Code: {0}".format(self.program.get_dict())
+
     def check(self, line):
         # just read from beginning.
         line = line.rstrip()
-        print "processing: {0}".format(line)
+        print "processing: '{0}'".format(line)
 
         # how many spaces are in front?
         stack_index = get_stack_index(line)
@@ -559,6 +628,8 @@ class Parser(object):
             raise Exception("spaced too much")
 
         line = line.strip()
+        if line == '':
+            return
 
         # Function definition
         if stack_index == 0:
@@ -571,17 +642,18 @@ class Parser(object):
 
         block = self.stack[-1]
 
+        statement, line = read_statement(line)
+        if  statement:
+            print "statement read: {0}".format(statement)
+            block.code.append(statement)
+            return
+
         expression, line = read_expression(line)
         if expression:
             print "expression read: {0}".format(expression)
             block.code.append(expression)
             return
 
-        statement, line = read_statement(line)
-        if  statement:
-            print "statement read: {0}".format(statement)
-            block.code.append(statement)
-            return
 
         # conditional (if, elif, else, while)
         if_clause, line = read_conditional(line)
