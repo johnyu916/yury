@@ -14,13 +14,6 @@ RESERVED_WORDS.extend(CONDITIONAL_WORDS)
 # insns is a set of instructions.
 
 
-class Type(object):
-    '''
-    Type
-    '''
-    def __init__(self, name, size):
-        self.size = 1 # 1 byte
-        self.name = 'int'
 
 #int_type = Variable('int', 4)
 #double_type = Variable('double', 8)
@@ -58,6 +51,10 @@ class CodeBlock(object):
 class Function(CodeBlock):
 
     def __init__(self, name, inputs=[], outputs=[]):
+        '''
+        name is the function name (string).
+        inputs is a list of variables. ditto outputs.
+        '''
         self.name = name
         self.inputs = inputs
         self.outputs = outputs
@@ -224,6 +221,10 @@ def get_stack_index(line):
 
 class Program(object):
     def __init__(self, functions=[], structs=[]):
+        '''
+        functions is a list of Function objects.
+        structs is a list of Struct objects.
+        '''
         self.functions = []
         self.structs = []
         self.counter = 0
@@ -731,43 +732,6 @@ def expression_check(exp, variables, functions):
     else:
         raise Exception("Undeclared name: {0}".format(exp.data))
 
-
-class Semantics(object):
-    '''
-    '''
-    def __init__(self, program):
-        self.program = program
-
-        # function names overlap?
-        function_names = []
-        for function in program.functions:
-            if function.name in function_names:
-                raise Exception("function: {0} exists".format(function.name))
-            function_names.append(function_names)
-
-            variables = []
-
-            for input in function.inputs:
-                variables.append(input)
-
-            for output in function.outputs:
-                variables.append(output)
-
-            for block in function.code:
-                b_type = type(block)
-                if b_type == Expression:
-                    # all functions must be defined, inputs properly defined.
-                    pass
-
-                elif b_type == Statement:
-                    # in addition to expression, outputs also properly defined.
-                    pass
-                elif b_type == Function:
-                    # inner functions not allowed
-                    pass
-                elif b_type == Conditional:
-                    # check variables are same type
-                    pass
 
 
 

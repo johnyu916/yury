@@ -1,3 +1,15 @@
+class Type(object):
+    '''
+    Type
+    '''
+    def __init__(self, name, size):
+        self.size = 1 # 1 byte
+        self.name = 'int'
+
+TYPES = [
+    Type('int',4)
+]
+
 class Instruction(object):
     def __init__(self, read_addr = 0, branch_to = 0, on_one = False, on_zero = False):
         '''
@@ -15,11 +27,13 @@ class Builder(object):
     Instruction builder. It creates requested instructions.
     '''
 
-    def __init__(self, block=None):
+    #def __init__(self, block=None):
+    def __init__(self, sp_addr):
         '''
         Memory size in bits.
         '''
-        self.block = block
+        #self.block = block
+        self.sp_addr = sp_addr
 
 
     def _new_insn(self, read_addr, branch_to, on_one, on_zero):
@@ -27,9 +41,9 @@ class Builder(object):
         self.block.insns.append(i)
 
 
-    def write(self, addr, value):
+    def write_int(self, addr, value):
         '''
-        value is boolean
+        write value in address.
         '''
         num_insns = len(self.insns)
         self._new_insn(addr, num_insns, value, value) 
@@ -62,13 +76,18 @@ class Builder(object):
             pc = len(self.builder.insns)
         # reached end
 
+
     def new_memory(self, size):
         # need to look at current stack pointer and bump it down.
+        self.subtract_int(self.sp_addr, self.sp_addr, size)
+        return self.sp_addr
+
 
     def new_short(self, value):
         # create on stack
         self.block.stack_pointer -= USHORT_SIZE
         self.store_short(self.stack_pointer, value)
+
 
     def new_pointer(self, size):
         '''
@@ -110,6 +129,7 @@ class Builder(object):
     def subtract_int(self, result, one, two):
         '''
         result = one - two. parameters are all addrs.
+        all locations are 32 bits.
         '''
         pass
 
@@ -185,9 +205,12 @@ class Block(object):
     '''
     Represents a block of code (function and segmented block)
     '''
-    def __init__(self, stack_pointer=0):
-        self.stack_pointer = stack_pointer
+    def __init__(self, sp_addr=0):
         self.insns = []
+        self.stack = []  # what's in the stack?
+        self.sp_addr = sp_addr  # stack pointer's address.
+        self.vars = {}
+
 
 class Converter(object):
     '''
@@ -198,10 +221,11 @@ class Converter(object):
 
         '''
         self.memory_size = 4096
-        self.block = Block()
-        self.builder = Builder(self.block)
-        self.vars = {}
+        self.blocks = []
+        self.builder = Builder()
         for function in program.functions:
+            self.current_block = Block()
+            self.blocks.append(block)
             self.spit_function(function)
 
 
@@ -209,38 +233,60 @@ class Converter(object):
         pass
 
 
-    def spit_function(self, function):
+    def spit_function(self, function, block):
+        block = self.current_block
         # print a single function
-        self.vars = {}
-        for input in function.inputs:
-            vars[input] = self.builder.new_pointer()
 
+        # 1 add inputs to stack
+        for inpu in function.inputs:
+            block.vars[inpu.name] = self.builder.new_memory()
+
+        # 2 add outputs to stack
         for output in function.outputs:
-            vars[input] = self.builder.new_pointer()
+            block.vars[output.name] = self.builder.new_memory()
 
-        for block in function.code:
-            b_type = type(block)
+        # 3 
+        for chunk in function.code:
+            b_type = type(chunk)
             if b_type == Expression:
-                self.spit_expression(self, block)
+                self.spit_expression(self, chunk)
             elif b_type == Statement:
-                self.spit_statement(self,block)
-            elif b_type == Function:
-                self.spit_function(block)
+                self.spit_statement(self, chunk)
             elif b_type == Conditional:
-                self.spit_conditional(block)
-            elif b_type == While:
-                self.spit_while(block)
+                self.spit_conditional(chunk)
 
         # return statement
         self.builder.copy_short(self.vars['return'], self.vars['current'])
 
+
     def spit_expression(self, exp):
         # perform operation and store in temporary variable
-        #self.builder.store_short(vars[exp.dest], exp.ex 
+        #self.builder.store_short(vars[exp.dest], exp.ex
+        # 1 level expression
         pass
 
     def spit_statement(self, statement):
-        self.builder.store_short(self.vars[statement.dest], statement.exp)
+        block = self.current_block
+        builder = self.builder
+        dest = statement.dest
+        expression = statement.expression
+
+        # find the
+        if not dest in block.vars:
+            block.vars[dest.name] = builder.new_memory(dest.size)
+
+        dest_addr = block.vars[dest.name]
+        
+        if type(expression.data) == Variable:
+            # setting to constant or variable
+            var = expression.data
+            if var.name != None:
+                src_var = block.vars[var.name]
+                builder.store_int(dest_addr, src_var)
+            else:
+                # int
+                builder.store_inti(dest_addr, var.value)
+
 
     def spit_while(self, while_block):
         # if condition met, enter loop, else exit.
