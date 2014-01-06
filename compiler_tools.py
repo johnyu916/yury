@@ -783,11 +783,6 @@ class Compiler(object):
         self.semantics = Semantics(self.parser.program)
         self.converter = Converter(self.parser.program)
 
-    def run(self):
-        self.semantics.run()
-        self.converter.run()
-
-
 
 if __name__ == '__main__':
     filename = sys.argv[1]

@@ -8,11 +8,13 @@ class Instruction(object):
         self.on_one = on_one
         self.on_zero = on_zero
 
+
+
 class Builder(object):
     '''
-    Instruction builder.
+    Instruction builder. It creates requested instructions.
     '''
-    
+
     def __init__(self, block=None):
         '''
         Memory size in bits.
@@ -58,13 +60,21 @@ class Builder(object):
             self.branch(binary, pc+3)
             self.branch(binary, branch_to)
             pc = len(self.builder.insns)
-        # reached end, 
+        # reached end
 
+    def new_memory(self, size):
+        # need to look at current stack pointer and bump it down.
 
     def new_short(self, value):
         # create on stack
         self.block.stack_pointer -= USHORT_SIZE
-        self.store_short(self, self.stack_pointer, value)
+        self.store_short(self.stack_pointer, value)
+
+    def new_pointer(self, size):
+        '''
+        size in bytes.
+        '''
+        self.subtract_int(
 
 
     def store_short(self, addr, value):
@@ -96,6 +106,17 @@ class Builder(object):
         for index in range(USHORT_SIZE):
             self.add_bit(one+index, two+index, carry_in, carry_in, result+index)
         # TODO: All additions can probably be kept in one part of code. with temporary registers.
+
+    def subtract_int(self, result, one, two):
+        '''
+        result = one - two. parameters are all addrs.
+        '''
+        pass
+
+    def subtract_inti(self, result, one, imm):
+        '''
+        result = one - imm. result and one are addrs, imm is a integer.
+        '''
 
     def add_bit(self, one, two, carry_in, carry_out, result):
         '''
@@ -158,6 +179,8 @@ class Builder(object):
 
     def jump(jump_to):
         Instruction(0, jump_to, True, False)
+
+
 class Block(object):
     '''
     Represents a block of code (function and segmented block)
@@ -170,7 +193,10 @@ class Converter(object):
     '''
     Read objects and spit out bytecode.
     '''
-    def __init__(self, program):
+    def __init__(self, program, hardware_config):
+        '''
+
+        '''
         self.memory_size = 4096
         self.block = Block()
         self.builder = Builder(self.block)
@@ -191,7 +217,7 @@ class Converter(object):
 
         for output in function.outputs:
             vars[input] = self.builder.new_pointer()
-        
+
         for block in function.code:
             b_type = type(block)
             if b_type == Expression:

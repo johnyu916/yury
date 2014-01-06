@@ -1,192 +1,3 @@
-A requirements:
-16 instructions
-10 bits per instructions.
-
-then:
-160 bits of memory
-16 bits reachable
-read/write branch write-on1 write-else
-4-4-2
-
-B requirements:
-16 instructions
-14 bits per insn (8 read bits)
-
-then:
-224 bits
-256 bits reachable
-read/write branch write-on1 write-else
-8-4-2
-
-
-C requirements:
-1024 instructions
-28 bits per insn (16 read bits)
-
-then:
-28,672 bits for insns
-65,536 bits reachable
-read/write branch write-on1 write-else
-16-10-2
-
-C2 requirements:
-4096 insns
-18-12-2
-128k for insns
-256k reachable
-
-D requirements:
-65536 insns
-24+16+2 = 42 bits per insn
-
-2.7 MB for insns
-16.7 mb reachable
-
-
-Specifications for A CPU:
-
-== instruction reader ==
-
-OUTPUTS:
-R(0-7)= read bits
-B(0-3)= branch bits
-WONE(0) = write if one
-WZERO(0) = write else
-
-INPUTS:
-PC0-3 = program counter bits
-R0(0-15)
-..
-R7(0-15) = 16 bits per read output
-B0(0-15)
-..
-B3(0-15) = 16 bits per branch output
-WONE(0-15) = 16 bits per write one
-WZERO(0-16) = 16 bits per write zero
-
-== program counter adder ==
-INPUTS:
-PC(0-3)
-
-OUTPUTS:
-PC(0-3)
-
-== program counter setter ==
-INPUTS:
-PC(0-3)
-B(0-3)
-
-OUTPUTS:
-PC(0-3)
-
-== memory reader ==
-INPUTS:
-R(0-7)
-M(0-255)
-OUTPUTS:
-V(0)
-
-== one or zero==
-INPUTS:
-VAL(0)
-WONE(0)
-WZERO(0)
-
-OUTPUTS:
-W(0)
-
-== write decoer ==
-INPUTS:
-R(0-7)
-
-OUTPUTS:
-D(0-256)
-
-== memory ==
-INPUTS:
-W(0-255)
-D(0-255) (output from decoder. it selects W or SELF)
-SELF(0-255)
-
-OUTPUTS:
-M(0-255)
-
-
-Specifications for C CPU:
-
-== insn reader (insn_read) ==
-INPUTS:
-PC(0-9)  # 2 mux32s
-R0(0-1024)
-...
-R15(0-1024)
-B0(0-1024)
-...
-B9(0-1024)
-WONE(0-1024)
-WZERO(0-1024)
-
-OUTPUTS:
-R(0-15)
-B(0-9)
-WONE(0)
-WZERO(0)
-
-== program counter adder (pc_add) ==
-INPUTS:
-PC(0-9)
-OUTPUTS:
-PC(0-9)
-
-== program counter selector (pc_select) ==
-INPUT:
-PC(0-9)
-B(0-9)
-V(0)
-
-OUTPUTS:
-PC(0-9)
-
-== memory mux (mem_mux) ==
-INPUTS:
-R(0-15)
-M(0-65535)
-
-OUTPUTS:
-V(0)
-
-== write selector (write_select) ==
-INPUTS:
-SELECT(0)
-WONE(0)
-WZERO(0)
-
-OUTPUTS:
-W(0)
-
-== write enabler (write_enable) ==
-INPUTS:
-R(0-15)
-OUTPUTS:
-D(0-65,535)
-
-== memory (memory) ==
-INPUTS:
-W(0-65,535)
-D(0-65,535)
-SELF(0-65535)
-
-OUTPUTS:
-M(0-65535)
-
-== 4 instructions ==
-branch
-
-
-
-The idea of clearing inputs is that clearing forces consistency. devices will not act unless all have a set value. however, totally parallel systems will need another syncing mechanism.
-
-=======
 == NETWORKING ==
 
 Requirements:
@@ -208,18 +19,23 @@ A wants to send B something.
 
 A checks B's interrupt bit.
 A sets B's memory.
-A sets B's interrupt.
-B is interrupted. B's idle is 0
-B does processing. 
-B sets interrupt to false.
-B sets busy to false.
+A sets B's SIGNAL.
+Both SIGNAL and IDLE are True. PC is PC_SIGNAL Now. (from here the pc_signal is incremented rather than PC)
+    IDLE is set to false. (prevent signal and idle both set to true).
+    B does other processing. 
+    B sets SIGNAL to false.
+    B sets IDLE to true. # make this 1 insn before the last one.
+    (now pc is incremented rather than pc_signal).
 A will not attempt to send again until interrupt is 0.
 
-Memory Address Assignments:
-PC: 10k
-PC_INT: 10k+16
-I = 32 - 0 interruptable. 1 interrupted.
-B = 33  - 0 means not available. 1 available.
+Byte addressing. This means 0 
+
+Reserved Memory Address Assignments:
+PC: 32bits  -  program counter register.
+PC_SIGNAL: 32bits - program counter signal. PC to use if both SIGNAL and IDLE are true.
+SIGNAL: 8bits - signal that can be set by other machines. 0 interruptable. 1 interrupted.
+IDLE = 8bits  - 0 means not available. 1 available(idle).
+SP - stack pointer. 32 bits. current location in memory stack.
 save 34-64 for future.
 
 some portion of memory must be nvram.
