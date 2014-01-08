@@ -2,9 +2,7 @@ import json
 import copy
 import re
 import string
-import sys
 from shared.common import get_bools
-from code_writer import Converter
 from settings import BAM_DIR
 USHORT_SIZE = 16
 PRIMITIVE_TYPES = ['int', 'double', 'string', 'list', 'dict']
@@ -15,11 +13,11 @@ RESERVED_WORDS.extend(CONDITIONAL_WORDS)
 
 
 
-#int_type = Variable('int', 4)
-#double_type = Variable('double', 8)
+#int_type = VariableText('int', 4)
+#double_type = VariableText('double', 8)
 
 
-class Variable(object):
+class VariableText(object):
     '''
     Type, name and value. Type can be primitive or defined from library. Constant is also represented as variable
     '''
@@ -35,6 +33,7 @@ class Variable(object):
             'value': self.value
         }
 
+
 class CodeBlock(object):
     def __init__(self, code=[]):
         self.code = code  # code is expressions and blocks
@@ -48,7 +47,7 @@ class CodeBlock(object):
         }
 
 
-class Function(CodeBlock):
+class FunctionText(CodeBlock):
 
     def __init__(self, name, inputs=[], outputs=[]):
         '''
@@ -58,7 +57,7 @@ class Function(CodeBlock):
         self.name = name
         self.inputs = inputs
         self.outputs = outputs
-        super(Function, self).__init__()
+        super(FunctionText, self).__init__()
 
     def get_dict(self):
         inputs = []
@@ -69,7 +68,7 @@ class Function(CodeBlock):
         for output in self.outputs:
             outputs.append(output.get_dict())
 
-        codes = super(Function, self).get_dict()
+        codes = super(FunctionText, self).get_dict()
 
         this_dict = {
             'name': self.name,
@@ -86,7 +85,7 @@ class Conditional(CodeBlock):
         super(Conditional, self).__init__()
 
     def get_dict(self):
-        codes = super(Function, self).get_dict()
+        codes = super(FunctionText, self).get_dict()
         return codes
 
 
@@ -98,7 +97,7 @@ class While(Conditional):
         return {
             'expression': self.condition.get_dict()
         }
-        
+
 
 class IfBlock(Conditional):
     def __init__(self, expression):
@@ -114,12 +113,11 @@ class ElseBlock(Conditional):
         super(ElseBlock, self).__init__(expression)
 
 
-
 class Statement(object):
     def __init__(self, dest, expression):
         '''
         a = add(3,5)
-        dest is Variable
+        dest is VariableText
         expression is Expression
         '''
         self.dest = dest
@@ -137,12 +135,12 @@ class Expression(object):
     '''
     Expression is a node that carries data.
     arguments can be Expressions or empty.
-    data can be function name or Variable
+    data can be function name or VariableText
     '''
     def __init__(self, data, children=()):
         if type(children) != tuple:
             children = tuple(children)
-        if type(data) == Variable:
+        if type(data) == VariableText:
             assert len(children) == 0
 
         #self.data = 'add'  # data is either function names or variables
@@ -222,7 +220,7 @@ def get_stack_index(line):
 class Program(object):
     def __init__(self, functions=[], structs=[]):
         '''
-        functions is a list of Function objects.
+        functions is a list of FunctionText objects.
         structs is a list of Struct objects.
         '''
         self.functions = []
@@ -333,7 +331,7 @@ def read_statement(orig):
     if equ == None:
         return None, orig
 
-    dest_var = Variable(None, dest, None)
+    dest_var = VariableText(None, dest, None)
     # either constant, variable, function call, or operation
    
     # try reading space
@@ -348,7 +346,7 @@ def read_statement(orig):
 def read_function_definition(orig):
     '''
     ex1: (int current) fibonacci(int index):
-    return (Function, text_left)
+    return (FunctionText, text_left)
     return (None, orig) if not function
     '''
     text = orig
@@ -374,13 +372,13 @@ def read_function_definition(orig):
     print inputs
     print ' text: ' + text
         
-    return Function(function_name, inputs, outputs), text
+    return FunctionText(function_name, inputs, outputs), text
 
 
 def read_arg_definition(orig):
     '''
     Read int continue
-    Return Variable()
+    Return VariableText()
     '''
     pattern = '[a-zA-z][a-zA-Z0-9]*'
     text = orig
@@ -402,7 +400,7 @@ def read_arg_definition(orig):
     if name == None:
         return None, orig
     print "name: " + name+ " text: " + text
-    var = Variable(arg_type, name, None)
+    var = VariableText(arg_type, name, None)
     return var, text
 
 
@@ -461,12 +459,12 @@ def is_reserved(text):
 
 def read_constant(orig):
     '''
-    Return Variable with name set to None
+    Return VariableText with name set to None
     '''
     text = orig
     dest, text = re_match('[0-9]+', text)
     if dest != None:
-        return Variable('int', None, dest), text
+        return VariableText('int', None, dest), text
     else:
         return None, orig
 
@@ -475,7 +473,7 @@ def read_variable(orig):
     text = orig
     dest, text = re_match('[a-zA-Z][a-zA-Z0-9]*', orig)
     if dest != None and not is_reserved(dest):
-        return Variable(None, dest, None), text
+        return VariableText(None, dest, None), text
     else:
         return None, orig
 
@@ -558,7 +556,7 @@ def read_function_call(text):
         # match type name
         name, text = re_match(pattern, text)
         if name != None:
-            var = Variable(None, name, None)
+            var = VariableText(None, name, None)
             params.append(Expression(var))
 
         # try reading comma
@@ -603,7 +601,7 @@ class Parser(object):
     # parse program text.
     def __init__(self, lines):
         self.variables = []
-        main_function = Function("__main__", [],[])
+        main_function = FunctionText("__main__", [],[])
         self.program = Program([main_function])
         self.lines = lines
         self.stack = [main_function]
@@ -632,7 +630,7 @@ class Parser(object):
         if line == '':
             return
 
-        # Function definition
+        # FunctionText definition
         if stack_index == 0:
             function, line = read_function_definition(line)
             if function:
@@ -733,24 +731,3 @@ def expression_check(exp, variables, functions):
         raise Exception("Undeclared name: {0}".format(exp.data))
 
 
-
-
-
-class Compiler(object):
-    # TODO: should decide whether machine only runs
-    # compiled code, real-time, or some combination.
-    # 1. run parser with everything.
-    # 2. run semantics and converter as needed.
-    def __init__(self, text):
-        self.lines = text.split('\n')
-        self.parser = Parser(self.lines)
-        self.semantics = Semantics(self.parser.program)
-        self.converter = Converter(self.parser.program)
-
-
-if __name__ == '__main__':
-    filename = sys.argv[1]
-    #with open(BAM_DIR / filename) as f:
-    with open(filename) as f:
-        text = f.read()
-        compiler = Compiler(text)

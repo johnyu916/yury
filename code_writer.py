@@ -1,14 +1,11 @@
-class Type(object):
-    '''
-    Type
-    '''
-    def __init__(self, name, size):
-        self.size = 1 # 1 byte
-        self.name = 'int'
+from parser import Expression, Statement, Conditional, Variable
+from shared.common import get_bools
+USHORT_SIZE = 16
 
-TYPES = [
-    Type('int',4)
-]
+def size_of_type(type_str):
+    if type_str == 'int':
+        return 4
+    return 0
 
 class Instruction(object):
     def __init__(self, read_addr = 0, branch_to = 0, on_one = False, on_zero = False):
@@ -87,13 +84,6 @@ class Builder(object):
         # create on stack
         self.block.stack_pointer -= USHORT_SIZE
         self.store_short(self.stack_pointer, value)
-
-
-    def new_pointer(self, size):
-        '''
-        size in bytes.
-        '''
-        self.subtract_int(
 
 
     def store_short(self, addr, value):
@@ -222,10 +212,10 @@ class Converter(object):
         '''
         self.memory_size = 4096
         self.blocks = []
-        self.builder = Builder()
+        self.builder = Builder(self.memory_size)
         for function in program.functions:
             self.current_block = Block()
-            self.blocks.append(block)
+            self.blocks.append(self.current_block)
             self.spit_function(function)
 
 
@@ -233,17 +223,17 @@ class Converter(object):
         pass
 
 
-    def spit_function(self, function, block):
+    def spit_function(self, function):
         block = self.current_block
         # print a single function
 
         # 1 add inputs to stack
         for inpu in function.inputs:
-            block.vars[inpu.name] = self.builder.new_memory()
+            block.vars[inpu.name] = self.builder.new_memory(size_of_input(inpu.size))
 
         # 2 add outputs to stack
         for output in function.outputs:
-            block.vars[output.name] = self.builder.new_memory()
+            block.vars[output.name] = self.builder.new_memory(size_of_input(output.size))
 
         # 3 
         for chunk in function.code:
@@ -273,7 +263,7 @@ class Converter(object):
 
         # find the
         if not dest in block.vars:
-            block.vars[dest.name] = builder.new_memory(dest.size)
+            block.vars[dest.name] = builder.new_memory(dest.type.size)
 
         dest_addr = block.vars[dest.name]
         
