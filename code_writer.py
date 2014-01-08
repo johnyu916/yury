@@ -1,4 +1,4 @@
-from parser import Expression, Statement, Conditional, Variable
+from code_semantics import Function
 from shared.common import get_bools
 USHORT_SIZE = 16
 
@@ -229,11 +229,11 @@ class Converter(object):
 
         # 1 add inputs to stack
         for inpu in function.inputs:
-            block.vars[inpu.name] = self.builder.new_memory(size_of_input(inpu.size))
+            block.vars[inpu.name] = self.builder.new_memory(inpu.type.size)
 
         # 2 add outputs to stack
         for output in function.outputs:
-            block.vars[output.name] = self.builder.new_memory(size_of_input(output.size))
+            block.vars[output.name] = self.builder.new_memory(output.type.size)
 
         # 3 
         for chunk in function.code:
@@ -254,6 +254,7 @@ class Converter(object):
         #self.builder.store_short(vars[exp.dest], exp.ex
         # 1 level expression
         pass
+
 
     def spit_statement(self, statement):
         block = self.current_block

@@ -34,7 +34,7 @@ class VariableText(object):
         }
 
 
-class CodeBlock(object):
+class BlockText(object):
     def __init__(self, code=[]):
         self.code = code  # code is expressions and blocks
 
@@ -47,7 +47,7 @@ class CodeBlock(object):
         }
 
 
-class FunctionText(CodeBlock):
+class FunctionText(BlockText):
 
     def __init__(self, name, inputs=[], outputs=[]):
         '''
@@ -79,17 +79,17 @@ class FunctionText(CodeBlock):
         return this_dict
 
 
-class Conditional(CodeBlock):
+class ConditionalText(BlockText):
     def __init__(self, condition):
         self.condition = condition
-        super(Conditional, self).__init__()
+        super(ConditionalText, self).__init__()
 
     def get_dict(self):
         codes = super(FunctionText, self).get_dict()
         return codes
 
 
-class While(Conditional):
+class While(ConditionalText):
     def __init__(self, expression):
         super(While, self).__init__(expression)
 
@@ -99,26 +99,26 @@ class While(Conditional):
         }
 
 
-class IfBlock(Conditional):
+class IfBlock(ConditionalText):
     def __init__(self, expression):
         super(IfBlock, self).__init__(expression)
 
-class ElIfBlock(Conditional):
+class ElIfBlock(ConditionalText):
     def __init__(self, expression):
         super(ElIfBlock, self).__init__(expression)
 
 
-class ElseBlock(Conditional):
+class ElseBlock(ConditionalText):
     def __init__(self, expression):
         super(ElseBlock, self).__init__(expression)
 
 
-class Statement(object):
+class StatementText(object):
     def __init__(self, dest, expression):
         '''
         a = add(3,5)
         dest is VariableText
-        expression is Expression
+        expression is ExpressionText
         '''
         self.dest = dest
         self.expression = expression
@@ -131,11 +131,11 @@ class Statement(object):
         }
 
 
-class Expression(object):
+class ExpressionText(object):
     '''
-    Expression is a node that carries data.
-    arguments can be Expressions or empty.
-    data can be function name or VariableText
+    ExpressionText is a node that carries data.
+    arguments can be ExpressionTexts or empty.
+    data can be function name/operator (both string) or VariableText
     '''
     def __init__(self, data, children=()):
         if type(children) != tuple:
@@ -217,15 +217,14 @@ def get_stack_index(line):
     return num/4
 
 
-class Program(object):
+class ProgramText(object):
     def __init__(self, functions=[], structs=[]):
         '''
         functions is a list of FunctionText objects.
         structs is a list of Struct objects.
         '''
-        self.functions = []
-        self.structs = []
-        self.counter = 0
+        self.functions = functions
+        self.structs = structs
         #main = get_function(functions, '__main__')
         #self.stack = [main]
         #self.index = 0
@@ -310,14 +309,14 @@ def read_expression(orig):
 
     constant, text = read_constant_or_variable(orig)
     if constant != None:
-        return Expression(constant), text
+        return ExpressionText(constant), text
 
     return None, orig
 
 
 def read_statement(orig):
     '''
-    Statement example: counter = 5
+    StatementText example: counter = 5
     '''
     text = orig
     dest, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
@@ -339,7 +338,7 @@ def read_statement(orig):
 
     expression, text = read_expression(text)
     if expression != None:
-        return Statement(dest_var, expression), text
+        return StatementText(dest_var, expression), text
 
     return None, orig
 
@@ -526,16 +525,16 @@ def read_operation(text):
         return None, orig
 
 
-    left_ex = Expression(left)
-    right_ex = Expression(right)
+    left_ex = ExpressionText(left)
+    right_ex = ExpressionText(right)
 
-    return Expression(oper, [left_ex, right_ex]), text
+    return ExpressionText(oper, [left_ex, right_ex]), text
     
 
 def read_function_call(text):
     '''
     ex1: add(a,b)
-    return (Expression, text_left)
+    return (ExpressionText, text_left)
     return (None, arg_text) if not expression
     '''
     # read text
@@ -557,7 +556,7 @@ def read_function_call(text):
         name, text = re_match(pattern, text)
         if name != None:
             var = VariableText(None, name, None)
-            params.append(Expression(var))
+            params.append(ExpressionText(var))
 
         # try reading comma
         com, text = re_match(',', text)
@@ -570,7 +569,7 @@ def read_function_call(text):
             continue
 
     # only reads one level deep
-    return Expression(function_name, params), text
+    return ExpressionText(function_name, params), text
 
 
 def is_function_name_old(functions, name):
@@ -602,7 +601,7 @@ class Parser(object):
     def __init__(self, lines):
         self.variables = []
         main_function = FunctionText("__main__", [],[])
-        self.program = Program([main_function])
+        self.program = ProgramText([main_function])
         self.lines = lines
         self.stack = [main_function]
         for line in self.lines:
@@ -723,7 +722,7 @@ def expression_check(exp, variables, functions):
     if function:
         # read children
         pass
-        
+
     elif get_variable(variables, exp.data):
         pass
 

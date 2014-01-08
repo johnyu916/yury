@@ -1,7 +1,7 @@
 import sys
 from code_writer import Converter
 from parser import Parser
-from semantics import Semantics
+from code_semantics import Semantics
 
 class Compiler(object):
     # TODO: should decide whether machine only runs
@@ -12,7 +12,8 @@ class Compiler(object):
         self.lines = text.split('\n')
         self.parser = Parser(self.lines)
         self.semantics = Semantics(self.parser.program)
-        self.converter = Converter(self.parser.program, {})
+        program = self.semantics.program
+        self.converter = Converter(program, {})
 
 
 if __name__ == '__main__':
