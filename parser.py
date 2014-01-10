@@ -7,7 +7,7 @@ from settings import BAM_DIR
 USHORT_SIZE = 16
 PRIMITIVE_TYPES = ['int', 'double', 'string', 'list', 'dict']
 CONDITIONAL_WORDS = ['if', 'elif', 'else', 'while']
-OPERATORS = ['==', '=', '+', '-']
+OPERATORS = ['==', '!=', '+', '-']
 OPERATORS_PATTERN = '==|!=|\+|-'
 RESERVED_WORDS = copy.copy(PRIMITIVE_TYPES)
 RESERVED_WORDS.extend(CONDITIONAL_WORDS)
@@ -18,14 +18,23 @@ RESERVED_WORDS.extend(CONDITIONAL_WORDS)
 #int_type = VariableText('int', 4)
 #double_type = VariableText('double', 8)
 
+class Object(object):
+    def __init__(self, name):
+        self.name = name
+
+    def get_dict(self):
+        return {
+            'name': self.name
+        }
+
 
 class VariableText(object):
     '''
     Type, name and value. Type can be primitive or defined from library. Constant is also represented as variable
     '''
     def __init__(self, arg_type, name, value):
-        self.arg_type = arg_type
         self.name = name
+        self.arg_type = arg_type
         self.value = value
 
     def get_dict(self):
@@ -91,9 +100,10 @@ class ConditionalText(BlockText):
         return codes
 
 
-class While(ConditionalText):
+class WhileText(ConditionalText):
     def __init__(self, expression):
-        super(While, self).__init__(expression)
+        super(WhileText, self).__init__(expression)
+
 
     def get_dict(self):
         return {
@@ -142,7 +152,7 @@ class ExpressionText(object):
     def __init__(self, data, children=()):
         if type(children) != tuple:
             children = tuple(children)
-        if type(data) != VariableText:
+        if type(data) == VariableText:
             assert len(children) == 0
 
         #self.data = 'add'  # data is either function names or variables
@@ -296,7 +306,7 @@ def read_conditional(text):
         return None, orig
 
     # create while object
-    return While(expr), text
+    return WhileText(expr), text
 
 
 def read_expression(orig):
@@ -604,7 +614,7 @@ class Parser(object):
     def __init__(self, lines):
         self.variables = []
         main_function = FunctionText("__main__", [],[])
-        self.program = ProgramText([main_function])
+        self.program = ProgramText(functions=[main_function])
         self.lines = lines
         self.stack = [main_function]
         for line in self.lines:
@@ -612,6 +622,7 @@ class Parser(object):
             self.check(line)
 
         print "Parser finished. Code: {0}".format(self.program.get_dict())
+
 
     def check(self, line):
         # just read from beginning.
@@ -667,37 +678,6 @@ class Parser(object):
         # read return, break
 
         raise Exception("Something wrong bud")
-
-    #def read_function_call_old(text):
-    #    # states:
-    #    # INIT, NAME
-    #    name_chars = []
-    #    alpha = re.compile('[a-zA-Z]')
-    #    numric = re.compile('[0-9]')
-    #    state = 'INIT'  # initial state
-
-    #    char = line.pop()
-    #    if char == '(':
-    #        if state == 'NAME':
-    #            name_end()
-    #    elif char == ')':
-    #        if state == 'NAME':
-    #            name_end()
-    #    elif char == ',':
-    #        pass
-    #    elif char == ' ':
-    #        # name ended
-    #        if state == 'NAME':
-    #            name_end()
-    #    elif alpha.match(char):
-    #        if state != 'NAME':
-    #            name_chars = []
-    #            state == 'NAME'
-    #        # read name
-    #        name_chars.push(char)
-
-    #    elif numeric.match(char):
-    #        name_chars.push(char)
 
 
     def read_operation_old(text):
