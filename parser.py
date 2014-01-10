@@ -7,6 +7,8 @@ from settings import BAM_DIR
 USHORT_SIZE = 16
 PRIMITIVE_TYPES = ['int', 'double', 'string', 'list', 'dict']
 CONDITIONAL_WORDS = ['if', 'elif', 'else', 'while']
+OPERATORS = ['==', '=', '+', '-']
+OPERATORS_PATTERN = '==|!=|\+|-'
 RESERVED_WORDS = copy.copy(PRIMITIVE_TYPES)
 RESERVED_WORDS.extend(CONDITIONAL_WORDS)
 # insns is a set of instructions.
@@ -140,7 +142,7 @@ class ExpressionText(object):
     def __init__(self, data, children=()):
         if type(children) != tuple:
             children = tuple(children)
-        if type(data) == VariableText:
+        if type(data) != VariableText:
             assert len(children) == 0
 
         #self.data = 'add'  # data is either function names or variables
@@ -513,7 +515,8 @@ def read_operation(text):
     
     # operator
     # TODO: fix here
-    oper, text = re_match('==|!=|\+|-', text)
+    #oper, text = re_match('==|!=|\+|-', text)
+    oper, text = re_match(OPERATORS_PATTERN, text)
     if oper == None:
         return None, orig
 

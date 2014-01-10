@@ -30,6 +30,12 @@ class Program(object):
     def __init__(self, functions, structs):
         self.functions = functions
 
+    def get_function(self, name):
+        for function in self.functions:
+            if function.name == name:
+                return function
+        return None
+
 
 class Block(object):
     def __init__(self):
@@ -37,15 +43,26 @@ class Block(object):
 
 
 class Expression(object):
-    def __init__(self, expression_text, function):
-        data_type = type(expression_text.data)
+    def __init__(self, expression_text, function, program):
+        data = expression_text.data
+        data_type = type(data)
         if data_type == VariableText:
-            var = text.data
-            if var.name:
-                assert function.is_defined(var)
-        elif type(
-            # need to look at children
-
+            var_text = text.data
+            if var_text.name:
+                var = function.get_variable(var_text.name)
+                if var:
+                    self.data = var
+                    return
+        elif data_type == str:
+            # does function name or operator exist?
+            if data in OPERATORS:
+                self.data = data
+            else:
+                function = program.get_function(data)
+                if function:
+                    self.data = data
+            else:
+                raise Exception("no function with that name")
 
 
     def get_type(expression):
@@ -107,6 +124,7 @@ class Function(Block):
         self.inputs = []
         self.outputs = []
         self.code = []
+        self.function_text = function_text
         for inpu in function_text.inputs:
             var = Variable(inpu)
             self.inputs.append(var)
@@ -115,6 +133,8 @@ class Function(Block):
             var = Variable(t_type, inpu.name)
             self.outputs.append(var)
 
+    def process_code(self):
+        function_text = self.function_text
         for text in function_text.code:
             text_type = type(text)
             if text_type == ExpressionText:
@@ -127,11 +147,11 @@ class Function(Block):
                 # check variables are same type
                 pass
 
-    def is_defined(self, var_text):
+    def get_variable(self, name):
         for var in self.inputs + self.outputs + self.variables:
-            if var.name == var_text.name:
-                return True
-        return False
+            if var.name == name:
+                return var
+        return None
 
 
 def get_object(objects, name):
@@ -144,9 +164,16 @@ def get_object(objects, name):
 class Semantics:
     def __init__(self, program):
         function_semantics = []
+
+        # first pass. just get the function name and inputs and outputs
         for function in program.functions:
             if get_object(function_semantics, function.name):
                 raise Exception("function: {0} exists".format(function.name))
             function_sem = Function(function)
             function_semantics.append(function_sem)
+
+        # second pass. process the code.
+        for function in function_semantics:
+            function.process_code()
+
         self.program = Program(function_semantics)
