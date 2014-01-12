@@ -46,8 +46,11 @@ class VariableText(object):
 
 
 class BlockText(object):
-    def __init__(self, code=[]):
-        self.code = code  # code is expressions and blocks
+    def __init__(self, name):
+        self.code = []  # code is expressions and blocks
+        self.name = name
+        print "name: {0}".format(id(self.name))
+        print "code: {0}".format(id(self.code))
 
     def get_dict(self):
         codes = []
@@ -65,10 +68,10 @@ class FunctionText(BlockText):
         name is the function name (string).
         inputs is a list of variables. ditto outputs.
         '''
-        self.name = name
         self.inputs = inputs
+        print "inputs: {0}".format(id(self.inputs))
         self.outputs = outputs
-        super(FunctionText, self).__init__()
+        super(FunctionText, self).__init__(name)
 
     def get_dict(self):
         inputs = []
@@ -91,29 +94,35 @@ class FunctionText(BlockText):
 
 
 class ConditionalText(BlockText):
-    def __init__(self, condition):
+    def __init__(self, name, condition):
         self.condition = condition
-        super(ConditionalText, self).__init__()
+        super(ConditionalText, self).__init__(name)
 
     def get_dict(self):
-        codes = super(FunctionText, self).get_dict()
+        codes = super(ConditionalText, self).get_dict()
         return codes
 
 
 class WhileText(ConditionalText):
     def __init__(self, expression):
-        super(WhileText, self).__init__(expression)
+        super(WhileText, self).__init__("while", expression)
 
 
     def get_dict(self):
-        return {
+        codes = super(WhileText, self).get_dict()
+
+        this_dict = {
+            'name': self.name,
             'expression': self.condition.get_dict()
         }
+        this_dict.update(codes)
+        return this_dict
 
 
 class IfBlock(ConditionalText):
     def __init__(self, expression):
         super(IfBlock, self).__init__(expression)
+        self.name = 'if'
 
 class ElIfBlock(ConditionalText):
     def __init__(self, expression):
@@ -126,20 +135,23 @@ class ElseBlock(ConditionalText):
 
 
 class StatementText(object):
-    def __init__(self, dest, expression):
+    def __init__(self, dests, expression):
         '''
         a = add(3,5)
-        dest is VariableText
+        dests is a list of VariableText
         expression is ExpressionText
         '''
-        self.dest = dest
+        self.dests = dests  # dests is a list
         self.expression = expression
 
     def get_dict(self):
+        dest_list = []
+        for dest in self.dests:
+            dest_dict = dest.get_dict()
+            dest_list.append(dest_dict)
         return {
-            'dest': self.dest.get_dict(),
+            'dests': dest_list,
             'expression': self.expression.get_dict()
-
         }
 
 
@@ -223,6 +235,9 @@ def get_num_front_spaces(line):
     return len(line2) - len(line3)
 
 def get_stack_index(line):
+    '''
+    return 0 if 0, 1 if 4, 2 if 8, etc.
+    '''
     num = get_num_front_spaces(line)
     if not (num % 4) == 0:
         raise Exception("Wrong number of spaces")
@@ -240,6 +255,7 @@ class ProgramText(object):
         #main = get_function(functions, '__main__')
         #self.stack = [main]
         #self.index = 0
+
 
     def get_dict(self):
         functions = []
@@ -350,7 +366,7 @@ def read_statement(orig):
 
     expression, text = read_expression(text)
     if expression != None:
-        return StatementText(dest_var, expression), text
+        return StatementText([dest_var], expression), text
 
     return None, orig
 
@@ -628,6 +644,14 @@ class Parser(object):
         # just read from beginning.
         line = line.rstrip()
         print "processing: '{0}'".format(line)
+        #print "printing program: {0}".format(self.program.get_dict())
+        print "printing program: "
+        for function in self.program.functions:
+            print function.get_dict()
+
+        print "stack: "
+        for block in self.stack:
+            print "{0} {1}".format(id(block), block.get_dict())
 
         # how many spaces are in front?
         stack_index = get_stack_index(line)
@@ -643,7 +667,7 @@ class Parser(object):
         if line == '':
             return
 
-        # FunctionText definition
+        # Could be FunctionText definition
         if stack_index == 0:
             function, line = read_function_definition(line)
             if function:
@@ -653,10 +677,11 @@ class Parser(object):
                 return
 
         block = self.stack[-1]
+        print "block name: {0}".format(block.name)
 
         statement, line = read_statement(line)
-        if  statement:
-            print "statement read: {0}".format(statement)
+        if statement:
+            print "statement read: {0}. appending to: {1}".format(statement, block.name)
             block.code.append(statement)
             return
 

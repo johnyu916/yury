@@ -68,7 +68,7 @@ class Block(object):
         self.variables = []
         self.code = []
         self.text = text
-        self.parent = None
+        self.parent = parent
         self.program = program
 
 
@@ -93,14 +93,20 @@ class Block(object):
             print "looking at var: {0}".format(var.get_dict())
             if var.name == name:
                 return var
-        return None
+        if self.parent:
+            return self.parent.get_variable(name)
+        else:
+            return None
 
 class Expression(object):
     def __init__(self, expression_text, function, program):
         self.children = []
         self.function = function
+        self.program = program
         data = expression_text.data
         data_type = type(data)
+
+        # variables inside expressions must be defined
         if data_type == VariableText:
             var_text = data
             if var_text.name:
@@ -119,23 +125,29 @@ class Expression(object):
             else:
                 raise Exception("Unable to read variable: {0}".format(data))
         elif data_type == str:
+            child_types = []
+            for child in expression_text.children:
+                child_exp = Expression(child, function, program)
+                child_types.append(child_exp.get_types)
+                self.children.append(child_exp)
+
             # does function name or operator exist?
             if data in OPERATORS:
                 self.data = data
+                # only check if they are same an has length 1
+
             else:
                 function_p = program.get_function(data)
                 if function_p:
                     self.data = data
                 else:
                     raise Exception("no function with that name: {0}".format(data))
-            for child in expression_text.children:
-                child_exp = Expression(child, function, program)
-                self.children.append(child_exp)
+
         else:
             raise Exception("Unknown data: {0}".format(data))
 
 
-    def get_type(self):
+    def get_types(self):
         '''
         What is the type of the ExpressionText?
         Note this can be more than one, so return an array
@@ -144,7 +156,7 @@ class Expression(object):
         if type(data) == Variable:
             print "exp get_type var: {0}".format(data.get_dict())
             if data.type:
-                return data.type
+                return [data.type]
             elif data.value:
                 try:
                     val = int(data.value)
@@ -158,43 +170,42 @@ class Expression(object):
                     return [var.type]
             else:
                 return None
+        elif type(data) == str:
+            function = self.program.get_function(data)
+            if function:
+                return function.get_types()
+            elif data in OPERATORS:
+                if data == '==' or data == '!=':
+                    return [get_type('bool')]
+                else:
+                    return self.children[0].get_types()
         else:
-            # get child types
-            # then look into function. validate inputs then get outputs.
-            pass
-
-        return None
-
+            raise Exception("Cannot determine type of expression")
 
 class Statement(object):
     def __init__(self, statement_text, function, program):
-        dest = statement_text.dest
+        dests = statement_text.dests
         expr = statement_text.expression
         expression = Expression(expr, function, program)
-        destination = function.get_variable(dest.name)
-        # determine destination.
-        if not destination:
-            # need to add this variable. what type is it?
-            type = get_type(dest.arg_type)
-            if type:
+        dest_types = expression.get_types()
+        destinations = []
+        for dest, type in zip(dests,dest_types):
+            destination = function.get_variable(dest.name)
+            if destination:
+                assert destination.type.name == type.name, "{0} not equal to {1}".format(destination.type.name, type.name)
+            else:
                 destination = Variable(type, dest.name, None)
                 function.variables.append(destination)
-            else:
-                # determine from expression
-                type = expression.get_type()
-                if type:
-                    destination = Variable(type, dest.name, None)
-                    function.variables.append(destination)
-                else:
-                    raise Exception("Unable to determine type of variable {0}".format(statement_text.get_dict()))
-        self.destination = destination
+            destinations.append(destination)
+
+        self.destinations = destinations
         self.expression = expression
 
 
 class Conditional(Block):
-    def __init__(self, condition):
+    def __init__(self, condition, text, parent, program):
         self.condition = condition
-        super(Conditional, self).__init__()
+        super(Conditional, self).__init__(text, parent, program)
 
 
 class While(Conditional):
@@ -202,8 +213,9 @@ class While(Conditional):
         cond_text = while_text.condition
         condition = Expression(cond_text, function, program)
         # condition is an expression. it must return boolean
-        assert condition.get_type().name == 'bool'
-        super(While, self).__init__(condition)
+        types = condition.get_types()
+        assert len(types) == 1 and types[0].name == 'bool'
+        super(While, self).__init__(condition, while_text, function, program)
 
 
 class Function(Block):
@@ -212,16 +224,15 @@ class Function(Block):
         self.name = function_text.name
         self.inputs = []
         self.outputs = []
-        self.function_text = function_text
         for inpu in function_text.inputs:
             var = variable_make(inpu)
             self.inputs.append(var)
-            print "adding input to function: {0}".format(var.get_dict())
+            print "adding input to function: {0} {1}".format(self.name, var.get_dict())
             self.variables.append(var)
 
         for inpu in function_text.outputs:
             var = variable_make(inpu)
-            print "adding output to function: {0}".format(var.get_dict())
+            print "adding output to function: {0} {1}".format(self.name, var.get_dict())
             self.outputs.append(var)
             self.variables.append(var)
 
@@ -229,6 +240,11 @@ class Function(Block):
         for var in self.variables:
             print var.get_dict()
 
+    def get_types(self):
+        types = []
+        for output in self.outputs:
+            types.append(output.type)
+        return types
 
 def get_object(objects, name):
     for object in objects:
