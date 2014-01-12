@@ -98,6 +98,7 @@ class Block(object):
         else:
             return None
 
+
 class Expression(object):
     def __init__(self, expression_text, function, program):
         self.children = []

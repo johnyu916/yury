@@ -1,4 +1,4 @@
-from code_semantics import Function
+from code_semantics import Function, Expression, Statement, Conditional, Variable
 from shared.common import get_bools
 USHORT_SIZE = 16
 
@@ -97,6 +97,9 @@ class Builder(object):
             self._new_insn(addr, num_insns, binary, binary)
             num_insns += 1
 
+    def store_inti(self, addr, value):
+        pass
+
 
     def copy_short(self, dest, src):
         num_insns = len(self.insns)
@@ -106,6 +109,9 @@ class Builder(object):
             self.write(dest+index, True)
             self.write(dest+index, False)
             # TODO: can make a loop rather than having insns be linaer to size.
+
+    def copy(self, dest, src, size):
+        pass
 
     def add_short(self, result, one, two):
         '''
@@ -225,6 +231,8 @@ class Converter(object):
 
     def spit_function(self, function):
         block = self.current_block
+        block.vars['return'] = 0
+        block.vars['current'] = 0
         # print a single function
 
         # 1 add inputs to stack
@@ -239,14 +247,14 @@ class Converter(object):
         for chunk in function.code:
             b_type = type(chunk)
             if b_type == Expression:
-                self.spit_expression(self, chunk)
+                self.spit_expression(chunk)
             elif b_type == Statement:
-                self.spit_statement(self, chunk)
+                self.spit_statement(chunk)
             elif b_type == Conditional:
                 self.spit_conditional(chunk)
 
         # return statement
-        self.builder.copy_short(self.vars['return'], self.vars['current'])
+        self.builder.copy(block.vars['return'], block.vars['current'], 4)
 
 
     def spit_expression(self, exp):
@@ -259,12 +267,13 @@ class Converter(object):
     def spit_statement(self, statement):
         block = self.current_block
         builder = self.builder
-        dest = statement.dest
+        dests = statement.destinations
         expression = statement.expression
 
         # find the
-        if not dest in block.vars:
-            block.vars[dest.name] = builder.new_memory(dest.type.size)
+        for dest in dests:
+            if not dest in block.vars:
+                block.vars[dest.name] = builder.new_memory(dest.type.size)
 
         dest_addr = block.vars[dest.name]
         
