@@ -46,3 +46,5 @@ requirements:
 
 need switch. A switch takes inputs and produces output.
 need memory. Memory is readable, and you can store 0 or 1.
+
+i'm always going off of the sp memory. when i need to do something, i move the stack pointer. and when i'm done, i move it back to the top.

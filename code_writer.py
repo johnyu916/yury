@@ -18,13 +18,11 @@ class Instruction(object):
         self.on_zero = on_zero
 
 
-
 class Builder(object):
     '''
     Instruction builder. It creates requested instructions.
     '''
 
-    #def __init__(self, block=None):
     def __init__(self, sp_addr):
         '''
         Memory size in bits.
@@ -48,7 +46,7 @@ class Builder(object):
 
     def branch(self, read_addr, branch_to):
         '''
-        if value at read_addr is 1, then go to branch_to.
+        if value at read_addr is 0, then go to branch_to.
         else, go to pc+1
         '''
         self._new_insn(read_addr, branch_to, True,False)
@@ -77,7 +75,6 @@ class Builder(object):
     def new_memory(self, size):
         # need to look at current stack pointer and bump it down.
         self.subtract_int(self.sp_addr, self.sp_addr, size)
-        return self.sp_addr
 
 
     def new_short(self, value):
@@ -97,9 +94,9 @@ class Builder(object):
             self._new_insn(addr, num_insns, binary, binary)
             num_insns += 1
 
-    def store_inti(self, addr, value):
-        pass
 
+    def copy(self, dest, src, size):
+        pass
 
     def copy_short(self, dest, src):
         num_insns = len(self.insns)
@@ -109,9 +106,6 @@ class Builder(object):
             self.write(dest+index, True)
             self.write(dest+index, False)
             # TODO: can make a loop rather than having insns be linaer to size.
-
-    def copy(self, dest, src, size):
-        pass
 
     def add_short(self, result, one, two):
         '''
@@ -201,11 +195,12 @@ class Block(object):
     '''
     Represents a block of code (function and segmented block)
     '''
-    def __init__(self, sp_addr=0):
+    def __init__(self):
         self.insns = []
-        self.stack = []  # what's in the stack?
-        self.sp_addr = sp_addr  # stack pointer's address.
         self.vars = {}
+        self.sp_position = 0  # sp current position. Expressed from beginning (0).
+        self.sp_bottom = 0 # bottom of stack (initially at top).
+        self.function_calls = []  # list of 
 
 
 class Converter(object):
@@ -218,30 +213,52 @@ class Converter(object):
         '''
         self.memory_size = 4096
         self.blocks = []
-        self.builder = Builder(self.memory_size)
+        self.builder = Builder(4096)
+        self.function_begin = {}
+        self.program = program
         for function in program.functions:
+            self.function_begin[function.name] = len(self.builder.insns)
             self.current_block = Block()
             self.blocks.append(self.current_block)
             self.spit_function(function)
+
+        for index, name in function_calls:
+            self.block.insns[index].jump_to = self.function_begin[name]
+
+        # now convert all insns into 
+
 
 
     def spit(self):
         pass
 
 
+    def new_variable(self, block, variable):
+        size = variable.type.size
+        self.builder.new_memory(size)
+        block.sp_bottom -= size
+        block.vars[variable.name] = block.sp_bottom
+
+
     def spit_function(self, function):
+        '''
+        stack contains:
+        1. outputs
+        2. inputs
+        '''
         block = self.current_block
         block.vars['return'] = 0
         block.vars['current'] = 0
         # print a single function
 
-        # 1 add inputs to stack
-        for inpu in function.inputs:
-            block.vars[inpu.name] = self.builder.new_memory(inpu.type.size)
-
         # 2 add outputs to stack
         for output in function.outputs:
-            block.vars[output.name] = self.builder.new_memory(output.type.size)
+            self.new_variable(block, output)
+
+        # 1 add inputs to stack
+        for inpu in function.inputs:
+            self.new_variable(block, inpu)
+
 
         # 3 
         for chunk in function.code:
@@ -254,14 +271,70 @@ class Converter(object):
                 self.spit_conditional(chunk)
 
         # return statement
-        self.builder.copy(block.vars['return'], block.vars['current'], 4)
+        self.builder.copy_short(block.vars['return'], block.vars['current'])
 
 
-    def spit_expression(self, exp):
+    def spit_expression(self, block, expression):
+        '''
+        perform whatever operation. the result should begin
+        at the current sp_bottom.
+        '''
         # perform operation and store in temporary variable
         #self.builder.store_short(vars[exp.dest], exp.ex
         # 1 level expression
-        pass
+        return_types = expression.get_types()
+        builder = self.builder
+
+        for return_type in return_types:
+            # make room for return value
+            self.new_variable(block, return_type)
+
+        data_type = type(expression.data)
+        data = expression.data
+        if data_type == Variable:
+            # setting to constant or variable
+            var = data
+            dest_addr = block.vars[return_types[0].name]
+            if var.name != None:
+                src_addr = block.vars[var.name]
+                builder.copy(dest_addr, src_addr)
+            else:
+                builder.store_inti(dest_addr, var.value)
+        elif data_type == str:
+            # has children, so run them first.
+            addrs = []
+            for child in expression.children:
+                addrs.append(self.spit_expression(block, child))
+            # operator or string
+            if data in OPERATORS:
+                # operators return only one thing
+                dest_addr = block.vars[return_types[0].name]
+                if data == '+':
+                    builder.add_int(dest_addr, addrs[0], addrs[1])
+                elif data == '-':
+                    builder.subtract_int(dest_addr, addrs[0], addrs[1])
+            else:
+                # call function.
+                self.call_function(block, data)
+                #copy over output to return values
+                for return_type in return_types:
+                    self.copy(block.var[return_type[0].name], block.sp_position)
+        return addrs
+
+
+    def call_function(self, block, function_name):
+        function = self.program.get_function(function_name)
+        if not function:
+            raise Exception("Unknown function name: {0}".format(function_name))
+
+        # need to give return address
+        ret_addr = Variable('int', '__return__')
+        self.new_variable(block, ret_addr)
+        self.builder.store_int(len(block.insns))
+        block.function_calls.append((len(block.insns), function_name))
+        # jump to function. temporarily 0, later set to funciton's beginning index.
+        self.builder.jump(0)
+
 
 
     def spit_statement(self, statement):
@@ -270,30 +343,24 @@ class Converter(object):
         dests = statement.destinations
         expression = statement.expression
 
-        # find the
+        # find the destinations
         for dest in dests:
             if not dest in block.vars:
-                block.vars[dest.name] = builder.new_memory(dest.type.size)
+                self.new_variable(block, dest)
 
-        dest_addr = block.vars[dest.name]
-        
-        if type(expression.data) == Variable:
-            # setting to constant or variable
-            var = expression.data
-            if var.name != None:
-                src_var = block.vars[var.name]
-                builder.store_int(dest_addr, src_var)
-            else:
-                # int
-                builder.store_inti(dest_addr, var.value)
+        #dest_addr = block.vars[dest.name]
+        addrs = self.spit_expression(self, expression)
+
+        # copy addrs to destinations
 
 
     def spit_while(self, while_block):
         # if condition met, enter loop, else exit.
         # must clear any unused variables after its done.
         loop_start = len(self.builder.insns)
-        self.spit_condition(self.block.condition)
-        self.builder.branch_short(self.vars['index'], 0, 1000)
+        addr = self.spit_expression(self.block.condition)
+        loop_end_index = len(self.builder.insns)
+        self.builder.branch(addr, 0)  # temporarily set to 0, later to loop_end
 
         for block in while_block:
             self.spit_statement(block)
@@ -301,8 +368,8 @@ class Converter(object):
         # end loop
         self.builder.jump(loop_start)
         loop_end = len(self.builder.insns)
-        # function conclusion
-        self.builder.insns[loop_start].branch_to = loop_end
+        # loop conclusion
+        self.builder.insns[loop_end_index].branch_to = loop_end
 
 
 def test():

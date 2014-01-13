@@ -175,7 +175,7 @@ class Expression(object):
             function = self.program.get_function(data)
             if function:
                 return function.get_types()
-            elif data in OPERATORS:
+            elifedata in OPERATORS:
                 if data == '==' or data == '!=':
                     return [get_type('bool')]
                 else:
