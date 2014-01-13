@@ -197,10 +197,9 @@ class Block(object):
     '''
     def __init__(self):
         self.insns = []
-        self.vars = {}
         self.sp_position = 0  # sp current position. Expressed from beginning (0).
         self.sp_bottom = 0 # bottom of stack (initially at top).
-        self.function_calls = []  # list of 
+        self.function_calls = []  # list of  (insn_index, funtion_calling)
 
 
 class Converter(object):
@@ -246,35 +245,24 @@ class Converter(object):
         1. outputs
         2. inputs
         '''
-        block = self.current_block
-        block.vars['return'] = 0
-        block.vars['current'] = 0
         # print a single function
-
-        # 2 add outputs to stack
-        for output in function.outputs:
-            self.new_variable(block, output)
-
-        # 1 add inputs to stack
-        for inpu in function.inputs:
-            self.new_variable(block, inpu)
-
+        vars = {}
 
         # 3 
         for chunk in function.code:
             b_type = type(chunk)
             if b_type == Expression:
-                self.spit_expression(chunk)
+                self.spit_expression(vars, chunk)
             elif b_type == Statement:
-                self.spit_statement(chunk)
+                self.spit_statement(vars, chunk)
             elif b_type == Conditional:
-                self.spit_conditional(chunk)
+                self.spit_conditional(vars, chunk)
 
         # return statement
-        self.builder.copy_short(block.vars['return'], block.vars['current'])
+        self.builder.copy_short(vars['return'], vars['current'])
 
 
-    def spit_expression(self, block, expression):
+    def spit_expression(self, vars, expression):
         '''
         perform whatever operation. the result should begin
         at the current sp_bottom.
@@ -332,6 +320,16 @@ class Converter(object):
         self.new_variable(block, ret_addr)
         self.builder.store_int(len(block.insns))
         block.function_calls.append((len(block.insns), function_name))
+
+        # also add room to pass inputs and outputs
+        # 1 add outputs to stack
+        for output in function.outputs:
+            self.new_variable(block, output)
+
+        # 2 add inputs to stack
+        for inpu in function.inputs:
+            self.new_variable(block, inpu)
+
         # jump to function. temporarily 0, later set to funciton's beginning index.
         self.builder.jump(0)
 
