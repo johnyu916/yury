@@ -181,7 +181,6 @@ class Block(object):
     Represents a block of code (function and segmented block)
     '''
     def __init__(self):
-        self.insns = []
         self.sp_position = 0  # sp current position. Expressed from beginning (0).
         self.sp_bottom = 0 # bottom of stack (initially at top).
         self.function_calls = []  # list of  (insn_index, funtion_calling)
@@ -191,14 +190,16 @@ class Converter(object):
     '''
     Read objects and spit out bytecode.
     '''
-    def __init__(self, program, hardware_config):
+    def __init__(self, program, hardware_config, filename):
         '''
 
         '''
         self.memory_size = 4096
+        self.insns = []
         self.blocks = []
         self.builder = Builder(4096)
         self.function_begin = {}
+        self.filename = filename
         self.program = program
         for function in program.functions:
             self.function_begin[function.name] = len(self.builder.insns)
@@ -209,8 +210,15 @@ class Converter(object):
         for index, name in function_calls:
             self.block.insns[index].jump_to = self.function_begin[name]
 
-        # now convert all insns into 
+        # now convert all insns into
+        self.write_insns(filename)
 
+    
+    def write_insns(self, filename):
+        f = open(filename, 'w')
+        for insn in self.insns:
+            f.write(write_insn(insn))
+        f.close()
 
 
     def spit(self):

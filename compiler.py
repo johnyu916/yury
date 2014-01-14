@@ -13,7 +13,7 @@ class Compiler(object):
         self.parser = Parser(self.lines)
         self.semantics = Semantics(self.parser.program)
         program = self.semantics.program
-        self.converter = Converter(program, {})
+        self.converter = Converter(program, {}, "output.bin")
 
 
 if __name__ == '__main__':
