@@ -218,10 +218,14 @@ class Converter(object):
 
 
     def new_variable(self, block, variable):
+        '''
+        Return the sp_bottom
+        '''
         size = variable.type.size
         self.builder.new_memory(size)
         block.sp_bottom -= size
         block.vars[variable.name] = block.sp_bottom
+        return block.sp_bottom
 
 
     def spit_function(self, function):
@@ -301,10 +305,9 @@ class Converter(object):
             raise Exception("Unknown function name: {0}".format(function_name))
 
         # need to give return address
-        ret_addr = Variable('int', '__return__')
-        self.new_variable(block, ret_addr)
-        self.builder.store_int(len(block.insns))
-        block.function_calls.append((len(block.insns), function_name))
+        ret_var = Variable('int', '__return__')
+        ret_addr = self.new_variable(block, ret_var)
+        self.builder.store_int(ret_addr, len(block.insns))
 
         # also add room to pass inputs and outputs
         # 1 add outputs to stack
@@ -317,6 +320,7 @@ class Converter(object):
 
         # jump to function. temporarily 0, later set to funciton's beginning index.
         self.builder.jump(0)
+        block.function_calls.append((len(block.insns), function_name))
 
 
 
