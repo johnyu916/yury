@@ -1,3 +1,5 @@
+import struct
+
 class InstructionOld(object):
     def __init__(self, read_addr = 0, branch_to = 0, on_one = False, on_zero = False):
         '''
@@ -12,7 +14,7 @@ class InstructionOld(object):
 '''
 address is a 32-bit unsigned integer. 
 byte addressing.
-opcode is first byte.
+opcode is first byte of the instruction.
 little-endian - for a multi-byte object (such as a 32-bit integer), least significant byte is stored in lowest memory location.
 
 
@@ -32,10 +34,10 @@ set register immediate
   immediate - 16-bit
 
 jump register
-  insn_number - 8-bit insn location (pc) to jump to.
+  register - 8-bit insn location (pc) to jump to.
 
 branch register branch_to
-  if byte at register is 0, branch to pc.
+  if value at register is 0, branch to pc.
   register - 8-bit address to read a byte 
   branch_to - 8-bit register contains insn to branch to.
 
@@ -64,33 +66,52 @@ OPCODES = {
     'branch': 3,
     'add': 4,
     'subtract': 5,
+    'load': 6,
+    'set': 7
 }
 
-def store(address, byte):
+def load(value_register, address_register, index):
+    return (
+        OPCODES['load'],
+        value_register,
+        address_register,
+        index
+    )
+
+def store(value_register, address_register, index):
     return (
         OPCODES['store'],
-        address,
-        byte
+        value_register,
+        address_register,
+        index
     )
 
-def jump(address):
+def set(value_register, immediate):
+    return (
+        OPCODES['set'],
+        value_register,
+        immediate
+    )
+
+def jump(register):
     return (
         OPCODES['jump'],
-        address
+        register,
+        0
     )
 
-def move(destination, source):
+def move_deprecated(destination, source):
     return (
         OPCODES['move'],
         destination,
         source
     )
 
-def branch(address, branch_to):
+def branch(value_register, branch_register):
     return (
         OPCODES['branch'],
-        address,
-        branch_to
+        value_register,
+        branch_register
     )
 
 def add(result, one, two):
@@ -110,8 +131,15 @@ def subtract(result, one, two):
     )
 
 def write_insn(insn):
-    if insn['opcode'] = '':
-        pass
+    # 0 is opcode
+    code = insn[0]
+    if code == OPCODES['store']:
+        text = stuff.pack('BBBB', *insn)
+    elif code == OPCODES['jump']:
+        text = stuff.pack('BBH', *insn)
+    else:
+        text = ''
+    return text
 
 
 class Translator(object):

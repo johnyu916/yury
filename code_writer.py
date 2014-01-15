@@ -1,4 +1,5 @@
 from code_semantics import Function, Expression, Statement, Conditional, Variable
+from instruction import Translator
 from shared.common import get_bools
 USHORT_SIZE = 16
 
@@ -10,12 +11,19 @@ class Block(object):
     def __init__(self):
         #self.sp_position = 0  # sp current position. Expressed from beginning (0).
         self.sp = 0 # position (initially at top).
-        self.function_calls = []  # list of  (insn_index, funtion_calling)
+        # self.function_calls = []  # list of  (insn_index, funtion_calling)
 
+'''
+Function stack:
+output variables
+input variables
+return pc (32-bit)
+'''
 
 class Converter(object):
     '''
     Read objects and spit out bytecode.
+
     '''
     def __init__(self, program, hardware_config, filename):
         '''
@@ -23,7 +31,7 @@ class Converter(object):
         '''
         self.memory_size = 4096
         self.blocks = []
-        self.builder = Builder(4096)
+        self.builder = Translator(4096)
         self.function_begin = {}
         self.filename = filename
         self.program = program
@@ -138,10 +146,6 @@ class Converter(object):
         if not function:
             raise Exception("Unknown function name: {0}".format(function_name))
 
-        # need to give return address
-        ret_var = Variable('int', '__return__')
-        ret_addr = self.new_variable(block, ret_var)
-        self.builder.store_int(ret_addr, len(block.insns))
 
         # also add room to pass inputs and outputs
         # 1 add outputs to stack
@@ -152,6 +156,10 @@ class Converter(object):
         for inpu in function.inputs:
             self.new_variable(block, inpu)
 
+        # need to give return pc.
+        ret_var = Variable('int', '__return__')
+        ret_addr = self.new_variable(block, ret_var)
+        self.builder.store_int(ret_addr, len(block.insns))
         # jump to function. temporarily 0, later set to funciton's beginning index.
         self.builder.jump(0)
         block.function_calls.append((len(block.insns), function_name))
@@ -202,7 +210,7 @@ def test():
     # set memory to 4k
     #memory_size = 4096
     block = Block()
-    insns = Builder(block)
+    insns = Translator(block)
     variables = {}
 
     f_vars = {}
