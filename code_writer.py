@@ -3,186 +3,13 @@ from shared.common import get_bools
 USHORT_SIZE = 16
 
 
-class Builder(object):
-    '''
-    Instruction builder. It creates requested instructions.
-    '''
-
-    def __init__(self, sp_addr):
-        '''
-        Memory size in bits.
-        '''
-        #self.block = block
-        self.sp_addr = sp_addr
-
-
-    def _new_insn(self, read_addr, branch_to, on_one, on_zero):
-        i = Instruction(read_addr, branch_to, on_one, on_zero)
-        self.block.insns.append(i)
-
-
-    def write_int(self, addr, value):
-        '''
-        write value in address.
-        '''
-        num_insns = len(self.insns)
-        self._new_insn(addr, num_insns, value, value) 
-
-
-    def branch(self, read_addr, branch_to):
-        '''
-        if value at read_addr is 0, then go to branch_to.
-        else, go to pc+1
-        '''
-        self._new_insn(read_addr, branch_to, True,False)
-
-
-    def branch_short(self, addr, value, branch_to):
-        '''
-        if value at addr is value, then branch_to.
-        else go to pc+1.
-        '''
-        # turn value into a bool array
-        bools = get_bools(value, USHORT_SIZE)
-        pc = len(self.builder.insns)
-        for digit, binary in zip(addr, bools):
-            self.branch(digit, pc+2)
-            # digit is zero
-            self.branch(binary, branch_to)
-            self.branch(binary, pc+3)
-            # digit is one
-            self.branch(binary, pc+3)
-            self.branch(binary, branch_to)
-            pc = len(self.builder.insns)
-        # reached end
-
-
-    def new_memory(self, size):
-        # need to look at current stack pointer and bump it down.
-        self.subtract_int(self.sp_addr, self.sp_addr, size)
-
-
-    def new_short(self, value):
-        # create on stack
-        self.block.stack_pointer -= USHORT_SIZE
-        self.store_short(self.stack_pointer, value)
-
-
-    def store_short(self, addr, value):
-        '''
-        short is 16 bits long unsigned integer
-        '''
-        value_bools = get_bools(value, USHORT_SIZE)
-        num_insns = len(self.insns)
-        # convert value into bits
-        for binary in value_bools:
-            self._new_insn(addr, num_insns, binary, binary)
-            num_insns += 1
-
-
-    def copy(self, dest, src, size):
-        pass
-
-    def copy_short(self, dest, src):
-        num_insns = len(self.insns)
-        for index in range(USHORT_SIZE):
-            self.branch(src+index, num_insns+1)
-            # src is zero
-            self.write(dest+index, True)
-            self.write(dest+index, False)
-            # TODO: can make a loop rather than having insns be linaer to size.
-
-    def add_short(self, result, one, two):
-        '''
-        result = one + two.
-        '''
-        carry_in = 0
-        for index in range(USHORT_SIZE):
-            self.add_bit(one+index, two+index, carry_in, carry_in, result+index)
-        # TODO: All additions can probably be kept in one part of code. with temporary registers.
-
-    def subtract_int(self, result, one, two):
-        '''
-        result = one - two. parameters are all addrs.
-        all locations are 32 bits.
-        '''
-        pass
-
-    def subtract_inti(self, result, one, imm):
-        '''
-        result = one - imm. result and one are addrs, imm is a integer.
-        '''
-
-    def add_bit(self, one, two, carry_in, carry_out, result):
-        '''
-        parameters are addresses.
-        truth table:
-
-        one two carry
-        '''
-        pc = len(self.builder.insns)
-        three = carry_in
-        self.branch(one, pc+10)
-        # one = 0
-        self.branch(two, pc+10)
-        # one = 0, two = 1
-        self.branch(three, pc+10)
-        # one = 0, two = 1, three = 1
-        self.write(carry_out, 1)
-        self.write(result, 0)
-        # one = 0, two = 1, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 1)
-        # one = 0, two = 0
-        self.branch(three, pc+10)
-        # one = 0, two = 0, three = 1
-        self.write(carry_out, 0)
-        self.write(result, 1)
-        # one = 0, two = 0, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 0)
-
-        # one = 1
-        self.branch(two, pc+10)
-        # one = 1, two = 1
-        self.branch(carry_in, pc+10)
-        # one = 1, two = 1, carry_in = 1
-        self.write(carry_out, True)
-        self.write(result, True)
-        # one = 1, two = 1, carry_in = 0
-        self.write(carry_out, True)
-        self.write(result, False)
-        # one = 1, two = 0
-        self.branch(three, pc+10)
-        # one = 1, two = 0, three = 1
-        self.write(carry_out, 1)
-        self.write(result, 0)
-        # one = 1, two = 0, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 1)
-
-
-    def complement_short_i(self, dest, value):
-        '''
-        Return complement of value
-        '''
-        # convert value into bools
-        bools = get_bools(value)
-        for index, binary in enumerate(bools):
-            self.write(index, not binary)
-
-
-    def jump(jump_to):
-        Instruction(0, jump_to, True, False)
-
-
 class Block(object):
     '''
     Represents a block of code (function and segmented block)
     '''
     def __init__(self):
-        self.sp_position = 0  # sp current position. Expressed from beginning (0).
-        self.sp_bottom = 0 # bottom of stack (initially at top).
+        #self.sp_position = 0  # sp current position. Expressed from beginning (0).
+        self.sp = 0 # position (initially at top).
         self.function_calls = []  # list of  (insn_index, funtion_calling)
 
 
@@ -195,7 +22,6 @@ class Converter(object):
 
         '''
         self.memory_size = 4096
-        self.insns = []
         self.blocks = []
         self.builder = Builder(4096)
         self.function_begin = {}
@@ -330,7 +156,12 @@ class Converter(object):
         self.builder.jump(0)
         block.function_calls.append((len(block.insns), function_name))
 
-
+        # variable setting and calling:
+        # stack pointer is at top of function stack. 
+        # keep a map of variable name to offset.
+        # then add offset to sp and store in register ADDR.
+        # set some value to another register VAL.
+        # store VAL ADDR. 
 
     def spit_statement(self, statement):
         block = self.current_block
