@@ -4,6 +4,13 @@ import subprocess
 import json
 import math
 
+def get_object(objects, name):
+    for object in objects:
+        if object.name == name:
+            return object
+    return None
+
+
 def power(exponent):
     '''
     Return 2^exponent.
