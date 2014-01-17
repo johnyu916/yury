@@ -30,19 +30,19 @@ class Converter(object):
 
         '''
         self.memory_size = 4096
-        self.blocks = []
         self.builder = Translator(4096)
-        self.function_begin = {}
+        self.function_begin = {}  # which insn # does function begin?
+        self.function_calls = []  # which function is being called where?
+        self.insns = []
         self.filename = filename
         self.program = program
         for function in program.functions:
-            self.function_begin[function.name] = len(self.builder.insns)
-            self.current_block = Block()
+            self.function_begin[function.name] = len(self.insns)
             self.blocks.append(self.current_block)
             self.spit_function(function)
 
-        for index, name in function_calls:
-            self.block.insns[index].jump_to = self.function_begin[name]
+        for index, name in self.function_calls:
+            self.insns[index].jump_to = self.function_begin[name]
 
         # now convert all insns into
         self.write_insns(filename)
@@ -53,10 +53,6 @@ class Converter(object):
         for insn in self.insns:
             f.write(write_insn(insn))
         f.close()
-
-
-    def spit(self):
-        pass
 
 
     def new_variable(self, block, variable):
