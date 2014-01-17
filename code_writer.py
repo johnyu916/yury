@@ -41,7 +41,7 @@ class Converter(object):
         self.builder = Translator(4096, self.insns)
         self.sp_addr = 1000 # address of stack pointer
         self.sp_addr_reg = 1 # register that contains address of stack pointer
-        self.sp_reg = 2 # register that contains stack pointer value
+        self.sp_register = 2 # register that contains stack pointer value
         self.function_begin = {}  # which insn # does function begin?
         self.function_calls = []  # which function is being called where?
         self.output_file_name = output_file_name
@@ -148,36 +148,50 @@ class Converter(object):
             # setting to constant or variable
             var = data
             dest_offset = return_vars[0]['offset']
-            builder.set_int(3, dest_offset)
-            builder.subtract_int(4,2,3)  # 4 has addr of dest
+            self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
             if var.name != None:
-                src_offset = block.vars[var.name]['offset']
-                builder.set_int(5, src_offset)
-                builder.subtract_int(6,2,5)  # 6 has addr of src_offset 
+                src_offset = block.variables[var.name]['offset']
+                self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset 
                 builder.copy(4, 6, var.type.size, 7)
             else:
-                builder.store_int(4, var.value)
+                builder.store_int(4, var.value)  # immediate
+
         elif data_type == str:
             # has children, so run them first.
-            addrs = []
             for child in expression.children:
-                addrs.append(self.spit_expression(block, child))
+                self.spit_expression(block, child)
+
             # operator or string
             if data in OPERATORS:
                 # operators return only one thing
-                dest_addr = block.vars[return_types[0].name]
+                dest_offset = return_vars[0]['offset']
+                self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest_offset
+                operand_one = self.set_offset_address(6, dest_offset-4, 5)
+                operand_two = self.set_offset_address(8, dest_offset-8, 7)
                 if data == '+':
-                    builder.add_int(dest_addr, addrs[0], addrs[1])
+                    builder.add_int(4, 6, 8)
                 elif data == '-':
-                    builder.subtract_int(dest_addr, addrs[0], addrs[1])
+                    builder.subtract_int(4, 6, 8)
             else:
                 # call function.
                 self.call_function(block, data)
                 #copy over output to return values
-                for return_type in return_types:
-                    self.copy(block.var[return_type[0].name], block.sp_position)
-        return addrs
+                operand_offset = block.offset
+                for return_var in return_vars:
+                    self.set_offset_address(4, return_var['offset'], 3)
+                    self.set_offset_address(6, operand_offset, 5)
+                    operand_offset += return_var.type.size
 
+        # TODO: return block offset and free memory
+    
+    def set_offset_address(register, offset, worker_register):
+        '''
+        set offset to some register A
+        set register B = sp - A
+        
+        '''
+        builder.set_int(worker_register, offset)
+        builder.subtract_int(register, self.sp_register, worker_register)
 
     def call_function(self, block, function_name):
         function = self.program.get_function(function_name)

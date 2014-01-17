@@ -115,7 +115,7 @@ def branch(value_register, branch_register):
         branch_register
     )
 
-def add(result, one, two):
+def add_insn(result, one, two):
     return (
         OPCODES['add'],
         result,
@@ -241,6 +241,9 @@ class Translator(object):
             self.write(dest+index, False)
             # TODO: can make a loop rather than having insns be linaer to size.
 
+    def add_int(self, result, one, two):
+        self.insn.append(add_insn(result,one,two))
+
     def add_short(self, result, one, two):
         '''
         result = one + two.
@@ -250,12 +253,6 @@ class Translator(object):
             self.add_bit(one+index, two+index, carry_in, carry_in, result+index)
         # TODO: All additions can probably be kept in one part of code. with temporary registers.
 
-    def subtract_int(self, result, one, two):
-        '''
-        result = one - two. parameters are all addrs.
-        all locations are 32 bits.
-        '''
-        pass
 
     def subtract_inti(self, result, one, imm):
         '''
