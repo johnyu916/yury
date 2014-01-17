@@ -25,7 +25,7 @@ class Converter(object):
     Read objects and spit out bytecode.
 
     '''
-    def __init__(self, program, hardware_config, filename):
+    def __init__(self, program, hardware_config, output_file_name):
         '''
 
         '''
@@ -34,7 +34,7 @@ class Converter(object):
         self.function_begin = {}  # which insn # does function begin?
         self.function_calls = []  # which function is being called where?
         self.insns = []
-        self.filename = filename
+        self.output_file_name = output_file_name
         self.program = program
         for function in program.functions:
             self.function_begin[function.name] = len(self.insns)
@@ -45,11 +45,11 @@ class Converter(object):
             self.insns[index].jump_to = self.function_begin[name]
 
         # now convert all insns into
-        self.write_insns(filename)
+        self.write_insns(output_file_name)
 
     
-    def write_insns(self, filename):
-        f = open(filename, 'w')
+    def write_insns(self, output_file_name):
+        f = open(output_file_name, 'w')
         for insn in self.insns:
             f.write(write_insn(insn))
         f.close()
@@ -167,16 +167,20 @@ class Converter(object):
         # set some value to another register VAL.
         # store VAL ADDR. 
 
-    def spit_statement(self, statement):
-        block = self.current_block
+    def spit_statement(self, variables, statement):
+        '''
+        variables should contain all variables.
+        '''
         builder = self.builder
         dests = statement.destinations
         expression = statement.expression
 
         # find the destinations
         for dest in dests:
-            if not dest in block.vars:
-                self.new_variable(block, dest)
+            variable = get_object(variables, dest.name)
+            if not variable:
+                variables.append(variable)
+                
 
         #dest_addr = block.vars[dest.name]
         addrs = self.spit_expression(self, expression)

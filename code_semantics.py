@@ -1,4 +1,6 @@
+from shared.common import get_object
 from parser import OPERATORS, PRIMITIVE_TYPES, VariableText, ExpressionText, StatementText, FunctionText, ConditionalText, WhileText
+
 
 class Type(object):
     '''
@@ -247,11 +249,6 @@ class Function(Block):
             types.append(output.type)
         return types
 
-def get_object(objects, name):
-    for object in objects:
-        if object.name == name:
-            return object
-    return None
 
 
 class Semantics:
