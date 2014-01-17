@@ -16,7 +16,8 @@ address is a 32-bit unsigned integer.
 byte addressing.
 opcode is first byte of the instruction.
 little-endian - for a multi-byte object (such as a 32-bit integer), least significant byte is stored in lowest memory location.
-
+register 0 is 0
+register 1 has the stack pointer's address
 
 insn types:
 load value_register address_register index
@@ -70,7 +71,7 @@ OPCODES = {
     'set': 7
 }
 
-def load(value_register, address_register, index):
+def load_insn(value_register, address_register, index):
     return (
         OPCODES['load'],
         value_register,
@@ -78,7 +79,7 @@ def load(value_register, address_register, index):
         index
     )
 
-def store(value_register, address_register, index):
+def store_insn(value_register, address_register, index):
     return (
         OPCODES['store'],
         value_register,
@@ -86,7 +87,7 @@ def store(value_register, address_register, index):
         index
     )
 
-def set(value_register, immediate):
+def set_insn(value_register, immediate):
     return (
         OPCODES['set'],
         value_register,
@@ -122,7 +123,7 @@ def add(result, one, two):
         two
     )
 
-def subtract(result, one, two):
+def subtract_insn(result, one, two):
     return (
         OPCODES['subtract'],
         result,
@@ -148,13 +149,13 @@ class Translator(object):
     Instruction builder. It creates requested instructions.
     '''
 
-    def __init__(self, sp_addr):
+    def __init__(self, sp_addr, insns):
         '''
         Memory size in bits.
         '''
         #self.block = block
         self.sp_addr = sp_addr
-        self.insns = []
+        self.insns = insns
 
 
     #def _new_insn(self, read_addr, branch_to, on_one, on_zero):
@@ -208,6 +209,9 @@ class Translator(object):
         self.block.stack_pointer -= USHORT_SIZE
         self.store_short(self.stack_pointer, value)
 
+    def store_int(self, dest_reg, value, free_reg):
+        set_insn(free_reg, value)
+        store_insn(free_reg, dest_reg)
 
     def store_short(self, addr, value):
         '''
@@ -221,8 +225,12 @@ class Translator(object):
             num_insns += 1
 
 
-    def copy(self, dest, src, size):
-        pass
+    def copy(self, dest, src, size, free_reg):
+        '''
+        copy addr on src to addr on dest
+        '''
+        load_insn(val_reg, src, 0)
+        store_insn(val_reg, dest, 0)
 
     def copy_short(self, dest, src):
         num_insns = len(self.insns)
@@ -313,7 +321,14 @@ class Translator(object):
             self.write(index, not binary)
 
 
-    def jump(jump_to):
+    def jump(address_with_value):
         Instruction(0, jump_to, True, False)
 
+    def load(self, val_reg, addr_reg, imm=0):
+        self.insn.append(load_insn(val_reg, addr_reg, imm))
 
+    def set_int(self, register_no, value):
+        self.insn.append(set_insn(register_no, value))
+
+    def subtract_int(self, result, one, two):
+        self.insn.append(subtract_insn(result,one,two))

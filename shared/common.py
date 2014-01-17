@@ -10,6 +10,7 @@ def get_object(objects, name):
             return object
     return None
 
+def unique_int():
 
 def power(exponent):
     '''

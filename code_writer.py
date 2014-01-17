@@ -1,6 +1,6 @@
 from code_semantics import Function, Expression, Statement, Conditional, Variable
-from instruction import Translator
-from shared.common import get_bools
+from instruction import load_insn
+from shared.common import get_bools, get_object
 USHORT_SIZE = 16
 
 
@@ -10,9 +10,16 @@ class Block(object):
     '''
     def __init__(self):
         #self.sp_position = 0  # sp current position. Expressed from beginning (0).
-        self.sp = 0 # position (initially at top).
+        self.offset = 0 # position (initially at top).
+        self.variables = {}
         # self.function_calls = []  # list of  (insn_index, funtion_calling)
-
+    def new_variable(self, variable):
+        self.offset -= variable.type.size
+        vari = {
+            'variable': variable,
+            'offset' : self.offset
+        }
+        block.variables[variable.name] = variable
 '''
 Function stack:
 output variables
@@ -30,12 +37,22 @@ class Converter(object):
 
         '''
         self.memory_size = 4096
-        self.builder = Translator(4096)
+        self.insns = [] # instructions.
+        self.builder = Translator(4096, self.insns)
+        self.sp_addr = 1000 # address of stack pointer
+        self.sp_addr_reg = 1 # register that contains address of stack pointer
+        self.sp_reg = 2 # register that contains stack pointer value
         self.function_begin = {}  # which insn # does function begin?
         self.function_calls = []  # which function is being called where?
-        self.insns = []
         self.output_file_name = output_file_name
         self.program = program
+
+        # some special instructions.
+    
+        # set register 0 to stack pointer address
+        self.builder.set_int(0, 0)
+        self.builder.set_int(self.sp_addr_reg, self.sp_addr)
+
         for function in program.functions:
             self.function_begin[function.name] = len(self.insns)
             self.blocks.append(self.current_block)
@@ -47,7 +64,7 @@ class Converter(object):
         # now convert all insns into
         self.write_insns(output_file_name)
 
-    
+
     def write_insns(self, output_file_name):
         f = open(output_file_name, 'w')
         for insn in self.insns:
@@ -73,23 +90,37 @@ class Converter(object):
         2. inputs
         '''
         # print a single function
-        vars = {}
+        builder = self.builder
+        block = Block()
+        inputs = function.inputs
+        outputs = function.outputs
+        local_vars = function.local_variables
+
+
+        return_pc = Variable(get_type('int'), 'return', 0)
+        for input in outputs+inputs+[return_pc]+local_vars:
+            block.new_variable(input)
+        
+        # load stack pointer
+        self.builder.load(self.sp_register, self.sp_address_register)
 
         # 3 
         for chunk in function.code:
             b_type = type(chunk)
             if b_type == Expression:
-                self.spit_expression(vars, chunk)
+                self.spit_expression(block, chunk)
             elif b_type == Statement:
-                self.spit_statement(vars, chunk)
+                self.spit_statement(block, chunk)
             elif b_type == Conditional:
-                self.spit_conditional(vars, chunk)
+                self.spit_conditional(block, chunk)
 
-        # return statement
-        self.builder.copy_short(vars['return'], vars['current'])
+        # return to some address.
+        offset = variables['return']['offset']
+        builder.set_int(3, offset)
+        builder.subtract_int(4, 2, 3)
+        builder.jump(4)
 
-
-    def spit_expression(self, vars, expression):
+    def spit_expression(self, block, expression):
         '''
         perform whatever operation. the result should begin
         at the current sp_bottom.
@@ -99,22 +130,33 @@ class Converter(object):
         # 1 level expression
         return_types = expression.get_types()
         builder = self.builder
+        return_vars = {}
 
-        for return_type in return_types:
+        for count, return_type in enumerate(return_types):
             # make room for return value
-            self.new_variable(block, return_type)
+            block.offset -= return_type.size
+            return_var = {
+                'variable': Variable(return_type, count, 0),
+                'offset': block.offset
+            }
+            return_vars[count] = return_var
+
 
         data_type = type(expression.data)
         data = expression.data
         if data_type == Variable:
             # setting to constant or variable
             var = data
-            dest_addr = block.vars[return_types[0].name]
+            dest_offset = return_vars[0]['offset']
+            builder.set_int(3, dest_offset)
+            builder.subtract_int(4,2,3)  # 4 has addr of dest
             if var.name != None:
-                src_addr = block.vars[var.name]
-                builder.copy(dest_addr, src_addr)
+                src_offset = block.vars[var.name]['offset']
+                builder.set_int(5, src_offset)
+                builder.subtract_int(6,2,5)  # 6 has addr of src_offset 
+                builder.copy(4, 6, var.type.size, 7)
             else:
-                builder.store_inti(dest_addr, var.value)
+                builder.store_int(4, var.value)
         elif data_type == str:
             # has children, so run them first.
             addrs = []
@@ -167,7 +209,7 @@ class Converter(object):
         # set some value to another register VAL.
         # store VAL ADDR. 
 
-    def spit_statement(self, variables, statement):
+    def spit_statement(self, block, statement):
         '''
         variables should contain all variables.
         '''
@@ -179,11 +221,11 @@ class Converter(object):
         for dest in dests:
             variable = get_object(variables, dest.name)
             if not variable:
-                variables.append(variable)
-                
+                block.new_variable(variable)
+
 
         #dest_addr = block.vars[dest.name]
-        addrs = self.spit_expression(self, expression)
+        addrs = self.spit_expression(variables, expression)
 
         # copy addrs to destinations
 

@@ -17,6 +17,9 @@ class Type(object):
         }
 
 def get_type(type_str):
+    '''
+    Return Type objects.
+    '''
     TYPES = [
         Type('int',4),
         Type('bool',1),
