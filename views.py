@@ -8,6 +8,19 @@ def cpu():
     }
     return context
 
+def program(filename):
+    database()['programs'].find({'name':filename})
+    context ={
+        'program':program
+    }
+    return context
+
+def new_program(document):
+    database()['programs'].insert(document)
+    return {
+        'status': 'ok'
+    }
+
 def hardware():
     devices = database()['devices'].find({},{'type':1})
     test_names = database()['tests'].find({},{'name':1})

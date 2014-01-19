@@ -13,6 +13,17 @@ def cpu():
     context = views.cpu()
     return render_template('cpu.html', context=context)
 
+@app.route('/program')
+def program():
+    # if it is POST, then create new file
+    document = request.post
+    views.new_program(document)
+    # if get, get it.
+    filename = request.args.get('filename','')
+    context = views.program(filename)
+    return render_template('cpu.html', context=context)
+
+
 @app.route('/hardware')
 def hardware():
     context = views.hardware()
