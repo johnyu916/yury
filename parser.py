@@ -491,7 +491,8 @@ def read_constant(orig):
     text = orig
     dest, text = re_match('[0-9]+', text)
     if dest != None:
-        return VariableText('int', None, dest), text
+        print "read_constant dest: {0}".format(dest)
+        return VariableText('int', None, int(dest)), text
     else:
         return None, orig
 

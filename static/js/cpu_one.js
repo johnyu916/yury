@@ -31,34 +31,21 @@ function Instruction(read, branch, on_one, on_zero){
 
 var block_size_log = 5;
 var block_size = Math.pow(2, block_size_log);
-var OPCODES = {
-    'store': 0,
-    'jump': 1,
-    'move': 2,
-    'branch': 3,
-    'add': 4,
-    'subtract': 5,
-    'load': 6,
-    'set': 7
-}
-// computer for any intelligent beings.
+// computer for any intelligent beings. old version
 function CPU(args){
     //need memory.
     //each number stores 32-bits. so we need bits - 5.
     this.memory_size_log = arg['MEMORY_SIZE_LOG'];
     var size_log = args['MEMORY_SIZE_LOG'] - block_size_log;
     var memory_size = Math.pow(2, size_log);
+    this.memory = new Array();
     this.pc_addr = args['PC_ADDR'];
-    // idle address must be even.
-    this.idle_addr = args['IDLE_ADDR'];
     this.pc_signal_addr = args['PC_SIGNAL_ADDR'];
     this.pc_size = args['NUM_INSNS_LOG'];
     this.insn_size = args['INSN_SIZE'];
 
-    //definitely needed
-    this.registers = new Array();
-    this.memory = new Array();
-
+    // idle address must be even.
+    this.idle_addr = args['IDLE_ADDR'];
 
     // precalculations
     this.idle_block_addr = this.idle_addr / this.block_size;
@@ -74,21 +61,6 @@ function CPU(args){
         var memory = this.memory[this.idle_block];
         if (value(memory, this.idle_off, 2) == 3) return true;
         else return false;
-    }
-
-    function read_insns(text){
-        var count = 0;
-        var word = new Array();
-        for a in text{
-            next_byte = parseInt(a);
-            word[count] = next_byte;
-            count++;
-            if (count == 3){
-                insn = get_insn(word);
-                self.memory.append(insn);
-                count = 0;
-            }
-        }
     }
 
     function run_cycle(){
@@ -107,20 +79,7 @@ function CPU(args){
 
         //2. read next instruction.
         // NOTE THIS ASSUMES INSN FITS IN ONE BLOCK.
-        var insn_block = this.memory[insn_block_addr];
-        var insn = get_insn(insn_block);//take integer and return a array
-        var insn_type = insn[0];
-        if (insn_type == OPCODES.store){
-            var value = insn[1];
-            var address = insn[2];
-            self.memory[self.register[address]] = self.register[value];
-        }
-        else if (insn_type == OPCODES.jump){
-
-        }
-        //and so on
-
-
+        var insn_block_value = this.memory[insn_block_addr];
         var insn = get_int_value(insn_block_value, insn_off, this.insn_size);
 
         var read_addr = get_int_value(insn, 0, this.memory_size_log);

@@ -70,7 +70,6 @@ class Program(object):
 
 class Block(object):
     def __init__(self, text, parent, program):
-        self.variables = []
         self.code = []
         self.text = text
         self.parent = parent
@@ -93,16 +92,9 @@ class Block(object):
                 # need to shift context.
 
 
-    def get_variable(self, name):
-        for var in self.variables:
-            print "looking at var: {0}".format(var.get_dict())
-            if var.name == name:
-                return var
+    def get_variable(self,name):
         if self.parent:
             return self.parent.get_variable(name)
-        else:
-            return None
-
 
 class Expression(object):
     def __init__(self, expression_text, function, program):
@@ -115,14 +107,14 @@ class Expression(object):
         # variables inside expressions must be defined
         if data_type == VariableText:
             var_text = data
-            if var_text.name:
+            if var_text.name != None:
                 var = function.get_variable(var_text.name)
                 if var:
                     self.data = var
                     return
                 else:
                     raise Exception("Undefined var: {0}".format(data.get_dict()))
-            elif var_text.value:
+            elif var_text.value != None:
                 c_type = get_constant_type(var_text.value)
                 if c_type:
                     self.data = Variable(c_type, None, var_text.value)
@@ -201,7 +193,7 @@ class Statement(object):
                 assert destination.type.name == type.name, "{0} not equal to {1}".format(destination.type.name, type.name)
             else:
                 destination = Variable(type, dest.name, None)
-                function.variables.append(destination)
+                function.variables_append(destination)
             destinations.append(destination)
 
         self.destinations = destinations
@@ -230,6 +222,8 @@ class Function(Block):
         self.name = function_text.name
         self.inputs = []
         self.outputs = []
+        self.variables = []
+        self.local_variables = []
         for inpu in function_text.inputs:
             var = variable_make(inpu)
             self.inputs.append(var)
@@ -245,6 +239,21 @@ class Function(Block):
         print "function constructor variables: "
         for var in self.variables:
             print var.get_dict()
+
+    def variables_append(self, variable):
+        self.variables.append(variable)
+        self.local_variables.append(variable)
+
+    def get_variable(self, name):
+        for var in self.variables:
+            print "looking at var: {0}".format(var.get_dict())
+            if var.name == name:
+                return var
+        if self.parent:
+            return self.parent.get_variable(name)
+        else:
+            return None
+
 
     def get_types(self):
         types = []

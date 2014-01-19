@@ -71,7 +71,7 @@ OPCODES = {
     'set': 7
 }
 
-def load_insn(value_register, address_register, index):
+def load_insn(value_register, address_register, index=0):
     return (
         OPCODES['load'],
         value_register,
@@ -79,7 +79,7 @@ def load_insn(value_register, address_register, index):
         index
     )
 
-def store_insn(value_register, address_register, index):
+def store_insn(value_register, address_register, index=0):
     return (
         OPCODES['store'],
         value_register,
@@ -88,13 +88,15 @@ def store_insn(value_register, address_register, index):
     )
 
 def set_insn(value_register, immediate):
+    assert type(value_register) == int
+    assert type(immediate) == int
     return (
         OPCODES['set'],
         value_register,
         immediate
     )
 
-def jump(register):
+def jump_insn(register):
     return (
         OPCODES['jump'],
         register,
@@ -108,11 +110,15 @@ def move_deprecated(destination, source):
         source
     )
 
-def branch(value_register, branch_register):
+def branch_insn(value_register, branch_register):
+    '''
+    if value_register is 0, then branch to pc at branch_register
+    '''
     return (
         OPCODES['branch'],
         value_register,
-        branch_register
+        branch_register,
+        0
     )
 
 def add_insn(result, one, two):
@@ -131,16 +137,46 @@ def subtract_insn(result, one, two):
         two
     )
 
+
+def get_base16(integer, size=1):
+    if size == 1:
+        return str(integer)
+    elif size == 2:
+        low = integer % 16
+        high = integer >> 4
+        return str(low) + str(high)
+    else:
+        raise Exception("Can't handl this")
+
+def get_insn_text(insn, sizes):
+    print "texting insn: {0}".format(insn)
+    text = ''
+    for integer, size in zip(insn, sizes):
+        text += get_base16(integer, size)
+    return text
+
+
 def write_insn(insn):
     # 0 is opcode
     code = insn[0]
+    sizes = [1,1,1,1]
     if code == OPCODES['store']:
-        text = stuff.pack('BBBB', *insn)
+        pass
     elif code == OPCODES['jump']:
-        text = stuff.pack('BBH', *insn)
+        sizes = [1,1,2]
+    elif code == OPCODES['branch']:
+        pass
+    elif code == OPCODES['add']:
+        pass
+    elif code == OPCODES['subtract']:
+        pass
+    elif code == OPCODES['load']:
+        pass
+    elif code == OPCODES['set']:
+        sizes = [1,1,2]
     else:
-        text = ''
-    return text
+        raise Exception("Unknown instruction: {0}".format(code))
+    return get_insn_text(insn, sizes)
 
 
 class Translator(object):
@@ -171,161 +207,84 @@ class Translator(object):
         self._new_insn(addr, num_insns, value, value) 
 
 
-    def branch(self, read_addr, branch_to):
+    def branch(self, value_reg, immediate, free_reg):
         '''
-        if value at read_addr is 0, then go to branch_to.
+        if value at read_addr is 0, then go to pc at branch_to.
         else, go to pc+1
         '''
-        self._new_insn(read_addr, branch_to, True,False)
+        self.set_int(free_reg, immediate)
+        insn_two = branch_insn(value_reg, free_reg)
+        self.insns.append(insn_two)
 
 
-    def branch_short(self, addr, value, branch_to):
+    def branch_set(self, insn_index, value_reg, immediate, free_reg):
         '''
-        if value at addr is value, then branch_to.
-        else go to pc+1.
+        insn_index is beginning
         '''
-        # turn value into a bool array
-        bools = get_bools(value, USHORT_SIZE)
-        pc = len(self.builder.insns)
-        for digit, binary in zip(addr, bools):
-            self.branch(digit, pc+2)
-            # digit is zero
-            self.branch(binary, branch_to)
-            self.branch(binary, pc+3)
-            # digit is one
-            self.branch(binary, pc+3)
-            self.branch(binary, branch_to)
-            pc = len(self.builder.insns)
-        # reached end
+        insn_one = set_insn(free_reg, immediate)
+        insn_two = branch_insn(value_reg, free_reg)
+        self.insns[insn_index] = insn_one
+        self.insns[insn_index+1] = insn_two
 
 
-    def new_memory(self, size):
+    def new_memory_deprecated(self, size):
         # need to look at current stack pointer and bump it down.
         self.subtract_int(self.sp_addr, self.sp_addr, size)
 
 
-    def new_short(self, value):
-        # create on stack
-        self.block.stack_pointer -= USHORT_SIZE
-        self.store_short(self.stack_pointer, value)
+    def load(self, val_reg, addr_reg, imm=0):
+        self.insns.append(load_insn(val_reg, addr_reg, imm))
 
-    def store_int(self, dest_reg, value, free_reg):
-        set_insn(free_reg, value)
-        store_insn(free_reg, dest_reg)
+    def store_int(self, dest_reg, value_reg):
+        insn = store_insn(value_reg, dest_reg)
+        self.insns.append(insn)
 
-    def store_short(self, addr, value):
-        '''
-        short is 16 bits long unsigned integer
-        '''
-        value_bools = get_bools(value, USHORT_SIZE)
-        num_insns = len(self.insns)
-        # convert value into bits
-        for binary in value_bools:
-            self._new_insn(addr, num_insns, binary, binary)
-            num_insns += 1
-
+    def store_inti(self, dest_reg, value, free_reg):
+        insn = set_insn(free_reg, value)
+        insn2 = store_insn(free_reg, dest_reg)
+        self.insns.extend([insn, insn2])
 
     def copy(self, dest, src, size, free_reg):
         '''
         copy addr on src to addr on dest
         '''
-        load_insn(val_reg, src, 0)
-        store_insn(val_reg, dest, 0)
+        insn = load_insn(free_reg, src, 0)
+        insn2 = store_insn(free_reg, dest, 0)
+        self.insns.extend([insn, insn2])
 
-    def copy_short(self, dest, src):
-        num_insns = len(self.insns)
-        for index in range(USHORT_SIZE):
-            self.branch(src+index, num_insns+1)
-            # src is zero
-            self.write(dest+index, True)
-            self.write(dest+index, False)
-            # TODO: can make a loop rather than having insns be linaer to size.
 
     def add_int(self, result, one, two):
-        self.insn.append(add_insn(result,one,two))
+        self.insns.append(add_insn(result,one,two))
 
-    def add_short(self, result, one, two):
-        '''
-        result = one + two.
-        '''
-        carry_in = 0
-        for index in range(USHORT_SIZE):
-            self.add_bit(one+index, two+index, carry_in, carry_in, result+index)
-        # TODO: All additions can probably be kept in one part of code. with temporary registers.
+    def add_inti(self, result, one, imm, free_reg):
+        self.set_int(free_reg, imm)
+        self.add_int(result, one, free_reg)
 
-
-    def subtract_inti(self, result, one, imm):
+    def subtract_inti(self, result, one, imm, free_reg):
         '''
         result = one - imm. result and one are addrs, imm is a integer.
         '''
+        self.set_int(free_reg, imm)
+        self.subtract_int(result, one, free_reg)
 
-    def add_bit(self, one, two, carry_in, carry_out, result):
-        '''
-        parameters are addresses.
-        truth table:
-
-        one two carry
-        '''
-        pc = len(self.builder.insns)
-        three = carry_in
-        self.branch(one, pc+10)
-        # one = 0
-        self.branch(two, pc+10)
-        # one = 0, two = 1
-        self.branch(three, pc+10)
-        # one = 0, two = 1, three = 1
-        self.write(carry_out, 1)
-        self.write(result, 0)
-        # one = 0, two = 1, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 1)
-        # one = 0, two = 0
-        self.branch(three, pc+10)
-        # one = 0, two = 0, three = 1
-        self.write(carry_out, 0)
-        self.write(result, 1)
-        # one = 0, two = 0, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 0)
-
-        # one = 1
-        self.branch(two, pc+10)
-        # one = 1, two = 1
-        self.branch(carry_in, pc+10)
-        # one = 1, two = 1, carry_in = 1
-        self.write(carry_out, True)
-        self.write(result, True)
-        # one = 1, two = 1, carry_in = 0
-        self.write(carry_out, True)
-        self.write(result, False)
-        # one = 1, two = 0
-        self.branch(three, pc+10)
-        # one = 1, two = 0, three = 1
-        self.write(carry_out, 1)
-        self.write(result, 0)
-        # one = 1, two = 0, three = 0
-        self.write(carry_out, 0)
-        self.write(result, 1)
+    def jump(self, value_reg):
+        insn = jump_insn(value_reg)
+        self.insns.append(insn)
 
 
-    def complement_short_i(self, dest, value):
-        '''
-        Return complement of value
-        '''
-        # convert value into bools
-        bools = get_bools(value)
-        for index, binary in enumerate(bools):
-            self.write(index, not binary)
+    def jumpi(self, immediate, free_reg):
+        self.set_int(free_reg, immediate)
+        insn = jump_insn(free_reg)
+        self.insns.append(insn)
 
-
-    def jump(address_with_value):
-        Instruction(0, jump_to, True, False)
-
-    def load(self, val_reg, addr_reg, imm=0):
-        self.insn.append(load_insn(val_reg, addr_reg, imm))
+    def jumpi_set(self, insn_index, immediate, free_reg):
+        insn_one = set_insn(free_reg, immediate)
+        insn_two = jump_insn(free_reg)
+        self.insns[insn_index] = insn_one
+        self.insns[insn_index+1] = insn_two
 
     def set_int(self, register_no, value):
-        self.insn.append(set_insn(register_no, value))
+        self.insns.append(set_insn(register_no, value))
 
     def subtract_int(self, result, one, two):
-        self.insn.append(subtract_insn(result,one,two))
+        self.insns.append(subtract_insn(result,one,two))
