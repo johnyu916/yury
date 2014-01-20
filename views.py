@@ -1,6 +1,15 @@
 from settings import CPU, DEVICE_PRIMITIVES
 from database import database
 
+
+def cputest():
+    binaries = database()['binaries'].find()
+    return {
+        'CPU' : CPU,
+        'binaries': binaries
+    }
+
+
 def cpu():
     # Include settings
     context = {
@@ -8,15 +17,19 @@ def cpu():
     }
     return context
 
-def program(filename):
-    database()['programs'].find({'name':filename})
+def binary(filename):
+    binary = database()['binaries'].find_one({'name':filename})
+    binary = {
+        'name': binary['name'],
+        'data': binary['data']
+    }
     context ={
-        'program':program
+        'binary':binary
     }
     return context
 
-def new_program(document):
-    database()['programs'].insert(document)
+def new_binary(document):
+    database()['binaries'].insert(document)
     return {
         'status': 'ok'
     }

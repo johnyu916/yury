@@ -13,15 +13,30 @@ def cpu():
     context = views.cpu()
     return render_template('cpu.html', context=context)
 
-@app.route('/program')
-def program():
-    # if it is POST, then create new file
-    document = request.post
-    views.new_program(document)
+@app.route('/cputest', methods=['GET', 'POST'])
+def cputest():
+    # if it is POST, then add a new program
+    if request.method == 'POST':
+        print request.files
+        file = request.files['file']
+        if file:
+            name = file.filename
+            data = file.read()
+            document = {
+                'name': name,
+                'data': data
+            }
+            print "received document: {0}".format(document)
+            views.new_binary(document)
+    context = views.cputest()
+    return render_template('cputest.html', context=context)
+
+@app.route('/binary')
+def binary():
     # if get, get it.
-    filename = request.args.get('filename','')
-    context = views.program(filename)
-    return render_template('cpu.html', context=context)
+    filename = request.args.get('name','')
+    context = views.binary(filename)
+    return jsonify(**context)
 
 
 @app.route('/hardware')

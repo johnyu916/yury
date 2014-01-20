@@ -149,6 +149,9 @@ def get_base16(integer, size=1):
         raise Exception("Can't handl this")
 
 def get_insn_text(insn, sizes):
+    '''
+    opcode is in position 0
+    '''
     print "texting insn: {0}".format(insn)
     text = ''
     for integer, size in zip(insn, sizes):

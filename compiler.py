@@ -8,17 +8,18 @@ class Compiler(object):
     # compiled code, real-time, or some combination.
     # 1. run parser with everything.
     # 2. run semantics and converter as needed.
-    def __init__(self, text):
+    def __init__(self, text, output_file_name):
         self.lines = text.split('\n')
         self.parser = Parser(self.lines)
         self.semantics = Semantics(self.parser.program)
         program = self.semantics.program
-        self.converter = Converter(program, {}, "output.bin")
+        self.converter = Converter(program, {}, output_file_name)
 
 
 if __name__ == '__main__':
     filename = sys.argv[1]
+    output_file_name = sys.argv[2]
     #with open(BAM_DIR / filename) as f:
     with open(filename) as f:
         text = f.read()
-        compiler = Compiler(text)
+        compiler = Compiler(text, output_file_name)

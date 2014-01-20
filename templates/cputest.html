@@ -1,0 +1,44 @@
+
+{% extends "main.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/cpu.css">
+{% endblock %}
+{% block body %}
+<script src='/static/js/cpu.js'></script>
+
+<div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
+<!-- load file from list.-->
+<div>
+  <select class='files' size='2'>
+  {% for binary in context['binaries'] %}
+  <option>{{binary['name']}}</option>
+  {% endfor %}
+  </select>
+<button id='run-cpu'>
+  Run
+  </button>
+</div>
+
+<div>
+  <!-- upload file -->
+  <form method='post' enctype='multipart/form-data'>
+    <input type='file' id='file-input' name='file'/>
+    <input type='submit' value='Submit'>
+  </form>
+</div>
+<script>
+  function onFileSelect(event){
+    var file = event.target;
+    var reader = new FileReader();
+
+  }
+  $(document).ready(function(){
+    //$(".file-input").change(onFileSelect);
+    cpu_main();
+    $("#run-cpu").click(function(){
+      var filename = $(".files").val();
+      on_run_click(filename);
+    });
+  });
+</script>
+{% endblock %}
