@@ -1,6 +1,6 @@
 from code_semantics import Expression, Statement, Variable, While, get_type
 from parser import OPERATORS
-from instruction import Translator, write_insn
+from instruction import Translator, write_insn, write_ass
 from shared.common import get_object
 USHORT_SIZE = 16
 
@@ -75,10 +75,13 @@ class Converter(object):
 
 
     def write_insns(self, output_file_name):
-        f = open(output_file_name, 'w')
+        assf = open(output_file_name + '.ass', 'w')
+        binf = open(output_file_name + '.bin', 'w')
         for insn in self.insns:
-            f.write(write_insn(insn))
-        f.close()
+            binf.write(write_insn(insn))
+            assf.write(write_ass(insn))
+        binf.close()
+        assf.close()
 
 
     def spit_function(self, function):

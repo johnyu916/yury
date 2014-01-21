@@ -73,14 +73,17 @@ function Instruction(read, branch, on_one, on_zero) {
 
 /**
  * Word must be 4 characters. The character is between 0 and F.
+ * 
  */
 function base16_to_integer(word) {
-    var value = 0, i, letter, current, moved;
+    var value = 0, offset = 0;
+    var i, letter, current, moved;
     for (i = 0; i < word.length; i++) {
         letter = word[i];
-        current = base16_to_int.character;
-        moved = current << 2;
+        current = base16_to_int[letter];
+        moved = current << offset;
         value += moved;
+        offset += 8;
     }
     return value;
 }
@@ -119,20 +122,25 @@ function CPU(args) {
 }
 
 CPU.prototype.run = function(){
+    var count = 0;
     while(true){
         this.run_cycle();
+        count += 1;
+        if (count > 100) break;
     }
 };
 
 CPU.prototype.load_binary = function(text) {
+    console.log("printing binary text: " + text);
     var count = 0, word = [], i, a, next_byte, insn;
     for (i=0; i < text.length; i+=1){
         a = text[i];
         next_byte = parseInt(a, 10);
         word[count] = next_byte;
         count+=1;
-        if (count === 3){
+        if (count === 4){
             insn = base16_to_integer(word);
+            console.log("word was: " + word + " insn: " + insn);
             this.memory.push(insn);
             count = 0;
         }
@@ -149,13 +157,17 @@ CPU.prototype.get_insn = function(integer) {
     if (opcode == OPCODES.set || opcode == OPCODES.jump){
         // 2 more
         var three = integer;
-        return [opcode, two, three];
+        var insn = [opcode, two, three];
+        console.log("read insn: " + insn);
+        return insn;
     }
     else{
         var three = integer % 256;
         integer = integer >> 8;
         var four = integer;
-        return [opcode, two, three, four];
+        var insn = [opcode, two, three, four];
+        console.log("read insn: " + insn);
+        return insn;
     }
 };
 
@@ -168,20 +180,11 @@ CPU.prototype.signal_and_idle = function() {
 
 CPU.prototype.run_cycle = function(){
     //1. which pc should i read?
-    var pc_block_value = this.memory[this.pc_block_addr];
-    var pc_off = this.pc_off;
-
     if (this.signal_and_idle()){
         pc_block_value = this.memory[this.pc_signal_block_addr];
         pc_off = this.pc_signal_off;
     }
-    var pc_value = get_int_value(pc_block_value, pc_off, this.pc_size);
-    var insn_addr = pc_value * this.insn_size;
-    var insn_block_addr = insn_addr / this.block_size;
-    var insn_off = insn_addr % this.block_size;
-
-    var insn_block = this.memory[insn_block_addr];
-
+    console.log("pc: " + this.pc);
     // NEW STYLE.
     var insn = this.get_insn(this.memory[this.pc]);//take integer and return a array
     var next_pc = this.pc + 1;
@@ -224,9 +227,14 @@ CPU.prototype.run_cycle = function(){
         var imm = insn[2];
         this.registers[value_reg] = imm;
     }
+    else{
+        console.log("unknown instruction: " + insn);
+        return 1;
+    }
     //and so on
 
     this.pc = next_pc;
+    return 0;
 };
 /* get the mask as a 2's compleemnt integer given the
  * offset and size.

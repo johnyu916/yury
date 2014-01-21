@@ -148,15 +148,40 @@ def get_base16(integer, size=1):
     else:
         raise Exception("Can't handl this")
 
+
 def get_insn_text(insn, sizes):
     '''
-    opcode is in position 0
+    opcode is in position 0.
+    registers are next.
+    if a value is more than a byte, then lower byte is first,
+    then higher byte.
     '''
     print "texting insn: {0}".format(insn)
     text = ''
     for integer, size in zip(insn, sizes):
         text += get_base16(integer, size)
     return text
+
+def write_ass(insn):
+    # 0 is opcode
+    code = insn[0]
+    if code == OPCODES['store']:
+        text = 'store {0} {1} {2}'.format(insn[1], insn[2], insn[3])
+    elif code == OPCODES['jump']:
+        text = 'jump {0}'.format(insn[1]) 
+    elif code == OPCODES['branch']:
+        text = 'branch {0} {1}'.format(insn[1], insn[2])
+    elif code == OPCODES['add']:
+        text = 'add {0} {1} {2}'.format(insn[1], insn[2], insn[3])
+    elif code == OPCODES['subtract']:
+        text = 'subtract {0} {1} {2}'.format(insn[1], insn[2], insn[3])
+    elif code == OPCODES['load']:
+        text = 'load {0} {1} {2}'.format(insn[1], insn[2], insn[3])
+    elif code == OPCODES['set']:
+        text = 'set {0} {1}'.format(insn[1], insn[2])
+    else:
+        raise Exception("Unknown instruction: {0}".format(code))
+    return text + '\n'
 
 
 def write_insn(insn):
