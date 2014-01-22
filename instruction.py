@@ -137,14 +137,38 @@ def subtract_insn(result, one, two):
         two
     )
 
+base16_to_int = {
+    0: '0',
+    1: '1',
+    2: '2',
+    3: '3',
+    4: '4',
+    5: '5',
+    6: '6',
+    7: '7',
+    8: '8',
+    9: '9',
+    10: 'a',
+    11: 'b',
+    12: 'c',
+    13: 'd',
+    14: 'e',
+    15: 'f'
+}
+
+def get_two(integer):
+    low = integer % 16
+    high = integer >> 4
+    return base16_to_int[low] + base16_to_int[high]
 
 def get_base16(integer, size=1):
     if size == 1:
-        return str(integer)
+        # need two characters
+        return get_two(integer)
     elif size == 2:
-        low = integer % 16
-        high = integer >> 4
-        return str(low) + str(high)
+        first = integer % 256
+        second = integer >> 8
+        return get_two(first) + get_two(second)
     else:
         raise Exception("Can't handl this")
 

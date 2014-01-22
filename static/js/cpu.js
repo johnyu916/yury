@@ -77,10 +77,13 @@ function Instruction(read, branch, on_one, on_zero) {
  */
 function base16_to_integer(word) {
     var value = 0, offset = 0;
-    var i, letter, current, moved;
-    for (i = 0; i < word.length; i++) {
-        letter = word[i];
-        current = base16_to_int[letter];
+    var i, first, second, first_int, second_int, current, moved;
+    for (i = 0; i < word.length; i+=2) {
+        first = word[i];
+        second = word[i+1];
+        first_int = base16_to_int[first];
+        second_int = base16_to_int[second];
+        current = first_int + second_int * 16;
         moved = current << offset;
         value += moved;
         offset += 8;
@@ -90,16 +93,9 @@ function base16_to_integer(word) {
 // computer for any intelligent beings.
 function CPU(args) {
     //need memory.
-    //each number stores 32-bits. so we need bits - 5.
-    this.memory_size_log = args['MEMORY_SIZE_LOG'];
-    var size_log = args['MEMORY_SIZE_LOG'] - block_size_log;
-    var memory_size = Math.pow(2, size_log);
-    //this.pc_addr = args['PC_ADDR'];  // memory address where pc is stored.
     // idle address must be even.
     this.idle_addr = args['IDLE_ADDR'];
     this.pc_signal_addr = args['PC_SIGNAL_ADDR'];
-    //this.pc_size = args['NUM_INSNS_LOG'];
-    this.insn_size = args['INSN_SIZE'];
     this.pc = 0;  //program counter.
 
     //definitely needed
@@ -130,46 +126,43 @@ CPU.prototype.run = function(){
     }
 };
 
-CPU.prototype.load_binary = function(text) {
+function load_binary(text) {
+    var memory = [];
     console.log("printing binary text: " + text);
-    var count = 0, word = [], i, a, next_byte, insn;
-    for (i=0; i < text.length; i+=1){
-        a = text[i];
-        next_byte = parseInt(a, 10);
-        word[count] = next_byte;
-        count+=1;
-        if (count === 4){
-            insn = base16_to_integer(word);
-            console.log("word was: " + word + " insn: " + insn);
-            this.memory.push(insn);
-            count = 0;
-        }
+    var word = [], i=0, a, next_byte, insn;
+    while ((i+8) <= text.length){
+        word = text.slice(i, i+8);
+        insn = base16_to_integer(word);
+        console.log("word was: " + word + " insn: " + insn);
+        memory.push(insn);
+        i += 8;
     }
-};
+    return memory;
+}
 /* lowest byte is op-code
  * 
  */
-CPU.prototype.get_insn = function(integer) {
-    var opcode = integer % 256;
-    integer = integer >> 8;
-    var two = integer % 256;
-    integer = integer >> 8;
+function get_insn(integer) {
+    var opcode = integer & 255;
+    integer = integer >>> 8;
+    var two = integer & 255;
+    integer = integer >>> 8;
     if (opcode == OPCODES.set || opcode == OPCODES.jump){
         // 2 more
-        var three = integer;
+        var three = integer & 65535;
         var insn = [opcode, two, three];
         console.log("read insn: " + insn);
         return insn;
     }
     else{
-        var three = integer % 256;
-        integer = integer >> 8;
+        var three = integer & 255;
+        integer = integer >>> 8;
         var four = integer;
         var insn = [opcode, two, three, four];
         console.log("read insn: " + insn);
         return insn;
     }
-};
+}
 
 // return list of booleans
 CPU.prototype.signal_and_idle = function() {
@@ -186,7 +179,7 @@ CPU.prototype.run_cycle = function(){
     }
     console.log("pc: " + this.pc);
     // NEW STYLE.
-    var insn = this.get_insn(this.memory[this.pc]);//take integer and return a array
+    var insn = get_insn(this.memory[this.pc]);//take integer and return a array
     var next_pc = this.pc + 1;
     var insn_type = insn[0];
     if (insn_type == OPCODES.store){
@@ -276,7 +269,8 @@ function on_run_click(filename) {
     }).done(function(response_data){
         var binary = response_data['binary'];
         console.log("Running program" + binary.name);
-        world.cpu.load_binary(binary.data);
+        var memory = load_binary(binary.data);
+        world.cpu.memory = memory;
         world.cpu.run();
     });
 

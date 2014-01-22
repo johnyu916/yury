@@ -5,6 +5,7 @@
 {% endblock %}
 {% block body %}
 <script src='/static/js/cpu.js'></script>
+<script src='/static/js/cpu_tests.js'></script>
 
 <div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
 <!-- load file from list.-->
@@ -39,6 +40,9 @@
       var filename = $(".files").val();
       on_run_click(filename);
     });
+
+    // lets run some tests
+    run_tests();
   });
 </script>
 {% endblock %}
