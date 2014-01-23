@@ -205,6 +205,7 @@ def write_ass(insn):
         text = 'set {0} {1}'.format(insn[1], insn[2])
     else:
         raise Exception("Unknown instruction: {0}".format(code))
+    print 'writing insn: ' + text
     return text + '\n'
 
 

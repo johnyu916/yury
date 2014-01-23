@@ -46,11 +46,8 @@ class VariableText(object):
 
 
 class BlockText(object):
-    def __init__(self, name):
+    def __init__(self):
         self.code = []  # code is expressions and blocks
-        self.name = name
-        print "name: {0}".format(id(self.name))
-        print "code: {0}".format(id(self.code))
 
     def get_dict(self):
         codes = []
@@ -68,10 +65,10 @@ class FunctionText(BlockText):
         name is the function name (string).
         inputs is a list of variables. ditto outputs.
         '''
+        self.name = name
         self.inputs = inputs
-        print "inputs: {0}".format(id(self.inputs))
         self.outputs = outputs
-        super(FunctionText, self).__init__(name)
+        super(FunctionText, self).__init__()
 
     def get_dict(self):
         inputs = []
@@ -82,41 +79,34 @@ class FunctionText(BlockText):
         for output in self.outputs:
             outputs.append(output.get_dict())
 
-        codes = super(FunctionText, self).get_dict()
+        block_dict = super(FunctionText, self).get_dict()
 
         this_dict = {
             'name': self.name,
             'inputs': inputs,
             'outputs': outputs
         }
-        this_dict.update(codes)
+        this_dict.update(block_dict)
         return this_dict
 
 
 class ConditionalText(BlockText):
-    def __init__(self, name, condition):
+    def __init__(self, condition):
         self.condition = condition
-        super(ConditionalText, self).__init__(name)
+        super(ConditionalText, self).__init__()
 
     def get_dict(self):
+        this_dict = {
+            'condition': self.condition.get_dict()
+        }
         codes = super(ConditionalText, self).get_dict()
-        return codes
+        this_dict.update(codes)
+        return this_dict
 
 
 class WhileText(ConditionalText):
     def __init__(self, expression):
-        super(WhileText, self).__init__("while", expression)
-
-
-    def get_dict(self):
-        codes = super(WhileText, self).get_dict()
-
-        this_dict = {
-            'name': self.name,
-            'expression': self.condition.get_dict()
-        }
-        this_dict.update(codes)
-        return this_dict
+        super(WhileText, self).__init__(expression)
 
 
 class IfBlock(ConditionalText):
@@ -172,20 +162,23 @@ class ExpressionText(object):
         self.children = children
 
     def get_dict(self):
-        children = []
-        for child in self.children:
-            #print child
-            children.append(child.get_dict())
+        return get_expression_dict(self)
 
-        if type(self.data) == str:
-            data = self.data
-        else:
-            data = self.data.get_dict()
+def get_expression_dict(expression):
+    children = []
+    for child in expression.children:
+        #print child
+        children.append(child.get_dict())
 
-        return {
-            'data': data,
-            'children':children
-        }
+    if type(expression.data) == str:
+        data = expression.data
+    else:
+        data = expression.data.get_dict()
+
+    return {
+        'data': data,
+        'children':children
+    }
 
 
 class Operator(object):
@@ -243,6 +236,19 @@ def get_stack_index(line):
         raise Exception("Wrong number of spaces")
     return num/4
 
+def get_program_dict(program):
+    functions = []
+    for function in program.functions:
+        functions.append(function.get_dict())
+    structs = []
+    for struct in program.structs:
+        structs.append(struct.get_dict())
+
+    return {
+        'functions': functions,
+        'structs': structs
+    }
+
 
 class ProgramText(object):
     def __init__(self, functions=[], structs=[]):
@@ -257,18 +263,9 @@ class ProgramText(object):
         #self.index = 0
 
 
-    def get_dict(self):
-        functions = []
-        for function in self.functions:
-            functions.append(function.get_dict())
-        structs = []
-        for struct in self.structs:
-            structs.append(struct.get_dict())
 
-        return {
-            'functions': functions,
-            'structs': structs
-        }
+    def __str__(self):
+        return json.dumps(get_program_dict(self))
 
 
 # Parsing functions
@@ -638,21 +635,11 @@ class Parser(object):
             # syntax checker
             self.check(line)
 
-        print "Parser finished. Code: {0}".format(self.program.get_dict())
-
 
     def check(self, line):
         # just read from beginning.
         line = line.rstrip()
         print "processing: '{0}'".format(line)
-        #print "printing program: {0}".format(self.program.get_dict())
-        print "printing program: "
-        for function in self.program.functions:
-            print function.get_dict()
-
-        print "stack: "
-        for block in self.stack:
-            print "{0} {1}".format(id(block), block.get_dict())
 
         # how many spaces are in front?
         stack_index = get_stack_index(line)
@@ -678,11 +665,10 @@ class Parser(object):
                 return
 
         block = self.stack[-1]
-        print "block name: {0}".format(block.name)
 
         statement, line = read_statement(line)
         if statement:
-            print "statement read: {0}. appending to: {1}".format(statement, block.name)
+            print "statement read: {0}. appending to: {1}".format(statement, block)
             block.code.append(statement)
             return
 

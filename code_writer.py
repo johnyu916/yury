@@ -59,9 +59,11 @@ class Converter(object):
 
         # some special instructions.
     
-        # set register 0 to stack pointer address
+        # set register 0 to zero pointer
         self.builder.set_int(0, 0)
+        # set stack pointer address register
         self.builder.set_int(self.sp_addr_register, self.sp_addr)
+        self.builder.set_int(self.sp_register, self.memory_size)
 
         for function in program.functions:
             self.function_begin[function.name] = len(self.insns)
@@ -102,17 +104,16 @@ class Converter(object):
         return_pc = Variable(get_type('int'), 'return_pc', 0)
         for input in outputs+inputs+[return_pc]+local_vars:
             block.new_variable(input)
-        
+
         # load stack pointer
-        self.builder.load(self.sp_register, self.sp_addr_register)
-        
+        # self.builder.load(self.sp_register, self.sp_addr_register)
+
         # write code now
         self.write_code_block(block, function)
 
         # return to some address.
         offset = block.variables['return_pc']['offset']
-        builder.set_int(3, offset)
-        builder.subtract_int(4, 2, 3)
+        self.set_offset_address(4, offset, 3)
         builder.jump(4)
 
     def write_code_block(self, block, code_block):
@@ -125,6 +126,7 @@ class Converter(object):
             elif b_type == While:
                 self.spit_while(block, chunk)
 
+
     def spit_expression(self, block, expression):
         '''
         perform whatever operation. at the end,
@@ -133,6 +135,7 @@ class Converter(object):
         # perform operation and store in temporary variable
         #self.builder.store_short(vars[exp.dest], exp.ex
         # 1 level expression
+        print "spitting expression"
         return_types = expression.get_types()
         builder = self.builder
         return_vars = {}
@@ -193,14 +196,16 @@ class Converter(object):
 
 
         # TODO: return block offset and free memory
-    
+
     def set_offset_address(self, register, offset, worker_register):
         '''
-        set offset to some register A
-        set register B = sp - A
-        
+        set worker_register to offset.
+        set register = sp - worker_register
+        Offset is always <= 0.
+        Convert to positive number and subtract.
+
         '''
-        self.builder.set_int(worker_register, offset)
+        self.builder.set_int(worker_register, offset*-1)
         self.builder.subtract_int(register, self.sp_register, worker_register)
 
     def call_function(self, block, function_name):
@@ -232,6 +237,7 @@ class Converter(object):
         '''
         variables should contain all variables.
         '''
+        print "spitting statement"
         builder = self.builder
         dests = statement.destinations
         expression = statement.expression
@@ -241,7 +247,6 @@ class Converter(object):
             variable = block.get_variable(dest.name)
             if not variable:
                 block.new_variable(variable)
-
 
         #dest_addr = block.vars[dest.name]
         self.spit_expression(block, expression)

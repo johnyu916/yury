@@ -1,5 +1,6 @@
 from shared.common import get_object
-from parser import OPERATORS, PRIMITIVE_TYPES, VariableText, ExpressionText, StatementText, FunctionText, ConditionalText, WhileText
+from parser import OPERATORS, PRIMITIVE_TYPES, VariableText, ExpressionText, StatementText, FunctionText, ConditionalText, WhileText, get_program_dict, get_expression_dict
+import json
 
 
 class Type(object):
@@ -43,6 +44,7 @@ def variable_make(variable_text):
     t_type = get_type(variable_text.arg_type)
     return Variable(t_type, variable_text.name, variable_text.value)
 
+
 class Variable(object):
     def __init__(self, type, name, value):
         self.type = type
@@ -56,6 +58,7 @@ class Variable(object):
             'value': self.value
         }
 
+
 class Program(object):
     def __init__(self, functions, structs):
         self.functions = functions
@@ -66,6 +69,9 @@ class Program(object):
             if function.name == name:
                 return function
         return None
+
+    def __str__(self):
+        return json.dumps(get_program_dict(self))
 
 
 class Block(object):
@@ -95,6 +101,15 @@ class Block(object):
     def get_variable(self,name):
         if self.parent:
             return self.parent.get_variable(name)
+
+    def get_dict(self):
+        codes = []
+        for line in self.code:
+            codes.append(line.get_dict())
+        return {
+            'code': codes
+        }
+
 
 class Expression(object):
     def __init__(self, expression_text, function, program):
@@ -180,6 +195,10 @@ class Expression(object):
         else:
             raise Exception("Cannot determine type of expression")
 
+    def get_dict(self):
+        return get_expression_dict(self)
+
+
 class Statement(object):
     def __init__(self, statement_text, function, program):
         dests = statement_text.dests
@@ -199,11 +218,28 @@ class Statement(object):
         self.destinations = destinations
         self.expression = expression
 
+    def get_dict(self):
+        dest_list = []
+        for dest in self.destinations:
+            dest_dict = dest.get_dict()
+            dest_list.append(dest_dict)
+        return {
+            'destinations': dest_list,
+            'expression': self.expression.get_dict()
+        }
 
 class Conditional(Block):
     def __init__(self, condition, text, parent, program):
         self.condition = condition
         super(Conditional, self).__init__(text, parent, program)
+
+    def get_dict(self):
+        this_dict = {
+            'condition': self.condition.get_dict()
+        }
+        codes = super(Conditional, self).get_dict()
+        this_dict.update(codes)
+        return this_dict
 
 
 class While(Conditional):
@@ -261,6 +297,22 @@ class Function(Block):
             types.append(output.type)
         return types
 
+    def get_dict(self):
+        inputs = [inpu.get_dict() for inpu in self.inputs]
+        outputs = [output.get_dict() for output in self.outputs]
+        local_variables = [var.get_dict() for var in self.local_variables]
+        variables = [var.get_dict() for var in self.variables]
+
+        codes = super(Function, self).get_dict()
+        return_dict = {
+            'name': self.name,
+            'inputs': inputs,
+            'outputs': outputs,
+            'local_variables': local_variables,
+            'variables': variables,
+        }
+        return_dict.update(codes)
+        return return_dict
 
 
 class Semantics:

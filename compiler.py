@@ -11,7 +11,9 @@ class Compiler(object):
     def __init__(self, text, output_file_name):
         self.lines = text.split('\n')
         self.parser = Parser(self.lines)
+        print "Parser finished. Code: {0}".format(self.parser.program)
         self.semantics = Semantics(self.parser.program)
+        print "Semantics finished. Program: {0}".format(self.semantics.program)
         program = self.semantics.program
         self.converter = Converter(program, {}, output_file_name)
 
