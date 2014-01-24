@@ -29,7 +29,7 @@ def binary(filename):
     return context
 
 def new_binary(document):
-    database()['binaries'].insert(document)
+    database()['binaries'].update({'name':document['name']}, document,  True)
     return {
         'status': 'ok'
     }

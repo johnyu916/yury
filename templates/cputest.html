@@ -15,8 +15,14 @@
   <option>{{binary['name']}}</option>
   {% endfor %}
   </select>
-<button id='run-cpu'>
-  Run
+  <button id='load-cpu'>
+    Load
+  </button>
+  <button id='run-cpu'>
+    Run
+  </button>
+  <button id='run-cycle-cpu'>
+    Run Cycle
   </button>
 </div>
 
@@ -27,18 +33,52 @@
     <input type='submit' value='Submit'>
   </form>
 </div>
+
+<div id='cpu-state'>
+  <!-- cpu state -->
+</div>
+
+
 <script>
   function onFileSelect(event){
     var file = event.target;
     var reader = new FileReader();
 
   }
+  function cpu_state(cpu){
+    var words = [];
+    var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc]));
+    words.push("PC: " + cpu.pc + " Instruction: " + insn_str +' ');
+    for (var i = 0; i < cpu.registers.length; i+=1){
+        var text = "Register " + i + ": " + cpu.registers[i];
+        words.push(text);
+    }
+    var part = '<div>' + words.join(' ') +'</div>';
+
+    var memory_length = cpu.memory.length;
+    words = [];
+    words.push("Memory: " + memory_length + " bytes");
+    for (var i = memory_length-1; i > memory_length - 16; i-=1){
+      text = "<div>" + i + " " + cpu.memory[i] + "</div>";
+        words.push(text);
+    }
+    var memory_text = words.join('\n');
+    $("#cpu-state").html(part+memory_text);
+  }
   $(document).ready(function(){
     //$(".file-input").change(onFileSelect);
     cpu_main();
+    $("#run-cycle-cpu").click(function(){
+      on_run_cycle_click();
+      cpu_state(world.cpu);
+    });
     $("#run-cpu").click(function(){
+      on_run_click();
+      cpu_state(world.cpu);
+    });
+    $("#load-cpu").click(function(){
       var filename = $(".files").val();
-      on_run_click(filename);
+      on_load_click(filename, cpu_state);
     });
 
     // lets run some tests

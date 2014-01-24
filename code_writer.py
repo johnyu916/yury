@@ -1,3 +1,5 @@
+import logging
+
 from code_semantics import Expression, Statement, Variable, While, get_type
 from parser import OPERATORS
 from instruction import Translator, write_insn, write_ass
@@ -135,10 +137,11 @@ class Converter(object):
         # perform operation and store in temporary variable
         #self.builder.store_short(vars[exp.dest], exp.ex
         # 1 level expression
-        print "spitting expression"
+        logging.debug("spitting expression")
         return_types = expression.get_types()
         builder = self.builder
         return_vars = {}
+        block_begin_offset = block.offset
 
         for count, return_type in enumerate(return_types):
             # make room for return value
@@ -196,6 +199,7 @@ class Converter(object):
 
 
         # TODO: return block offset and free memory
+        block.offset = block_begin_offset
 
     def set_offset_address(self, register, offset, worker_register):
         '''
@@ -237,7 +241,7 @@ class Converter(object):
         '''
         variables should contain all variables.
         '''
-        print "spitting statement"
+        logging.debug("spitting statement")
         builder = self.builder
         dests = statement.destinations
         expression = statement.expression
@@ -246,6 +250,7 @@ class Converter(object):
         for dest in dests:
             variable = block.get_variable(dest.name)
             if not variable:
+                logger.debug("didn't find variable %s" % dest.name)
                 block.new_variable(variable)
 
         #dest_addr = block.vars[dest.name]
@@ -253,9 +258,10 @@ class Converter(object):
         return_start = block.offset
         # copy addrs to destinations
         for dest in dests:
+            return_start -= dest.type.size
             self.set_offset_address(3, block.variables[dest.name]['offset'],4)
             self.set_offset_address(5, return_start,6)
-            # 3 is the destination. 5 is the source.
+            #copy 3 is the destination. 5 is the source.
             builder.load(7, 5)
             builder.store_int(3, 7)
             return_start += dest.type.size

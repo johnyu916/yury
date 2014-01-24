@@ -102,7 +102,6 @@ function CPU(args) {
     this.registers = [];
     this.memory = [];
 
-
     // precalculations
     this.idle_block_addr = this.idle_addr / this.block_size;
     this.idle_off = this.idle_addr % this.block_size;
@@ -126,6 +125,25 @@ CPU.prototype.run = function(){
     }
 };
 
+/* Print CPU state.
+ * Mostly for debugging.
+ */
+function cpu_state(cpu) {
+    console.log("words: " + words + words.join('\n'));
+    return part;
+}
+
+// set one byte
+function memory_set(memory, address, some_byte){
+    value = memory[address];
+}
+
+// get one byte
+function memory_get(memory, address){
+    //divide by 4 then return.
+    return memory[address];
+}
+
 function load_binary(text) {
     var memory = [];
     console.log("printing binary text: " + text);
@@ -134,11 +152,14 @@ function load_binary(text) {
         word = text.slice(i, i+8);
         insn = base16_to_integer(word);
         console.log("word was: " + word + " insn: " + insn);
+
+        // due to byte addressing, you must 
         memory.push(insn);
         i += 8;
     }
     return memory;
 }
+
 /* lowest byte is op-code
  * 
  */
@@ -164,6 +185,33 @@ function get_insn(integer) {
     }
 }
 
+function ass_insn(insn) {
+    var opc = insn[0];
+    var text = [];
+    if (opc == OPCODES['store']){
+        text = ['store', insn[1], insn[2], insn[3]];
+    }
+    else if (opc == OPCODES['jump']){
+        text = ['jump', insn[1]];
+    }
+    else if (opc == OPCODES['branch']){
+        text = ['branch', insn[1], insn[2]];
+    }
+    else if (opc == OPCODES['add']){
+        text = ['add', insn[1], insn[2], insn[3]];
+    }
+    else if (opc == OPCODES['subtract']){
+        text = ['subtract', insn[1], insn[2], insn[3]];
+    }
+    else if (opc == OPCODES['load']){
+        text = ['load', insn[1], insn[2], insn[3]];
+    }
+    else if (opc == OPCODES['set']){
+        text = ['set', insn[1], insn[2]];
+    }
+    return text.join(' ');
+}
+
 // return list of booleans
 CPU.prototype.signal_and_idle = function() {
     var memory = this.memory[this.idle_block];
@@ -185,12 +233,14 @@ CPU.prototype.run_cycle = function(){
     if (insn_type == OPCODES.store){
         var value = insn[1];
         var address = insn[2];
+        //call set_memory
         this.memory[this.registers[address]] = this.registers[value];
     }
     else if (insn_type == OPCODES.load){
         var value = insn[1];
         var address = insn[2];
-        this.registers[address] = this.memory[this.registers[value]];
+        //call get_memory
+        this.registers[value] = this.memory[this.registers[address]];
     }
     else if (insn_type == OPCODES.jump){
         var value = insn[1];
@@ -229,6 +279,7 @@ CPU.prototype.run_cycle = function(){
     this.pc = next_pc;
     return 0;
 };
+
 /* get the mask as a 2's compleemnt integer given the
  * offset and size.
  */
@@ -262,7 +313,8 @@ function new_int_value(memory, offset, size, value){
 }
 
 
-function on_run_click(filename) {
+
+function on_load_click(filename, callback) {
     $.ajax({
         url: '/binary',
         data: {'name':filename}
@@ -271,9 +323,17 @@ function on_run_click(filename) {
         console.log("Running program" + binary.name);
         var memory = load_binary(binary.data);
         world.cpu.memory = memory;
-        world.cpu.run();
-    });
 
+        callback(world.cpu);
+    });
+}
+
+function on_run_cycle_click(){
+    world.cpu.run_cycle();
+}
+
+function on_run_click(){
+    world.cpu.run();
 }
 
 function cpu_main() {

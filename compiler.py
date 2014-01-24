@@ -1,3 +1,4 @@
+import logging
 import sys
 from code_writer import Converter
 from parser import Parser
@@ -19,6 +20,7 @@ class Compiler(object):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     filename = sys.argv[1]
     output_file_name = sys.argv[2]
     #with open(BAM_DIR / filename) as f:

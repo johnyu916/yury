@@ -1,3 +1,4 @@
+import logging
 import struct
 
 class InstructionOld(object):
@@ -21,38 +22,38 @@ register 1 has the stack pointer's address
 
 insn types:
 load value_register address_register index
-  value_register - 8-bit address where value will be loaded to.
-  address_register - 8-bit address where the address is stored.
-  index - 8-bit index
+  value_register - 8-bit address of register that contains value.
+  address_register - 8-bit address of register that contains address.
+  index - 8-bit positive offset
 
 store value_register address_register index
-  value_register - 8-bit address where value currently is.
-  address_register - 8-bit address where the address is stored.
-  index - 8-bit index
+  value_register - 8-bit address of register that contains value.
+  address_register - 8-bit address of register that contains address.
+  index - 8-bit positive offset.
 
 set register immediate
-  register - 8-bit
-  immediate - 16-bit
+  register - 8-bit address of register.
+  immediate - 16-bit positive offset.
 
 jump register
-  register - 8-bit insn location (pc) to jump to.
+  register - 8-bit address of register that contains insn location (pc) to jump to.
 
 branch register branch_to
   if value at register is 0, branch to pc.
-  register - 8-bit address to read a byte 
-  branch_to - 8-bit register contains insn to branch to.
+  register - 8-bit address of register that contains value
+  branch_to - 8-bit address of register that contains pc to branch to.
 
 add result one two
   add 2 32-bit integers
-  result - 8-bit address of result
-  one - 8-bit address of first operand
-  two - 8-bit address of second operand.
+  result - 8-bit address of register that contains result
+  one - 8-bit address of register that contains first operand
+  two - 8-bit address of register that contains second operand.
 
 subtract result one two
-    result = one - two. 32-bit subtraction.
-  result - 8-bit address of result
-  one - 8-bit address of first operand.
-  two - 8-bit address of second operand.
+  result = one - two. 32-bit subtraction.
+  result - 8-bit address of register that contains result
+  one - 8-bit address of register that contains first operand.
+  two - 8-bit address of register that contains second operand.
 
 op codes: 8 bits long. longest parameters is a few of them (24-bit)
 each instruction is 32-bits long.
@@ -72,6 +73,7 @@ OPCODES = {
 }
 
 def load_insn(value_register, address_register, index=0):
+    logging.debug('load_insn {0} {1}'.format(value_register, address_register, index))
     return (
         OPCODES['load'],
         value_register,
@@ -80,6 +82,7 @@ def load_insn(value_register, address_register, index=0):
     )
 
 def store_insn(value_register, address_register, index=0):
+    logging.debug('store_insn {0} {1}'.format(value_register, address_register, index))
     return (
         OPCODES['store'],
         value_register,
@@ -90,6 +93,7 @@ def store_insn(value_register, address_register, index=0):
 def set_insn(value_register, immediate):
     assert type(value_register) == int
     assert type(immediate) == int
+    logging.debug('set_insn {0} {1}'.format(value_register, immediate))
     return (
         OPCODES['set'],
         value_register,
@@ -97,6 +101,7 @@ def set_insn(value_register, immediate):
     )
 
 def jump_insn(register):
+    logging.debug('jump_insn {0}'.format(register))
     return (
         OPCODES['jump'],
         register,
@@ -114,6 +119,7 @@ def branch_insn(value_register, branch_register):
     '''
     if value_register is 0, then branch to pc at branch_register
     '''
+    logging.debug('branch_insn {0} {1}'.format(value_register, branch_register))
     return (
         OPCODES['branch'],
         value_register,
@@ -122,6 +128,7 @@ def branch_insn(value_register, branch_register):
     )
 
 def add_insn(result, one, two):
+    logging.debug('add_insn {0} {1} {2}'.format(result, one, two))
     return (
         OPCODES['add'],
         result,
@@ -130,6 +137,7 @@ def add_insn(result, one, two):
     )
 
 def subtract_insn(result, one, two):
+    logging.debug('subtract_insn {0} {1} {2}'.format(result, one, two))
     return (
         OPCODES['subtract'],
         result,
