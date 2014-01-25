@@ -293,10 +293,16 @@ class Translator(object):
         self.subtract_int(self.sp_addr, self.sp_addr, size)
 
 
-    def load(self, val_reg, addr_reg, imm=0):
+    def load_int(self, val_reg, addr_reg, imm=0):
+        '''
+
+        '''
         self.insns.append(load_insn(val_reg, addr_reg, imm))
 
     def store_int(self, dest_reg, value_reg):
+        '''
+        Store value in value_reg to address in dest_reg
+        '''
         insn = store_insn(value_reg, dest_reg)
         self.insns.append(insn)
 

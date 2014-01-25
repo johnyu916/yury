@@ -46,24 +46,23 @@
 
   }
   function cpu_state(cpu){
-    var words = [];
+    var texts = [];
+    texts.push("<div>PC: " + cpu.pc + "</div>");
     var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc]));
-    words.push("PC: " + cpu.pc + " Instruction: " + insn_str +' ');
+    texts.push("<div>Instruction: " + insn_str +'</div>');
+    var words = [];
     for (var i = 0; i < cpu.registers.length; i+=1){
         var text = "Register " + i + ": " + cpu.registers[i];
         words.push(text);
     }
-    var part = '<div>' + words.join(' ') +'</div>';
+    texts.push('<div>' + words.join(' ') +'</div>');
 
     var memory_length = cpu.memory.length;
-    words = [];
-    words.push("Memory: " + memory_length + " bytes");
+    texts.push("<div>Memory: " + memory_length + " bytes</div>");
     for (var i = memory_length-1; i > memory_length - 16; i-=1){
-      text = "<div>" + i + " " + cpu.memory[i] + "</div>";
-        words.push(text);
+        texts.push("<div>" + i + " " + cpu.memory[i] + "</div>");
     }
-    var memory_text = words.join('\n');
-    $("#cpu-state").html(part+memory_text);
+    $("#cpu-state").html(texts.join('\n'));
   }
   $(document).ready(function(){
     //$(".file-input").change(onFileSelect);

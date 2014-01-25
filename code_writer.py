@@ -60,7 +60,7 @@ class Converter(object):
         self.program = program
 
         # some special instructions.
-    
+
         # set register 0 to zero pointer
         self.builder.set_int(0, 0)
         # set stack pointer address register
@@ -79,11 +79,23 @@ class Converter(object):
 
 
     def write_insns(self, output_file_name):
+        def function_key(item):
+            return item[0]
+        functions = [(number, name) for name, number in self.function_begin.iteritems()]
+        functions.sort(key=function_key)
+
+        current_no, current_name = functions.pop(0)
         assf = open(output_file_name + '.ass', 'w')
         binf = open(output_file_name + '.bin', 'w')
-        for insn in self.insns:
+        for index, insn in enumerate(self.insns):
             binf.write(write_insn(insn))
-            assf.write(write_ass(insn))
+            if index == current_no:
+                text = current_name + ": "
+                if len(functions) > 0:
+                    current_no, current_name = functions.pop(0)
+            else:
+                text = ""
+            assf.write(text + write_ass(insn))
         binf.close()
         assf.close()
 
@@ -95,6 +107,7 @@ class Converter(object):
         2. inputs
         3. return address
         '''
+        logging.debug("spitting function: {0}".format(function.name))
         # print a single function
         builder = self.builder
         block = Block()
@@ -114,9 +127,10 @@ class Converter(object):
         self.write_code_block(block, function)
 
         # return to some address.
-        offset = block.variables['return_pc']['offset']
-        self.set_offset_address(4, offset, 3)
-        builder.jump(4)
+        #offset = block.variables['return_pc']['offset']
+        #self.set_offset_address(4, offset, 3)
+        builder.jump(self.pc_return_register)
+        logging.debug("spitting function done: {0}".format(function.name))
 
     def write_code_block(self, block, code_block):
         for chunk in code_block.code:
@@ -126,18 +140,20 @@ class Converter(object):
             elif b_type == Statement:
                 self.spit_statement(block, chunk)
             elif b_type == While:
+                logging.debug("spitting loop: {0}".format(chunk))
                 self.spit_while(block, chunk)
 
 
     def spit_expression(self, block, expression):
         '''
-        perform whatever operation. at the end,
+        Allocates space for return types.
+        Perform the operation. at the end,
         block offset will be returned to what it was.
         '''
         # perform operation and store in temporary variable
         #self.builder.store_short(vars[exp.dest], exp.ex
         # 1 level expression
-        logging.debug("spitting expression")
+        logging.debug("spitting expression: {0}".format(expression))
         return_types = expression.get_types()
         builder = self.builder
         return_vars = {}
@@ -162,44 +178,70 @@ class Converter(object):
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
             if var.name != None:
                 src_offset = block.variables[var.name]['offset']
-                self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset 
+                self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset
+                # copy from 6 to 4.
                 builder.copy(4, 6, var.type.size, 7)
             else:
+                # constant. store to 4 (destination)
                 builder.store_inti(4, var.value, 5)  # immediate
 
         elif data_type == str:
-            # has children, so run them first.
-            for child in expression.children:
+            # has children.
+            # if necessary, allocate additional space for intermediary.
+            # so run them first.
+            children = expression.children
+            for child in children:
                 self.spit_expression(block, child)
+                # need to save the child somewhere.
+                child_return_types = child.get_types()
+                for child_type in child_return_types:
+                    block.offset -= child_type.size
 
             # operator or string
             if data in OPERATORS:
-                # operators return only one thing
+                if len(return_vars) != 1:
+                    raise Exception("operation returns 1 value, but returns: {0}".format(len(return_vars)))
+                # operators return only one thing. assume 2 return values.
                 dest_offset = return_vars[0]['offset']
+                operand_one_size = children[0].get_types()[0].size
+                operand_two_size = children[1].get_types()[0].size
                 self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest_offset
-                self.set_offset_address(6, dest_offset-4, 5) # operand one
-                self.set_offset_address(8, dest_offset-8, 7) # operand two
+                self.set_offset_address(6, dest_offset-operand_one_size, 5) # 6 has operand one
+                self.set_offset_address(8, dest_offset-operand_two_size, 7) # 8 has operand two
                 if data == '+':
                     builder.add_int(4, 6, 8)
                 elif data == '-':
                     builder.subtract_int(4, 6, 8)
             else:
-                # call function. before, set the 
+                # call function. Note we already allocated space for the 
+                # output (return_vars) and input (child_return_types).
+
+                # set stack pointer to offset
+                builder.subtract_inti(self.sp_register, self.sp_register, block_begin_offset *-1, 3)
                 self.call_function(block, data)
 
                 # call function changed the stack pointer, so change it back
-                builder.add_inti(self.sp_register, self.sp_register, block.offset, 4)
-                #copy over output to return values
-                operand_offset = block.offset
-                for count in range(len(return_types)):
-                    return_var = return_vars[count]
-                    self.set_offset_address(4, return_var['offset'], 3)
-                    self.set_offset_address(6, operand_offset, 5)
-                    operand_offset += return_var['variable'].type.size
+                builder.add_inti(self.sp_register, self.sp_register, block_begin_offset * -1, 4)
+                # set return address back to return register
+                self.set_offset_address(3, block.variables['return_pc']['offset'], 4)
+                builder.load_int(self.pc_return_register, 3)
+
+                #copy over output to return values (not necessary).
+                #operand_offset = block.offset
+                #for count in range(len(return_types)):
+                #    operand_offset -= return_var['variable'].type.size
+                #    return_var = return_vars[count]
+
+                #    # 4 is the destination offset
+                #    self.set_offset_address(4, return_var['offset'], 3)
+
+                #    # 6 is the source
+                #    self.set_offset_address(6, operand_offset, 5)
+                #    builder.copy(4, 6, 7)
 
 
-        # TODO: return block offset and free memory
         block.offset = block_begin_offset
+        logging.debug("spitting expression done")
 
     def set_offset_address(self, register, offset, worker_register):
         '''
@@ -209,6 +251,7 @@ class Converter(object):
         Convert to positive number and subtract.
 
         '''
+        assert offset <= 0
         self.builder.set_int(worker_register, offset*-1)
         self.builder.subtract_int(register, self.sp_register, worker_register)
 
@@ -217,12 +260,10 @@ class Converter(object):
         function = self.program.get_function(function_name)
         if not function:
             raise Exception("Unknown function name: {0}".format(function_name))
-        # save return register on stack
+        # save return register on stack, because the child is going to use it now.
         self.set_offset_address(3, block.variables['return_pc']['offset'], 4)
         builder.store_int(self.pc_return_register, 3)
         
-        # set stack pointer to offset
-        builder.subtract_inti(self.sp_register, self.sp_register, block.offset, 3)
 
         # need to give return pc.
         builder.set_int(self.pc_return_register, len(self.insns))
@@ -239,9 +280,12 @@ class Converter(object):
 
     def spit_statement(self, block, statement):
         '''
-        variables should contain all variables.
+        Destinations should already be in the stack, so does not
+        allocate additional memory (but expressions do).
+        After expression is done, memory is copied from the 
+        return values to the destinations.
         '''
-        logging.debug("spitting statement")
+        logging.debug("spitting statement: {0}".format(statement))
         builder = self.builder
         dests = statement.destinations
         expression = statement.expression
@@ -250,8 +294,9 @@ class Converter(object):
         for dest in dests:
             variable = block.get_variable(dest.name)
             if not variable:
-                logger.debug("didn't find variable %s" % dest.name)
-                block.new_variable(variable)
+                raise Exception("didn't find variable %s" % dest.name)
+                #logging.debug("didn't find variable %s" % dest.name)
+                #block.new_variable(variable)
 
         #dest_addr = block.vars[dest.name]
         self.spit_expression(block, expression)
@@ -262,14 +307,17 @@ class Converter(object):
             self.set_offset_address(3, block.variables[dest.name]['offset'],4)
             self.set_offset_address(5, return_start,6)
             #copy 3 is the destination. 5 is the source.
-            builder.load(7, 5)
-            builder.store_int(3, 7)
-            return_start += dest.type.size
+            builder.copy(3, 5, dest.type.size, 7)
+            #builder.load(7, 5)
+            #builder.store_int(3, 7)
+
+        logging.debug("spitting statement done:")
 
 
     def spit_while(self, block, while_cond):
         # if condition met, enter loop, else exit.
         # must clear any unused variables after its done.
+        logging.debug("spitting while: {0}".format(while_cond))
         loop_start = len(self.builder.insns)
         self.spit_expression(block, while_cond.condition)
 
@@ -277,7 +325,7 @@ class Converter(object):
         addr_reg = 3
         self.set_offset_address(addr_reg, offset, 4)
         value_reg = 5
-        self.builder.load(value_reg, addr_reg)
+        self.builder.load_int(value_reg, addr_reg)
         loop_end_index = len(self.builder.insns)
         self.builder.branch(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
 
@@ -289,6 +337,7 @@ class Converter(object):
         # loop conclusion
         self.builder.branch_set(loop_end_index, value_reg, loop_end, 6)
         #self.builder.insns[loop_end_index].branch_to = loop_end
+        logging.debug("spitting while done")
 
 
 def test():

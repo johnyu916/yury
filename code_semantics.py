@@ -110,6 +110,9 @@ class Block(object):
             'code': codes
         }
 
+    def __str__(self):
+        return json.dumps(self.get_dict())
+
 
 class Expression(object):
     def __init__(self, expression_text, function, program):
@@ -144,17 +147,32 @@ class Expression(object):
                 child_types.append(child_exp.get_types)
                 self.children.append(child_exp)
 
+            for child in self.children:
+                types = child.get_types()
+                assert len(types) == 1, "Each operands must return 1 value, but returns: {0}".format(len(child))
+
             # does function name or operator exist?
             if data in OPERATORS:
                 self.data = data
-                # only check if they are same an has length 1
+                assert len(self.children) == 2, "Can only handle 2 operands in operation, but returns: {0}".format(len(self.children))
+                my_type = None
+                for child in self.children:
+                    child_type  = child.get_types()[0]
+                    if my_type == None:
+                        my_type = child_type
+                    else:
+                        assert my_type.name == child_type.name, "My type: {0}, child_type: {1}".format(my_type, child_type)
 
             else:
-                function_p = program.get_function(data)
-                if function_p:
+                function = program.get_function(data)
+                if function:
                     self.data = data
                 else:
                     raise Exception("no function with that name: {0}".format(data))
+                for index, child in enumerate(self.children):
+                    child_type  = child.get_types()[0]
+                    def_name = function.inputs[index].type.name
+                    assert def_name == child_type.name, "Function input type {0} does not match child type: {1}".format(def_name, child_type.name)
 
         else:
             raise Exception("Unknown data: {0}".format(data))
@@ -167,7 +185,7 @@ class Expression(object):
         '''
         data = self.data
         if type(data) == Variable:
-            print "exp get_type var: {0}".format(data.get_dict())
+            #print "exp get_type var: {0}".format(data.get_dict())
             if data.type:
                 return [data.type]
             elif data.value:
@@ -198,6 +216,8 @@ class Expression(object):
     def get_dict(self):
         return get_expression_dict(self)
 
+    def __str__(self):
+        return json.dumps(self.get_dict())
 
 class Statement(object):
     def __init__(self, statement_text, function, program):
@@ -227,6 +247,9 @@ class Statement(object):
             'destinations': dest_list,
             'expression': self.expression.get_dict()
         }
+    def __str__(self):
+        return json.dumps(self.get_dict())
+
 
 class Conditional(Block):
     def __init__(self, condition, text, parent, program):
