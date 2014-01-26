@@ -140,7 +140,6 @@ class Converter(object):
             elif b_type == Statement:
                 self.spit_statement(block, chunk)
             elif b_type == While:
-                logging.debug("spitting loop: {0}".format(chunk))
                 self.spit_while(block, chunk)
 
 
@@ -206,12 +205,23 @@ class Converter(object):
                 operand_one_size = children[0].get_types()[0].size
                 operand_two_size = children[1].get_types()[0].size
                 self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest_offset
-                self.set_offset_address(6, dest_offset-operand_one_size, 5) # 6 has operand one
-                self.set_offset_address(8, dest_offset-operand_two_size, 7) # 8 has operand two
+                self.set_offset_address(5, dest_offset-operand_one_size, 3) # 5 has address of operand one
+                self.set_offset_address(6, dest_offset - operand_one_size - operand_two_size, 3) # 6 has address of operand two
+
+                builder.load_int(8, 5)
+                builder.load_int(9, 6)
                 if data == '+':
-                    builder.add_int(4, 6, 8)
+                    builder.add_int(7, 8, 9)
+                    builder.store_int(4, 7) # store result in 4
                 elif data == '-':
-                    builder.subtract_int(4, 6, 8)
+                    builder.subtract_int(7,8,9)
+                    builder.store_int(4, 7) # store result in 4
+                elif data == '!=':
+                    builder.set_on_ne(7,8,9, 10, 11, 12, 13)
+                    builder.store_byte(4, 7) # store result in 4
+                elif data == '==':
+                    builder.set_on_e(7,8,9, 10, 11, 12, 13)
+                    builder.store_byte(4, 7) # store result in 4
             else:
                 # call function. Note we already allocated space for the 
                 # output (return_vars) and input (child_return_types).
@@ -317,7 +327,7 @@ class Converter(object):
     def spit_while(self, block, while_cond):
         # if condition met, enter loop, else exit.
         # must clear any unused variables after its done.
-        logging.debug("spitting while: {0}".format(while_cond))
+        logging.debug("spitting while: {0}".format(while_cond.condition))
         loop_start = len(self.builder.insns)
         self.spit_expression(block, while_cond.condition)
 
@@ -325,9 +335,9 @@ class Converter(object):
         addr_reg = 3
         self.set_offset_address(addr_reg, offset, 4)
         value_reg = 5
-        self.builder.load_int(value_reg, addr_reg)
+        self.builder.load_byte(value_reg, addr_reg)
         loop_end_index = len(self.builder.insns)
-        self.builder.branch(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
+        self.builder.branch_on_zi(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
 
         self.write_code_block(block, while_cond)
 
@@ -335,7 +345,7 @@ class Converter(object):
         self.builder.jumpi(loop_start, 6)
         loop_end = len(self.builder.insns)
         # loop conclusion
-        self.builder.branch_set(loop_end_index, value_reg, loop_end, 6)
+        self.builder.branch_on_zi_set(loop_end_index, value_reg, loop_end, 6)
         #self.builder.insns[loop_end_index].branch_to = loop_end
         logging.debug("spitting while done")
 

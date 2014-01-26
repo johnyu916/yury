@@ -3,14 +3,18 @@
 var block_size_log = 5;
 var block_size = Math.pow(2, block_size_log);
 var OPCODES = {
-    'store': 0,
+    'store_word': 0,
     'jump': 1,
     'move': 2,
-    'branch': 3,
+    'branch_on_z': 3,
     'add': 4,
     'subtract': 5,
-    'load': 6,
-    'set': 7
+    'load_word': 6,
+    'set': 7,
+    'branch_on_ltz': 8,
+    'store_byte': 9,
+    'load_byte': 10
+    'multiply': 11,
 };
 var base16_to_int = {
     '0': 0,
@@ -72,8 +76,8 @@ function Instruction(read, branch, on_one, on_zero) {
 
 
 /**
- * Word must be 4 characters. The character is between 0 and F.
- * 
+ * Word must be 8 characters. The character is between 0 and F.
+ * Returns integer corresponding to word.
  */
 function base16_to_integer(word) {
     var value = 0, offset = 0;
@@ -90,13 +94,39 @@ function base16_to_integer(word) {
     }
     return value;
 }
+
+/*
+ * Breaks down integer to array of smaller integers.
+ * 
+ */
+function integer_to_byte_array(integer){
+    var one = integer & 255;
+    integer = integer >>> 8;
+    var two = integer & 255;
+    integer = integer >>> 8;
+    var three = integer & 255;
+    var four = integer >>> 8;
+    return [one, two, three, four];
+}
+
+function byte_array_to_integer(byte_array){
+    var integer = 0;
+    var shift = 0;
+    for (var i = 0; i < 4; i++){
+        var value = bypte_array[i] >> shift;
+        integer += value;
+        shift += 8;
+    }
+    return integer;
+}
+
 // computer for any intelligent beings.
 function CPU(args) {
     //need memory.
     // idle address must be even.
     this.idle_addr = args['IDLE_ADDR'];
     this.pc_signal_addr = args['PC_SIGNAL_ADDR'];
-    this.pc = 0;  //program counter.
+    this.pc = 0;  //program counter. byte addressing.
 
     //definitely needed
     this.registers = [];
@@ -133,15 +163,52 @@ function cpu_state(cpu) {
     return part;
 }
 
-// set one byte
-function memory_set(memory, address, some_byte){
-    value = memory[address];
+/* set memory at address to some byte array. 
+ * this is useful when address is not divisible by 4 and/or
+ * value_array.length is not divisible by 4.
+ */
+function memory_set(memory, address, value_array){
+    var offset = address % 4;
+    var start = address - offset;
+    var num_words = (offset + size) / 4;
+    var memory_array = [];
+    for (var i = start; i < num_words; i+=1){
+        var array = integer_to_byte_array(memory[i]);
+        for (var j = 0; j < 4; j+=1){
+            memory_array.push(array[j]);
+        }
+    }
+    for (var i = offset; i < value_array.length; i++){
+        memory_array[i] = value_array[i];
+    }
+    var index = start;
+    for (var i = 0; i < value_array.length; i+=4){
+        var byte_array = value_array.slice(i, i+4);
+        var value = byte_array_to_integer(byte_array);
+        memory[start] = value;
+        index += 1;
+    }
 }
 
-// get one byte
-function memory_get(memory, address){
-    //divide by 4 then return.
-    return memory[address];
+
+/* get memory at address and some size. return byte array.
+ * this is useful when address is not divisible by 4 and/or
+ * size is not divisible by 4.
+ */
+function memory_get(memory, address, size){
+    var offset = address % 4;
+    var start = address - offset;
+    var num_words = (offset + size) / 4;
+    var return_array = [];
+    for (var i = start; i < num_words; i+=1){
+        if (i >= memory.length) break;
+        var array = integer_to_byte_array(memory[i]);
+        for (var j = offset; j < 4; j+=1){
+            return_array.push(array[j]);
+        }
+        if (offset != 0) offset = 0;
+    }
+    return return_array;
 }
 
 function load_binary(text) {
@@ -227,26 +294,29 @@ CPU.prototype.run_cycle = function(){
     }
     console.log("pc: " + this.pc);
     // NEW STYLE.
-    var insn = get_insn(this.memory[this.pc]);//take integer and return a array
-    var next_pc = this.pc + 1;
+    var insn = get_insn(this.memory[this.pc/4]);//take integer and return a array
+    var next_pc = this.pc + 4;
     var insn_type = insn[0];
-    if (insn_type == OPCODES.store){
+    if (insn_type == OPCODES.store_word){
         var value = insn[1];
         var address = insn[2];
         //call set_memory
-        this.memory[this.registers[address]] = this.registers[value];
+        var byte_array = integer_to_byte_array(this.register[value]);
+        memory_set(this.memory, this.registers[address], byte_array);
     }
-    else if (insn_type == OPCODES.load){
+    else if (insn_type == OPCODES.load_word){
         var value = insn[1];
         var address = insn[2];
         //call get_memory
-        this.registers[value] = this.memory[this.registers[address]];
+        var byte_array = memory_get(this.memory, this.registers[address], 4)
+        var integer = byte_array_to_integer(byte_array);
+        this.registers[value] = integer
     }
     else if (insn_type == OPCODES.jump){
         var value = insn[1];
         next_pc = this.registers[value];
     }
-    else if (insn_type == OPCODES.branch){
+    else if (insn_type == OPCODES.branch_on_z){
         var vale_reg = insn[1];
         if (this.registers[value_reg] == 0){
             var branch_reg = insn[2];
@@ -269,6 +339,12 @@ CPU.prototype.run_cycle = function(){
         var value_reg = insn[1];
         var imm = insn[2];
         this.registers[value_reg] = imm;
+    }
+    else if (insn_type == OPCODES.multiply){
+        var result = insn[1];
+        var one = insn[2];
+        var two = insn[3];
+        this.registers[result] = this.registers[one] * this.registers[two];
     }
     else{
         console.log("unknown instruction: " + insn);
