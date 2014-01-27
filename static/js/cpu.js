@@ -13,7 +13,7 @@ var OPCODES = {
     'set': 7,
     'branch_on_ltz': 8,
     'store_byte': 9,
-    'load_byte': 10
+    'load_byte': 10,
     'multiply': 11,
 };
 var base16_to_int = {
@@ -113,7 +113,7 @@ function byte_array_to_integer(byte_array){
     var integer = 0;
     var shift = 0;
     for (var i = 0; i < 4; i++){
-        var value = bypte_array[i] >> shift;
+        var value = byte_array[i] >> shift;
         integer += value;
         shift += 8;
     }
@@ -124,25 +124,17 @@ function byte_array_to_integer(byte_array){
 function CPU(args) {
     //need memory.
     // idle address must be even.
-    this.idle_addr = args['IDLE_ADDR'];
-    this.pc_signal_addr = args['PC_SIGNAL_ADDR'];
+    this.idle;  //IDLE register.
+    this.pc_signal; // SIGNAL register.
     this.pc = 0;  //program counter. byte addressing.
 
     //definitely needed
     this.registers = [];
+    for (var i = 0; i < args.NUM_REGISTERS; i+=1){
+        this.registers.push(0);
+    }
+
     this.memory = [];
-
-    // precalculations
-    this.idle_block_addr = this.idle_addr / this.block_size;
-    this.idle_off = this.idle_addr % this.block_size;
-
-    this.pc_block_addr = this.pc_addr / this.block_size;
-    this.pc_off = this.pc_addr % this.block_size;
-
-    this.pc_signal_block_addr = this.pc_signal_addr / this.block_size;
-    this.pc_signal_off = this.pc_signal_addr % this.block_size;
-
-
 
 }
 
@@ -163,29 +155,36 @@ function cpu_state(cpu) {
     return part;
 }
 
-/* set memory at address to some byte array. 
- * this is useful when address is not divisible by 4 and/or
- * value_array.length is not divisible by 4.
- */
-function memory_set(memory, address, value_array){
+function memory_get_array(memory, address, size){
     var offset = address % 4;
-    var start = address - offset;
+    var start = address/4;
     var num_words = (offset + size) / 4;
     var memory_array = [];
-    for (var i = start; i < num_words; i+=1){
+    for (var i = start; i < start+num_words; i+=1){
         var array = integer_to_byte_array(memory[i]);
         for (var j = 0; j < 4; j+=1){
             memory_array.push(array[j]);
         }
     }
-    for (var i = offset; i < value_array.length; i++){
+    return memory_array;
+}
+
+/* set memory at address to some byte array. 
+ * this is useful when address is not divisible by 4 and/or
+ * value_array.length is not divisible by 4.
+ */
+function memory_set(memory, address, value_array){
+    var memory_array = memory_get_array(memory, address, value_array.length);
+    var offset = address % 4;
+    for (var i = offset; i < offset+value_array.length; i++){
         memory_array[i] = value_array[i];
     }
+    var start = address/4;
     var index = start;
-    for (var i = 0; i < value_array.length; i+=4){
-        var byte_array = value_array.slice(i, i+4);
+    for (var i = 0; i < memory_array.length; i+=4){
+        var byte_array = memory_array.slice(i, i+4);
         var value = byte_array_to_integer(byte_array);
-        memory[start] = value;
+        memory[index] = value;
         index += 1;
     }
 }
@@ -196,17 +195,11 @@ function memory_set(memory, address, value_array){
  * size is not divisible by 4.
  */
 function memory_get(memory, address, size){
+    var memory_array = memory_get_array(memory, address, size);
     var offset = address % 4;
-    var start = address - offset;
-    var num_words = (offset + size) / 4;
     var return_array = [];
-    for (var i = start; i < num_words; i+=1){
-        if (i >= memory.length) break;
-        var array = integer_to_byte_array(memory[i]);
-        for (var j = offset; j < 4; j+=1){
-            return_array.push(array[j]);
-        }
-        if (offset != 0) offset = 0;
+    for (var i = offset; i < offset+size; i+=1){
+      return_array.push(memory_array[i]);
     }
     return return_array;
 }
@@ -231,6 +224,7 @@ function load_binary(text) {
  * 
  */
 function get_insn(integer) {
+    console.log("get_insn integer: " + integer);
     var opcode = integer & 255;
     integer = integer >>> 8;
     var two = integer & 255;
@@ -239,7 +233,7 @@ function get_insn(integer) {
         // 2 more
         var three = integer & 65535;
         var insn = [opcode, two, three];
-        console.log("read insn: " + insn);
+        console.log("get_insn read insn: " + insn);
         return insn;
     }
     else{
@@ -247,7 +241,7 @@ function get_insn(integer) {
         integer = integer >>> 8;
         var four = integer;
         var insn = [opcode, two, three, four];
-        console.log("read insn: " + insn);
+        console.log("get_insn read insn2: " + insn);
         return insn;
     }
 }
@@ -255,14 +249,14 @@ function get_insn(integer) {
 function ass_insn(insn) {
     var opc = insn[0];
     var text = [];
-    if (opc == OPCODES['store']){
-        text = ['store', insn[1], insn[2], insn[3]];
+    if (opc == OPCODES['store_word']){
+        text = ['store_word', insn[1], insn[2], insn[3]];
     }
     else if (opc == OPCODES['jump']){
         text = ['jump', insn[1]];
     }
-    else if (opc == OPCODES['branch']){
-        text = ['branch', insn[1], insn[2]];
+    else if (opc == OPCODES['branch_on_z']){
+        text = ['branch_on_z', insn[1], insn[2]];
     }
     else if (opc == OPCODES['add']){
         text = ['add', insn[1], insn[2], insn[3]];
@@ -270,11 +264,23 @@ function ass_insn(insn) {
     else if (opc == OPCODES['subtract']){
         text = ['subtract', insn[1], insn[2], insn[3]];
     }
-    else if (opc == OPCODES['load']){
-        text = ['load', insn[1], insn[2], insn[3]];
+    else if (opc == OPCODES['load_word']){
+        text = ['load_word', insn[1], insn[2], insn[3]];
     }
     else if (opc == OPCODES['set']){
         text = ['set', insn[1], insn[2]];
+    }
+    else if (opc == OPCODES['branch_on_ltz']){
+        text = ['branch_on_ltz', insn[1], insn[2]];
+    }
+    else if (opc == OPCODES['store_byte']){
+        text = ['store_byte', insn[1], insn[2], insn[3]];
+    }
+    else if (opc == OPCODES['load_byte']){
+        text = ['load_byte', insn[1], insn[2], insn[3]];
+    }
+    else if (opc == OPCODES['multiply']){
+        text = ['multiply', insn[1], insn[2], insn[3]];
     }
     return text.join(' ');
 }
@@ -301,7 +307,7 @@ CPU.prototype.run_cycle = function(){
         var value = insn[1];
         var address = insn[2];
         //call set_memory
-        var byte_array = integer_to_byte_array(this.register[value]);
+        var byte_array = integer_to_byte_array(this.registers[value]);
         memory_set(this.memory, this.registers[address], byte_array);
     }
     else if (insn_type == OPCODES.load_word){

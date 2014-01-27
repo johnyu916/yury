@@ -48,14 +48,22 @@
   function cpu_state(cpu){
     var texts = [];
     texts.push("<div>PC: " + cpu.pc + "</div>");
-    var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc]));
-    texts.push("<div>Instruction: " + insn_str +'</div>');
+    var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc/4]));
+    texts.push("<div>Next instruction: " + insn_str +'</div>');
+    texts.push("<table>");
     var words = [];
-    for (var i = 0; i < cpu.registers.length; i+=1){
-        var text = "Register " + i + ": " + cpu.registers[i];
-        words.push(text);
+    for (var i = 0; i < cpu.registers.length; i+=8){
+      texts.push("<tr>")
+      for (var j = 0; j < 8; j +=1){
+        texts.push("<td>" + "Register " + (i+j) + "</td>");
+      }
+      texts.push("</tr><tr>")
+      for (var j = 0; j < 8; j +=1){
+        texts.push("<td>" + cpu.registers[i+j] + "</td>");
+      }
+      texts.push("</tr>");
     }
-    texts.push('<div>' + words.join(' ') +'</div>');
+    texts.push("</table>");
 
     var memory_length = cpu.memory.length;
     texts.push("<div>Memory: " + memory_length + " bytes</div>");

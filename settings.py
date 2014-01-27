@@ -14,13 +14,11 @@ SERVER = {
 DEBUG = True
 
 CPU = {
-    "MEMORY_SIZE_LOG": 18,  # 24-bit address space.
-    "NUM_INSNS_LOG": 12  # log of number of insns.
+    "NUM_REGISTERS": 64,
+    "INSN_SIZE": 4, # 4 bytes
+    "PC_SIGNAL_ADDR": 500, # TODO: this should be in a register?
+    "IDLE_ADDR": 501 # TODO: this shouldbe in a register?
 }
-CPU["INSN_SIZE"] = CPU['MEMORY_SIZE_LOG'] + CPU['NUM_INSNS_LOG'] + 2
-CPU["PC_ADDR"] = CPU['INSN_SIZE']*int(math.pow(2, CPU['NUM_INSNS_LOG']))  # pc is stored right after all insns?
-CPU["PC_SIGNAL_ADDR"] = CPU['PC_ADDR'] + CPU['NUM_INSNS_LOG']  # pc in interrupt
-CPU["IDLE_ADDR"] = CPU['PC_SIGNAL_ADDR'] + CPU['NUM_INSNS_LOG']  # currently idle, interrupt is right after.
 
 
 DEVICE_PRIMITIVES = ['resistor', 'source', 'ground', 'switch', 'bridge'];
