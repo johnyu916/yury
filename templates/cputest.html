@@ -66,9 +66,9 @@
     texts.push("</table>");
 
     var memory_length = cpu.memory.length;
-    texts.push("<div>Memory: " + memory_length + " bytes</div>");
+    texts.push("<div>Memory: " + memory_length *4 + " bytes</div>");
     for (var i = memory_length-1; i > memory_length - 16; i-=1){
-        texts.push("<div>" + i + " " + cpu.memory[i] + "</div>");
+        texts.push("<div>" + i*4 + " " + cpu.memory[i] + "</div>");
     }
     $("#cpu-state").html(texts.join('\n'));
   }

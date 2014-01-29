@@ -50,7 +50,17 @@ function test_get_insn() {
     assert(insn[2] === 58930, 'exp: 58930, act: ' + insn[2]);
 }
 
+function test_memory_set(){
+    var memory = [];
+    memory_set(memory, 4, [6,0,0,0]);
+    assert(memory[1] === 6, 'exp: 6, act: ' + memory[1]);
+
+    memory_set(memory, 7, [6,0,0,0]);
+    console.log('memory: ' + memory);
+}
+
 function run_tests(){
     test_load_binary();
     test_get_insn();
+    test_memory_set();
 }

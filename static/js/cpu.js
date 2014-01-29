@@ -155,17 +155,23 @@ function cpu_state(cpu) {
     return part;
 }
 
+/* Get memory as an array of bytes.
+ * 
+ */
 function memory_get_array(memory, address, size){
     var offset = address % 4;
-    var start = address/4;
-    var num_words = (offset + size) / 4;
+    var start = Math.floor(address/4);
+    var num_words = Math.ceil((offset + size) / 4);
     var memory_array = [];
     for (var i = start; i < start+num_words; i+=1){
-        var array = integer_to_byte_array(memory[i]);
+        var value = memory[i];
+        if (value === undefined) value = 0;
+        var array = integer_to_byte_array(value);
         for (var j = 0; j < 4; j+=1){
             memory_array.push(array[j]);
         }
     }
+    console.log('memory_get_array return: ' + memory_array);
     return memory_array;
 }
 
@@ -179,7 +185,7 @@ function memory_set(memory, address, value_array){
     for (var i = offset; i < offset+value_array.length; i++){
         memory_array[i] = value_array[i];
     }
-    var start = address/4;
+    var start = Math.floor(address/4);
     var index = start;
     for (var i = 0; i < memory_array.length; i+=4){
         var byte_array = memory_array.slice(i, i+4);

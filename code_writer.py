@@ -321,7 +321,7 @@ class Converter(object):
             #builder.load(7, 5)
             #builder.store_int(3, 7)
 
-        logging.debug("spitting statement done:")
+        logging.debug("spitting statement done. block.offset: %s" % block.offset)
 
 
     def spit_while(self, block, while_cond):
