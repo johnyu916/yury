@@ -100,6 +100,7 @@ OPCODES = {
     'multiply': 11,
 }
 
+INSN_SIZE = 4 # in bytes
 def load_word_insn(value_register, address_register, index=0):
     logging.debug('load_word_insn {0} {1}'.format(value_register, address_register, index))
     return (
@@ -340,22 +341,9 @@ class Translator(object):
         self.insns = insns
 
 
-    #def _new_insn(self, read_addr, branch_to, on_one, on_zero):
-    #    i = Instruction(read_addr, branch_to, on_one, on_zero)
-    #    self.block.insns.append(i)
-
-
-    def write_int(self, addr, value):
+    def branch_on_z_imm(self, value_reg, immediate, free_reg):
         '''
-        write value in address.
-        '''
-        num_insns = len(self.insns)
-        self._new_insn(addr, num_insns, value, value) 
-
-
-    def branch_on_zi(self, value_reg, immediate, free_reg):
-        '''
-        if value at read_addr is 0, then go to immediate
+        if value at value_reg is 0, then jump to immediate
         else, go to pc+1
         '''
         self.set_int(free_reg, immediate)
@@ -363,10 +351,28 @@ class Translator(object):
         self.insns.append(insn_two)
 
 
-    def branch_on_zi_set(self, insn_index, value_reg, immediate, free_reg):
+    def branch_on_z_pc_offset(self, value_reg, pc_offset, free_reg):
+        '''
+        if value at value_reg is 0, then jump to pc + offset.
+        '''
+        num = len(self.insns)
+        self.branch_on_z_imm(self, value_reg, num + pc_offset, free_reg)
+
+
+    def branch_on_z_imm_set(self, insn_index, value_reg=None, immediate=None, free_reg=None):
         '''
         insn_index is beginning of branch insns. basically resetting the branch_on_z_insns.
         '''
+        old_one = self.insns[insn_index]
+        old_two = self.insns[insn_index+1]
+
+        if value_reg is None:
+            value_reg = old_two[1]
+        if immediate is None:
+            immediate = old_one[2]
+        if free_reg is None:
+            free_reg = old_one[1]
+
         insn_one = set_insn(free_reg, immediate)
         insn_two = branch_on_z_insn(value_reg, free_reg)
         self.insns[insn_index] = insn_one
@@ -384,6 +390,7 @@ class Translator(object):
         '''
         self.insns.append(load_word_insn(val_reg, addr_reg, imm))
 
+
     def load_byte(self, val_reg, addr_reg, imm=0):
         self.insns.append(load_byte_insn(val_reg, addr_reg, imm))
 
@@ -399,6 +406,7 @@ class Translator(object):
         Store lowest byte in value_reg to address in dest_reg
         '''
         insn = store_byte_insn(value_reg, dest_reg)
+        self.insns.append(insn)
 
     def store_inti(self, dest_reg, value, free_reg):
         insn = set_insn(free_reg, value)
@@ -438,42 +446,79 @@ class Translator(object):
         insn = jump_insn(free_reg)
         self.insns.append(insn)
 
-    def jumpi_set(self, insn_index, immediate, free_reg):
+
+    def jumpi_set(self, insn_index, immediate=None, free_reg=None):
+        old_one = self.insns[insn_index]
+        old_two = self.insns[insn_index+1]
+
+        if immediate is None:
+            immediate = old_one[2]
+        if free_reg is None:
+            free_reg = old_one[1]
+
         insn_one = set_insn(free_reg, immediate)
         insn_two = jump_insn(free_reg)
         self.insns[insn_index] = insn_one
         self.insns[insn_index+1] = insn_two
 
+
+    def jump_pc_offset(self, pc_offset, free_reg):
+        self.jumpi(pc_offset + len(self.insns), free_reg)
+
+
     def set_int(self, register_no, value):
         self.insns.append(set_insn(register_no, value))
 
-    def set_on_ne(self, dest, one, two, f_one, f_two, f_three, f_four):
+
+    def __add_inverse(self, one, two, f_one, f_two, f_three):
         '''
-        if one != two, set dest to 1. else set dest to 0.
+        f_three holds the result of one + (-1*two)
         '''
         self.set_int(f_one, 1)
         self.subtract_int(f_one, 0, f_one)
         i2 = multiply_insn(f_two, two, f_one)
         i3 = add_insn(f_three, one, f_two)
         self.insns.extend([i2, i3])
-        self.branch_on_zi(f_three, 2, f_four )
-        # not zero
-        self.set_int(dest, 1)
-        self.set_int(dest, 0)
 
-    def set_on_e(self, dest, one, two, f_one, f_two, f_three, f_four):
+
+    def set_on_ne(self, dest, one, two, f_one, f_two):
+        '''
+        if one != two, set dest to 1. else set dest to 0.
+        '''
+        self.set_on(dest, one, two, f_one, f_two, 'ne')
+
+
+    def set_on_e(self, dest, one, two, f_one, f_two):
+        '''
+        if one != two, set dest to 1. else set dest to 0.
+        '''
+        self.set_on(dest, one, two, f_one, f_two, 'e')
+
+
+    def set_on(self, dest, one, two, f_one, f_two, equality):
         '''
         if one == two, set dest to 1. else set dest to 0.
+        Multiplies two by -1, and if one + two = 0, then they are equal,
+        so set to 1. Else set to 0.
         '''
-        self.set_int(f_one, 1)
-        self.subtract_int(f_one, 0, f_one)
-        i1 = multiply_insn(f_two, two, f_one)
-        i2 = add_insn(f_three, one, f_two)
-        self.insns.extend([i1, i2])
-        self.branch_on_zi(f_three, 2, f_four )
-        # not zero
-        self.set_int(dest, 1)
-        self.set_int(dest, 0)
+        self.subtract_int(f_one, one, two)
+
+        if equality=='e':
+            on_z = 1
+            on_nz = 0
+        else:
+            on_z = 0
+            on_nz = 1
+
+        branch_insn_idx = len(self.insns)
+        self.branch_on_z_imm(f_one, 0, f_two)
+        self.set_int(dest, on_nz)
+        jump_insn_idx = len(self.insns)
+        self.jumpi(0, f_two)
+
+        self.branch_on_z_imm_set(branch_insn_idx, immediate=(len(self.insns)*INSN_SIZE))
+        self.set_int(dest, on_z)
+        self.jumpi_set(jump_insn_idx, immediate=(len(self.insns)*INSN_SIZE))
 
 
     def subtract_int(self, result, one, two):

@@ -217,10 +217,10 @@ class Converter(object):
                     builder.subtract_int(7,8,9)
                     builder.store_int(4, 7) # store result in 4
                 elif data == '!=':
-                    builder.set_on_ne(7,8,9, 10, 11, 12, 13)
+                    builder.set_on_ne(7,8,9, 10, 11)
                     builder.store_byte(4, 7) # store result in 4
                 elif data == '==':
-                    builder.set_on_e(7,8,9, 10, 11, 12, 13)
+                    builder.set_on_e(7,8,9, 10, 11)
                     builder.store_byte(4, 7) # store result in 4
             else:
                 # call function. Note we already allocated space for the 
@@ -337,7 +337,7 @@ class Converter(object):
         value_reg = 5
         self.builder.load_byte(value_reg, addr_reg)
         loop_end_index = len(self.builder.insns)
-        self.builder.branch_on_zi(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
+        self.builder.branch_on_z_imm(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
 
         self.write_code_block(block, while_cond)
 
@@ -345,7 +345,7 @@ class Converter(object):
         self.builder.jumpi(loop_start, 6)
         loop_end = len(self.builder.insns)
         # loop conclusion
-        self.builder.branch_on_zi_set(loop_end_index, value_reg, loop_end, 6)
+        self.builder.branch_on_z_imm_set(loop_end_index, value_reg, loop_end, 6)
         #self.builder.insns[loop_end_index].branch_to = loop_end
         logging.debug("spitting while done")
 

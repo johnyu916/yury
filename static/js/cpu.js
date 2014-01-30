@@ -113,7 +113,7 @@ function byte_array_to_integer(byte_array){
     var integer = 0;
     var shift = 0;
     for (var i = 0; i < 4; i++){
-        var value = byte_array[i] >> shift;
+        var value = byte_array[i] << shift;
         integer += value;
         shift += 8;
     }
@@ -155,10 +155,10 @@ function cpu_state(cpu) {
     return part;
 }
 
-/* Get memory as an array of bytes.
- * 
+/* Get memory as an array of bytes, array length is a factor of 4 and 
+ * always begins at a factor of 4.
  */
-function memory_get_array(memory, address, size){
+function memory_get_block_bytes(memory, address, size){
     var offset = address % 4;
     var start = Math.floor(address/4);
     var num_words = Math.ceil((offset + size) / 4);
@@ -171,19 +171,22 @@ function memory_get_array(memory, address, size){
             memory_array.push(array[j]);
         }
     }
-    console.log('memory_get_array return: ' + memory_array);
     return memory_array;
 }
+
 
 /* set memory at address to some byte array. 
  * this is useful when address is not divisible by 4 and/or
  * value_array.length is not divisible by 4.
  */
 function memory_set(memory, address, value_array){
-    var memory_array = memory_get_array(memory, address, value_array.length);
+    var memory_array = memory_get_block_bytes(memory, address, value_array.length);
     var offset = address % 4;
+    console.log("memory_set memory_array 1: " + memory_array);
+    var j = 0;
     for (var i = offset; i < offset+value_array.length; i++){
-        memory_array[i] = value_array[i];
+        memory_array[i] = value_array[j];
+        j += 1;
     }
     var start = Math.floor(address/4);
     var index = start;
@@ -201,7 +204,7 @@ function memory_set(memory, address, value_array){
  * size is not divisible by 4.
  */
 function memory_get(memory, address, size){
-    var memory_array = memory_get_array(memory, address, size);
+    var memory_array = memory_get_block_bytes(memory, address, size);
     var offset = address % 4;
     var return_array = [];
     for (var i = offset; i < offset+size; i+=1){
