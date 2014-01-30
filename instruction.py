@@ -215,7 +215,7 @@ def subtract_insn(result, one, two):
     )
 
 
-base16_to_int = {
+int_to_base16 = {
     0: '0',
     1: '1',
     2: '2',
@@ -237,7 +237,7 @@ base16_to_int = {
 def get_two(integer):
     low = integer % 16
     high = integer >> 4
-    return base16_to_int[low] + base16_to_int[high]
+    return int_to_base16[low] + int_to_base16[high]
 
 def get_base16(integer, size=1):
     if size == 1:
@@ -248,7 +248,7 @@ def get_base16(integer, size=1):
         second = integer >> 8
         return get_two(first) + get_two(second)
     else:
-        raise Exception("Can't handl this")
+        raise Exception("Can't handle this {0}".format(integer))
 
 
 def get_insn_text(insn, sizes):

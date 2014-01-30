@@ -5,6 +5,7 @@
 {% endblock %}
 {% block body %}
 <script src='/static/js/cpu.js'></script>
+<script src='/static/js/instruction.js'></script>
 <script src='/static/js/cpu_tests.js'></script>
 
 <div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
@@ -24,6 +25,10 @@
   <button id='run-cycle-cpu'>
     Run Cycle
   </button>
+  <input type='text' id='number-cycles'/>
+  <button id='run-cycles-cpu'>
+    Run cycles
+  </button
 </div>
 
 <div>
@@ -78,6 +83,11 @@
     cpu_main();
     $("#run-cycle-cpu").click(function(){
       on_run_cycle_click();
+      cpu_state(world.cpu);
+    });
+    $("#run-cycles-cpu").click(function(){
+      var cycles = $("#number-cycles").val();
+      on_run_cycles_click(cycles);
       cpu_state(world.cpu);
     });
     $("#run-cpu").click(function(){

@@ -74,6 +74,10 @@ function test_memory_set(){
 
     memory_set(memory, 7, [5,0,0,0]);
     assert(memory[1], 83886086);
+
+    memory = [0];
+    memory_set(memory, 3, [1]);
+    assert(memory[0], 16777216);
 }
 
 function test_memory_get(){
@@ -89,6 +93,29 @@ function test_byte_array_to_integer(){
     assert(integer, 100663302);
 }
 
+function test_cpu_branch_on_z(){
+    var text = ''; 
+    // get some insns.
+    var one = set_insn(0, 0);
+    var two = set_insn(1, 16);
+    var three = branch_on_z_insn(0, 1);
+    var insns = [one, two, three];
+    for (var i = 0; i < insns.length; i++){
+        var current = write_insn(insns[i]);
+        console.log("current text: " + current);
+        text += current;
+    }
+
+    var args = {'NUM_REGISTERS':64};
+    var cpu = new CPU(args);
+    cpu.memory = load_binary(text);
+    cpu.run_cycle();
+    cpu.run_cycle();
+    cpu.run_cycle();
+
+    assert(cpu.pc, 16);
+}
+
 function run_tests(){
     test_load_binary();
     test_get_insn();
@@ -96,4 +123,5 @@ function run_tests(){
     test_memory_get_block_bytes();
     test_memory_set();
     test_memory_get();
+    test_cpu_branch_on_z();
 }

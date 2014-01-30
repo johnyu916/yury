@@ -2,20 +2,7 @@
 "use strict";
 var block_size_log = 5;
 var block_size = Math.pow(2, block_size_log);
-var OPCODES = {
-    'store_word': 0,
-    'jump': 1,
-    'move': 2,
-    'branch_on_z': 3,
-    'add': 4,
-    'subtract': 5,
-    'load_word': 6,
-    'set': 7,
-    'branch_on_ltz': 8,
-    'store_byte': 9,
-    'load_byte': 10,
-    'multiply': 11,
-};
+
 var base16_to_int = {
     '0': 0,
     '1': 1,
@@ -34,6 +21,8 @@ var base16_to_int = {
     'e': 14,
     'f': 15
 };
+
+
 // return some bits. read from lowest to highest.
 function get_int_value(memory, offset, size){
     //clear the more significant bits
@@ -65,13 +54,6 @@ function load_boot_disk(cpu) {
     // 2. copy everything to memory.
     // 3. read state.
     // 4. if reading src_address, read.
-}
-
-function Instruction(read, branch, on_one, on_zero) {
-    this.read = read;
-    this.branch = branch;
-    this.on_one = on_one;
-    this.on_zero = on_zero;
 }
 
 
@@ -213,6 +195,7 @@ function memory_get(memory, address, size){
     return return_array;
 }
 
+
 function load_binary(text) {
     var memory = [];
     console.log("printing binary text: " + text);
@@ -228,6 +211,7 @@ function load_binary(text) {
     }
     return memory;
 }
+
 
 /* lowest byte is op-code
  * 
@@ -315,25 +299,36 @@ CPU.prototype.run_cycle = function(){
     if (insn_type == OPCODES.store_word){
         var value = insn[1];
         var address = insn[2];
-        //call set_memory
         var byte_array = integer_to_byte_array(this.registers[value]);
         memory_set(this.memory, this.registers[address], byte_array);
+    }
+    else if (insn_type == OPCODES.store_byte){
+        var value = insn[1];
+        var address = insn[2];
+        var vbyte = this.registers[value] % 255;
+        memory_set(this.memory, this.registers[address], [vbyte]);
+
     }
     else if (insn_type == OPCODES.load_word){
         var value = insn[1];
         var address = insn[2];
-        //call get_memory
         var byte_array = memory_get(this.memory, this.registers[address], 4)
         var integer = byte_array_to_integer(byte_array);
         this.registers[value] = integer
+    }
+    else if (insn_type == OPCODES.load_byte){
+        var value = insn[1];
+        var address = insn[2];
+        var byte_array = memory_get(this.memory, this.registers[address], 1)
+        this.registers[value] = byte_array[0];
     }
     else if (insn_type == OPCODES.jump){
         var value = insn[1];
         next_pc = this.registers[value];
     }
-    else if (insn_type == OPCODES.branch_on_z){
-        var vale_reg = insn[1];
-        if (this.registers[value_reg] == 0){
+    else if (insn_type === OPCODES.branch_on_z){
+        var value_reg = insn[1];
+        if (this.registers[value_reg] === 0){
             var branch_reg = insn[2];
             next_pc = this.registers[branch_reg];
         }
@@ -362,7 +357,7 @@ CPU.prototype.run_cycle = function(){
         this.registers[result] = this.registers[one] * this.registers[two];
     }
     else{
-        console.log("unknown instruction: " + insn);
+        console.log("ERROR: unknown instruction: " + insn);
         return 1;
     }
     //and so on
@@ -425,6 +420,12 @@ function on_run_cycle_click(){
 
 function on_run_click(){
     world.cpu.run();
+}
+
+function on_run_cycles_click(cycles){
+    for (var i = 0; i < cycles; i++){
+        world.cpu.run_cycle();
+    }
 }
 
 function cpu_main() {

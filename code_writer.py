@@ -2,7 +2,7 @@ import logging
 
 from code_semantics import Expression, Statement, Variable, While, get_type
 from parser import OPERATORS
-from instruction import Translator, write_insn, write_ass
+from instruction import Translator, write_insn, write_ass, INSN_SIZE
 from shared.common import get_object
 USHORT_SIZE = 16
 
@@ -337,15 +337,17 @@ class Converter(object):
         value_reg = 5
         self.builder.load_byte(value_reg, addr_reg)
         loop_end_index = len(self.builder.insns)
+
+        # if condition doesn't hold, exit.
         self.builder.branch_on_z_imm(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
 
         self.write_code_block(block, while_cond)
 
         # end loop
-        self.builder.jumpi(loop_start, 6)
+        self.builder.jumpi(loop_start*4, 6)
         loop_end = len(self.builder.insns)
         # loop conclusion
-        self.builder.branch_on_z_imm_set(loop_end_index, value_reg, loop_end, 6)
+        self.builder.branch_on_z_imm_set(loop_end_index, value_reg, loop_end*4, 6)
         #self.builder.insns[loop_end_index].branch_to = loop_end
         logging.debug("spitting while done")
 
