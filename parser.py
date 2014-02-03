@@ -37,29 +37,34 @@ class Token(object):
     def __init__(self, value):
         self.value = value
 
+    def __str__(self):
+        return json.dumps(self.get_dict())
+
+    def get_dict(self):
+        return {
+            'value': self.value
+        }
+
 class LeftPar(Token):
     def __init__(self):
-        super(Token, self).__init__(None)
+        super(LeftPar, self).__init__('(')
 
 class RightPar(Token):
     def __init__(self):
-        super(RightPar, self).__init__(None)
+        super(RightPar, self).__init__(')')
 
 class Comma(Token):
     def __init__(self):
-        super(RightPar, self).__init__(None)
+        super(Comma, self).__init__(',')
 
 class Operator(Token):
-    def __init__(self, value):
-        super(RightPar, self).__init__(value)
+    pass
 
 class Constant(Token):
-    def __init__(self, value):
-        super(RightPar, self).__init__(value)
+    pass
 
 class Name(Token):
-    def __init__(self, value):
-        super(RightPar, self).__init__(value)
+    pass
 
 class VariableText(object):
     '''
@@ -180,7 +185,19 @@ class StatementText(object):
 
 class TextNode(object):
     def __init__(self, children):
+        assert isinstance(children, list)
         self.children = children
+
+    def __str__(self):
+        return json.dumps(self.get_dict())
+
+    def get_dict(self):
+        childs = []
+        for child in self.children:
+            childs.append(child.get_dict())
+        return {
+            'children': childs
+        }
 
 class ExpressionText(object):
     '''
@@ -338,6 +355,10 @@ def read_expression(text):
     stack = []
 
     while len(text) > 0:
+        print "read_expression text: " + text
+        space, text = re_match(' ', text)
+        # don't care whether a space was read or not
+
         par, text = re_match('\(', text)
         if par is not None:
             stack.append(LeftPar())
@@ -360,8 +381,8 @@ def read_expression(text):
         par, text = re_match('\)', text)
         if par is not None:
             # time to pop some stuff out
-            expression = build_text_node(stack)
-            stack.append(expression)
+            text_node = build_text_node(stack)
+            stack.append(text_node)
             continue
 
         colon, text = re_match(':', text)
@@ -369,8 +390,10 @@ def read_expression(text):
             text = ':' + text
             break
 
-    stack.insert(0, '(')
+    stack.insert(0, LeftPar())
     node = build_text_node(stack)
+
+    print "Built text node: {0}".format(node)
 
     expression = build_expression(node)
     if expression is not None:
@@ -383,26 +406,29 @@ def build_text_node(stack):
     childs = []
     while len(stack) > 0:
         token = stack.pop()
+        print "build_text_node token: {0} ".format(token)
         if isinstance(token, LeftPar):
-            # we're done, but it might be a function call.
             return TextNode(childs)
         else:
-            childs.append(token)
+            childs.insert(0, token)
 
     logging.debug("build_text_node stack: {0}".format(stack))
     raise Exception("Should have hit left parenthesis.")
 
 def build_expression(node):
     tokens = node.children
-    expression = build_function_call(tokens)
+    tokens_copy = copy.deepcopy(tokens)
+    expression = build_function_call(tokens_copy)
     if expression is not None:
         return expression
 
-    expression = build_operation(tokens)
+    tokens_copy = copy.deepcopy(tokens)
+    expression = build_operation(tokens_copy)
     if expression is not None:
         return expression
 
-    expression = build_constant_or_variable(tokens)
+    tokens_copy = copy.deepcopy(tokens)
+    expression = build_constant_or_variable(tokens_copy)
     if expression is not None:
         return expression
 
@@ -410,67 +436,88 @@ def build_expression(node):
 
 
 def build_constant_or_variable(orig_tokens):
+    logging.debug("running build_constant_or_variable")
     node_childs = orig_tokens
-    if len(node_childs) != 1: return None
+    if len(node_childs) != 1:
+        logging.debug("constant or var must be one token")
+        return None
 
-    node_child = node_childs.pop()
+    node_child = node_childs.pop(0)
     value = None
     childs = []
     if isinstance(node_child, Name):
-        value = Name
+        value = node_child
     elif isinstance(node_child, Constant):
         value = node_child
-    elif isinstance(node_child, TextNode):
-        expression = build_expression(node_child)
-        childs.append(expression)
     else:
+        logging.debug('not a constant or variable')
         return None
     return ExpressionText(value, childs)
 
 
-def build_function_call(orig_tokens):
+def build_function_call(node_tokens):
+    logging.debug("running build_function_call")
     # read name
-    node_tokens = copy.copy(orig_tokens)
-    function_name = node_tokens.pop()
+    if len(node_tokens) != 2:
+        logging.debug("Not enough tokens for function call")
+        return None
+
+    function_name = node_tokens.pop(0)
     if not isinstance(function_name, Name):
+        logging.debug("first argument must be name")
         return None
 
-    node_enclosed = node_tokens.pop()
+    node_enclosed = node_tokens.pop(0)
     if not isinstance(node_enclosed, TextNode):
+        logging.debug("second argument must be parenthesized")
         return None
 
-    node_childs = node_enclosed.children()
+    # stuff inside parenthesis
+    node_childs = node_enclosed.children
     childs = []
-    while True:
-        if len(node_childs) == 0: break
-        node_child = node_childs.pop()
-        variable = build_constant_or_variable(node_child)
-        if variable is None:
-            return None
+    parameter = []
 
-        if len(node_childs) == 0: break
-        node_comma = node_childs.pop()
-        if not isinstance(node_comma, Comma):
-            return None
+    while len(node_childs) > 0:
+        term = node_childs.pop(0)
+        if isinstance(term, Comma):
+            if len(parameter) > 0:
+                new_node = TextNode(parameter)
+                child = build_expression(new_node)
+                childs.append(child)
+                parameter = []
+            else:
+                raise Exception("must be parameter before comma")
+
+            if len(node_childs) == 0:
+                raise Exception("parameter cannot end on a comma")
+        else:
+            parameter.append(term)
+
+    if len(parameter) > 0:
+        new_node = TextNode(parameter)
+        child = build_expression(new_node)
+        childs.append(child)
+
 
     return ExpressionText(function_name, childs)
 
 
-def build_operation(orig_tokens):
-    node_tokens = copy.copy(orig_tokens)
+def build_operation(node_tokens):
+    logging.debug("running build_operation")
+    if len(node_tokens) != 3:
+        return None
     childs = []
-    node_first = node_tokens.pop()
 
-    node_child = node_tokens.pop()
-    variable = build_constant_or_variable(node_child)
+    node_child = node_tokens.pop(0)
+    variable = build_expression(node_child)
     if variable is None:
         return None
 
-    operator = node_tokens.pop()
+    operator = node_tokens.pop(0)
     if not isinstance(operator, Operator):
         return None
 
-    node_child = node_tokens.pop()
+    node_child = node_tokens.pop(0)
     variable = build_constant_or_variable(node_child)
     if variable is None:
         return None
