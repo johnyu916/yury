@@ -1,0 +1,7 @@
+i = 0
+if i == 1:
+    answer = 5
+elif i == 2:
+    answer = 6
+else:
+    answer = 7
