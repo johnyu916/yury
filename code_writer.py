@@ -53,7 +53,6 @@ class Converter(object):
         self.sp_addr_register = 63 # register that contains address of stack pointer
         self.sp_register = 62 # register that contains stack pointer value
         self.pc_return_register = 61 # pc to return to after its done.
-        self.sp_return_register = 60 # previous stack pointer value.
         self.function_begin = {}  # which insn # does function begin?
         self.function_calls = []  # which function is being called where?
         self.output_file_name = output_file_name
@@ -62,17 +61,18 @@ class Converter(object):
         # some special instructions.
 
         # set register 0 to zero pointer
-        self.builder.set_int(0, 0)
+        self.builder.set_int(self.zero_register, 0)
         # set stack pointer address register
         self.builder.set_int(self.sp_addr_register, self.sp_addr)
         self.builder.set_int(self.sp_register, self.memory_size)
+        self.builder.set_int(self.pc_return_register, 0)
 
         for function in program.functions:
             self.function_begin[function.name] = len(self.insns)
             self.spit_function(function)
 
         for index, name in self.function_calls:
-            self.builder.jumpi_set(index, self.function_begin[name], 3)
+            self.builder.jump_and_link_set(index, immediate=self.function_begin[name]*4)
 
         # now convert all insns into
         self.write_insns(output_file_name)
@@ -225,6 +225,10 @@ class Converter(object):
             else:
                 # call function. Note we already allocated space for the 
                 # output (return_vars) and input (child_return_types).
+                # save return register on stack, because the child is going to use it now.
+                return_pc_offset = block.variables['return_pc']['offset']
+                self.set_offset_address(3, return_pc_offset, 4)
+                builder.store_int(3, self.pc_return_register)
 
                 # set stack pointer to offset
                 builder.subtract_inti(self.sp_register, self.sp_register, block_begin_offset *-1, 3)
@@ -233,21 +237,8 @@ class Converter(object):
                 # call function changed the stack pointer, so change it back
                 builder.add_inti(self.sp_register, self.sp_register, block_begin_offset * -1, 4)
                 # set return address back to return register
-                self.set_offset_address(3, block.variables['return_pc']['offset'], 4)
+                self.set_offset_address(3, return_pc_offset, 4)
                 builder.load_int(self.pc_return_register, 3)
-
-                #copy over output to return values (not necessary).
-                #operand_offset = block.offset
-                #for count in range(len(return_types)):
-                #    operand_offset -= return_var['variable'].type.size
-                #    return_var = return_vars[count]
-
-                #    # 4 is the destination offset
-                #    self.set_offset_address(4, return_var['offset'], 3)
-
-                #    # 6 is the source
-                #    self.set_offset_address(6, operand_offset, 5)
-                #    builder.copy(4, 6, 7)
 
 
         block.offset = block_begin_offset
@@ -270,16 +261,10 @@ class Converter(object):
         function = self.program.get_function(function_name)
         if not function:
             raise Exception("Unknown function name: {0}".format(function_name))
-        # save return register on stack, because the child is going to use it now.
-        self.set_offset_address(3, block.variables['return_pc']['offset'], 4)
-        builder.store_int(self.pc_return_register, 3)
-        
 
-        # need to give return pc.
-        builder.set_int(self.pc_return_register, len(self.insns))
-        # jump to function. temporarily 0, later set to funciton's beginning index.
-        self.builder.jumpi(0, 5)
         self.function_calls.append((len(self.insns), function_name))
+        # need to give return pc and jump
+        builder.jump_and_link(0, self.pc_return_register, 5)
 
         # variable setting and calling:
         # stack pointer is at top of function stack. 

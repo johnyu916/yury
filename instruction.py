@@ -137,13 +137,13 @@ def load_byte_insn(value_register, address_register, index=0):
         index
     )
 
-def set_insn(value_register, immediate):
-    assert type(value_register) == int
+def set_insn(register_no, immediate):
+    assert type(register_no) == int
     assert type(immediate) == int
-    logging.debug('set_insn {0} {1}'.format(value_register, immediate))
+    logging.debug('set_insn {0} {1}'.format(register_no, immediate))
     return (
         OPCODES['set'],
-        value_register,
+        register_no,
         immediate
     )
 
@@ -446,6 +446,25 @@ class Translator(object):
         insn = jump_insn(free_reg)
         self.insns.append(insn)
 
+    def jump_and_link(self, immediate, return_register_no, free_reg):
+        # if contents of this file changes, then also update the jump_and_link_set
+        # do the same as jumpi_set here. first set the return retuster to whatever, then do the jump, then set the return_registes
+        set_insn_idx = len(self.insns)
+        self.set_int(return_register_no, 0)
+        self.jumpi(immediate, free_reg)
+        self.set_int_set(set_insn_idx, value=(len(self.insns)*4))
+
+    def jump_and_link_set(self, insn_idx, immediate=None, return_register_no=None, free_reg_no=None):
+        set_insn = self.insns[insn_idx]
+
+        if return_register_no == None:
+            return_registet_no = set_insn[1]
+        # value is never updated for the set insn
+        value = set_insn[2]
+        self.set_int_set(insn_idx, return_register_no, value)
+
+        self.jumpi_set(insn_idx+1, immediate, free_reg_no)
+
 
     def jumpi_set(self, insn_index, immediate=None, free_reg=None):
         old_one = self.insns[insn_index]
@@ -468,6 +487,15 @@ class Translator(object):
 
     def set_int(self, register_no, value):
         self.insns.append(set_insn(register_no, value))
+
+    def set_int_set(self, insn_idx, register_no=None, value=None):
+        insn = self.insns[insn_idx]
+        if register_no is None:
+            register_no = insn[1]
+        if value is None:
+            value = insn[2]
+        self.insns[insn_idx] = set_insn(register_no, value)
+
 
 
     def __add_inverse(self, one, two, f_one, f_two, f_three):

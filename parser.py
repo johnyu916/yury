@@ -1,8 +1,10 @@
 import json
+import logging
 import copy
 import re
 import string
 from shared.common import get_bools
+from collections import namedtuple
 from settings import BAM_DIR
 USHORT_SIZE = 16
 PRIMITIVE_TYPES = ['int', 'double', 'string', 'list', 'dict']
@@ -11,6 +13,7 @@ OPERATORS = ['==', '!=', '+', '-']
 OPERATORS_PATTERN = '==|!=|\+|-'
 RESERVED_WORDS = copy.copy(PRIMITIVE_TYPES)
 RESERVED_WORDS.extend(CONDITIONAL_WORDS)
+VARIABLE_PATTERN = '[a-zA-z][a-zA-Z0-9_]*'
 # insns is a set of instructions.
 
 
@@ -27,6 +30,36 @@ class Object(object):
             'name': self.name
         }
 
+
+
+class Token(object):
+    KINDS = ['left_par', 'right_par', 'operator', 'constant', 'name']
+    def __init__(self, value):
+        self.value = value
+
+class LeftPar(Token):
+    def __init__(self):
+        super(Token, self).__init__(None)
+
+class RightPar(Token):
+    def __init__(self):
+        super(RightPar, self).__init__(None)
+
+class Comma(Token):
+    def __init__(self):
+        super(RightPar, self).__init__(None)
+
+class Operator(Token):
+    def __init__(self, value):
+        super(RightPar, self).__init__(value)
+
+class Constant(Token):
+    def __init__(self, value):
+        super(RightPar, self).__init__(value)
+
+class Name(Token):
+    def __init__(self, value):
+        super(RightPar, self).__init__(value)
 
 class VariableText(object):
     '''
@@ -69,6 +102,7 @@ class FunctionText(BlockText):
         self.inputs = inputs
         self.outputs = outputs
         super(FunctionText, self).__init__()
+
 
     def get_dict(self):
         inputs = []
@@ -144,12 +178,15 @@ class StatementText(object):
             'expression': self.expression.get_dict()
         }
 
+class TextNode(object):
+    def __init__(self, children):
+        self.children = children
 
 class ExpressionText(object):
     '''
     ExpressionText is a node that carries data.
-    arguments can be ExpressionTexts or empty.
-    data can be function name/operator (both string) or VariableText
+    children can be ExpressionTexts or empty.
+    data can be a Token (Operator, Name, Constant)
     '''
     def __init__(self, data, children=()):
         if type(children) != tuple:
@@ -161,8 +198,12 @@ class ExpressionText(object):
         self.data = data
         self.children = children
 
+    def __str__(self):
+        return json.dumps(self.get_dict())
+
     def get_dict(self):
         return get_expression_dict(self)
+
 
 def get_expression_dict(expression):
     children = []
@@ -180,47 +221,6 @@ def get_expression_dict(expression):
         'children':children
     }
 
-
-class Operator(object):
-    def __init__(self,operation):
-        self.operation = operation
-    def __str__(self):
-        return self.operation
-
-
-class OperationNode(object):
-    '''
-    The leaves are variables or immediates or functioncalls
-    The parents are Operations
-    '''
-    def __init__(self, data, children=()):
-        if type(children) != tuple:
-            children = tuple(children)
-        if type(data) != Operator:
-            assert len(children) == 0
-
-        self.data = data
-        self.children = children
-
-    def dictionary(self):
-        data = self.data
-        if type(self.data) == Operator:
-            data = str(self.data)
-        children = []
-        for child in self.children:
-            #print child
-            children.append(child.dictionary())
-        return {
-            'data':data,
-            'children':children
-        }
-
-    def __str__(self):
-        return json.dumps(self.dictionary())
-
-
-    def value():
-        pass
 
 def get_num_front_spaces(line):
     line2 = line.rstrip()
@@ -288,20 +288,30 @@ def read_space(text):
 def read_equals(text):
     return
 
+def read_if(text):
+    return None, text
 
-def read_conditional(text):
+
+def read_elif(text):
+    return None, text
+
+
+def read_else(text):
+    return None, text
+
+
+def read_while(text):
     # if, elif ,else, while
     print "conditional text matching against: " + text
     orig = text
     whil, text = re_match('while', text)
     if whil == None:
         return None, orig
-    
+
     # read space
     space, text = re_match(' ', text)
     if space == None:
         return None, orig
-    
 
     # read left parenthesis
     par, text = re_match('\(', text)
@@ -315,14 +325,224 @@ def read_conditional(text):
     print 'while read exp: {0}. text: {1}'.format(expr, text)
     # read right parenthesis and colon
     par, text = re_match('\):', text)
-    if par == None:
+    if par is None:
         return None, orig
 
     # create while object
     return WhileText(expr), text
 
 
-def read_expression(orig):
+def read_expression(text):
+    orig = text
+
+    stack = []
+
+    while len(text) > 0:
+        par, text = re_match('\(', text)
+        if par is not None:
+            stack.append(LeftPar())
+            continue
+
+        number, text = re_match('[0-9]+', text)
+        if number is not None:
+            stack.append(Constant(number))
+            continue
+
+        variable, text = re_match(VARIABLE_PATTERN, text)
+        if variable is not None:
+            stack.append(Name(variable))
+            continue
+
+        comma, text = re_match(',', text)
+        if comma is not None:
+            stack.append(Comma())
+
+        par, text = re_match('\)', text)
+        if par is not None:
+            # time to pop some stuff out
+            expression = build_text_node(stack)
+            stack.append(expression)
+            continue
+
+        colon, text = re_match(':', text)
+        if colon is not None:
+            text = ':' + text
+            break
+
+    stack.insert(0, '(')
+    node = build_text_node(stack)
+
+    expression = build_expression(node)
+    if expression is not None:
+        return expression, text
+
+    else: return None, orig
+    # now lets try to do something with the stack.
+
+def build_text_node(stack):
+    childs = []
+    while len(stack) > 0:
+        token = stack.pop()
+        if isinstance(token, LeftPar):
+            # we're done, but it might be a function call.
+            return TextNode(childs)
+        else:
+            childs.append(token)
+
+    logging.debug("build_text_node stack: {0}".format(stack))
+    raise Exception("Should have hit left parenthesis.")
+
+def build_expression(node):
+    tokens = node.children
+    expression = build_function_call(tokens)
+    if expression is not None:
+        return expression
+
+    expression = build_operation(tokens)
+    if expression is not None:
+        return expression
+
+    expression = build_constant_or_variable(tokens)
+    if expression is not None:
+        return expression
+
+    return None
+
+
+def build_constant_or_variable(orig_tokens):
+    node_childs = orig_tokens
+    if len(node_childs) != 1: return None
+
+    node_child = node_childs.pop()
+    value = None
+    childs = []
+    if isinstance(node_child, Name):
+        value = Name
+    elif isinstance(node_child, Constant):
+        value = node_child
+    elif isinstance(node_child, TextNode):
+        expression = build_expression(node_child)
+        childs.append(expression)
+    else:
+        return None
+    return ExpressionText(value, childs)
+
+
+def build_function_call(orig_tokens):
+    # read name
+    node_tokens = copy.copy(orig_tokens)
+    function_name = node_tokens.pop()
+    if not isinstance(function_name, Name):
+        return None
+
+    node_enclosed = node_tokens.pop()
+    if not isinstance(node_enclosed, TextNode):
+        return None
+
+    node_childs = node_enclosed.children()
+    childs = []
+    while True:
+        if len(node_childs) == 0: break
+        node_child = node_childs.pop()
+        variable = build_constant_or_variable(node_child)
+        if variable is None:
+            return None
+
+        if len(node_childs) == 0: break
+        node_comma = node_childs.pop()
+        if not isinstance(node_comma, Comma):
+            return None
+
+    return ExpressionText(function_name, childs)
+
+
+def build_operation(orig_tokens):
+    node_tokens = copy.copy(orig_tokens)
+    childs = []
+    node_first = node_tokens.pop()
+
+    node_child = node_tokens.pop()
+    variable = build_constant_or_variable(node_child)
+    if variable is None:
+        return None
+
+    operator = node_tokens.pop()
+    if not isinstance(operator, Operator):
+        return None
+
+    node_child = node_tokens.pop()
+    variable = build_constant_or_variable(node_child)
+    if variable is None:
+        return None
+
+    return ExpressionText(operator, childs)
+
+
+def build_expression_old(node):
+    '''
+    By this point stack doesn't have any left or right
+    parentheses. It only has nodes and tokens.
+    '''
+    # now try building an expression.
+    childs = []
+    data = None
+
+    items = node.children
+    item = items.pop()
+
+    DEFAULT = 0 # default state
+    NAME_READ = 1 # name was read
+    state = DEFAULT
+    last_item = None
+    for item in node.children:
+        if isinstance(item, Operator):
+            if last_item is None:
+                raise Exception("operator before any operand")
+            else:
+                data = item
+        elif isinstance(item, Constant):
+            if last_item is not None:
+                assert (isinstance(last_item, Operator) or isinstance(last_item, Comma)), "constant must be after operator or comma"
+            child = ExpressionText(item)
+            childs.append(child)
+        elif isinstance(item, Name):
+            pass
+            # could be variable or function call.
+        if isinstance(item, TextNode):
+            if last_item is not None:
+                if isinstance(last_item, Operator):
+                    child = build_expression(item)
+                    childs.append(child)
+                elif isinstance(last_item, Name):
+                    # function call.
+                    data = last_item
+                    children = build_function_parameters(item)
+
+        last_item = item
+
+def build_function_parameters(node):
+    '''
+    This is a list of expression texts
+    '''
+    texts = []
+    last_item = None
+    for item in node.children:
+        if isinstance(item, Constant):
+            child = ExpressionText(item)
+            texts.append(child)
+        elif isinstance(item, Comma):
+            assert last_item is not None
+            assert (isinstance(last_item, Constant) or isinstance(last_item, Name)), "comma must be after a variable"
+        else:
+            pass
+        last_item = item
+
+
+def read_expression_old(orig):
+    """
+    TODO: include ()
+    (a)
+    """
     text = orig
     function_call, text = read_function_call(orig)
     if function_call != None:
@@ -560,15 +780,14 @@ def read_operation(text):
 
 def read_function_call(text):
     '''
-    ex1: add(a,b)
+    ex1: add(a,b), add(add(a,b), c), add(a+b, c)
     return (ExpressionText, text_left)
     return (None, arg_text) if not expression
     '''
     # read text
     # read any spaces
     orig = text
-    pattern = '[a-zA-z][a-zA-Z0-9]*'
-    function_name, text = re_match(pattern, text)
+    function_name, text = re_match(VARIABLE_PATTERN, text)
     if function_name == None:
         return None, orig
 
@@ -580,20 +799,23 @@ def read_function_call(text):
     params = []
     while True:
         # match type name
-        name, text = re_match(pattern, text)
-        if name != None:
-            var = VariableText(None, name, None)
-            params.append(ExpressionText(var))
+        child_expression, text = read_expression(text)
+        if child_expression != None:
+            params.append(child_expression)
 
-        # try reading comma
-        com, text = re_match(',', text)
-        if com == None:
-            break
+            # try reading comma
+            com, text = re_match(',', text)
+            if com == None:
+                break
 
         # try reading space
         space, text = re_match(' ', text)
         if space == None:
             continue
+
+    par, text = re_match('\)', text)
+    if par == None:
+        return None, orig
 
     # only reads one level deep
     return ExpressionText(function_name, params), text
@@ -680,12 +902,18 @@ class Parser(object):
 
 
         # conditional (if, elif, else, while)
-        if_clause, line = read_conditional(line)
-        if if_clause:
-            print "conditional read: {0}".format(if_clause.get_dict())
-            block.code.append(if_clause)
-            self.stack.append(if_clause)
+        while_clause, line = read_while(line)
+        if while_clause:
+            print "while read: {0}".format(while_clause.get_dict())
+            block.code.append(while_clause)
+            self.stack.append(while_clause)
             return
+
+        if_clause, line = read_if(line)
+
+        elif_clause, line = read_elif(line)
+
+        else_claus, line = read_else(line)
 
         # read return, break
 

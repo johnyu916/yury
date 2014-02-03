@@ -162,9 +162,10 @@ function memory_get_block_bytes(memory, address, size){
  * value_array.length is not divisible by 4.
  */
 function memory_set(memory, address, value_array){
+    console.log("memory_set params: " + address + " " + value_array);
     var memory_array = memory_get_block_bytes(memory, address, value_array.length);
     var offset = address % 4;
-    console.log("memory_set memory_array 1: " + memory_array);
+    console.log("memory_set memory_array: " + memory_array);
     var j = 0;
     for (var i = offset; i < offset+value_array.length; i++){
         memory_array[i] = value_array[j];

@@ -1,5 +1,6 @@
-(int result) addOne(int num):
+random = 3
+result = addOne
+
+(int result) addOne (int num):
     second = 1
     result = num + second
-random = 3
-result = addOne(random)
