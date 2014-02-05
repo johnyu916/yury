@@ -22,7 +22,10 @@ class Compiler(object):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     filename = sys.argv[1]
-    output_file_name = sys.argv[2]
+    if len(sys.argv) == 3:
+        output_file_name = sys.argv[2]
+    else:
+        output_file_name = filename.split('.')[-1]
     #with open(BAM_DIR / filename) as f:
     with open(filename) as f:
         text = f.read()

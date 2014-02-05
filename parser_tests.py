@@ -93,6 +93,19 @@ def test_expression_parenthesis():
     assert len(expression.children) == 2
     print "expression tested: {0}".format(expression)
 
+    line = "5 + (6 + 7)"
+    expression, line = read_expression(line)
+    assert expression is not None
+    assert isinstance(expression.data, Operator)
+    assert len(expression.children) == 2
+    print "expression tested: {0}".format(expression)
+
+    line = "5 + add(6 + (7+ bob))"
+    expression, line = read_expression(line)
+    assert expression is not None
+    assert isinstance(expression.data, Operator)
+    assert len(expression.children) == 2
+    print "expression tested: {0}".format(expression)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

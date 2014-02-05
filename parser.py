@@ -4,8 +4,6 @@ import copy
 import re
 import string
 from shared.common import get_bools
-from collections import namedtuple
-from settings import BAM_DIR
 USHORT_SIZE = 16
 PRIMITIVE_TYPES = ['int', 'double', 'string', 'list', 'dict']
 CONDITIONAL_WORDS = ['if', 'elif', 'else', 'while']
@@ -14,26 +12,6 @@ OPERATORS_PATTERN = '==|!=|\+|-'
 RESERVED_WORDS = copy.copy(PRIMITIVE_TYPES)
 RESERVED_WORDS.extend(CONDITIONAL_WORDS)
 VARIABLE_PATTERN = '[a-zA-z][a-zA-Z0-9_]*'
-# insns is a set of instructions.
-
-
-
-#int_type = VariableText('int', 4)
-#double_type = VariableText('double', 8)
-
-class Object(object):
-    def __init__(self, name):
-        self.name = name
-
-    def get_dict(self):
-        return {
-            'name': self.name
-        }
-
-class Parameters(object):
-    def __init__(self, children):
-        # children can be constant, name, expression
-        self.children = children
 
 class Token(object):
     KINDS = ['left_par', 'right_par', 'operator', 'constant', 'name']
@@ -69,20 +47,19 @@ class Constant(Token):
 class Name(Token):
     pass
 
-class VariableText(object):
+
+class Parameter(object):
     '''
     Type, name and value. Type can be primitive or defined from library. Constant is also represented as variable
     '''
-    def __init__(self, arg_type, name, value):
+    def __init__(self, arg_type, name):
         self.name = name
         self.arg_type = arg_type
-        self.value = value
 
     def get_dict(self):
         return {
             'arg_type': self.arg_type,
             'name': self.name,
-            'value': self.value
         }
 
 
@@ -97,6 +74,23 @@ class BlockText(object):
         return {
             'code': codes
         }
+
+class StructText(object):
+    def __init__(self, name, members=[]):
+        self.name = name
+        self.members = members
+
+    def get_dict(self):
+        members = []
+        for member in self.members:
+            members.append(member.get_dict())
+        return {
+            'name': self.name,
+            'members': members
+        }
+
+    def __str__(self):
+        return json.dumps(self.get_dict())
 
 
 class FunctionText(BlockText):
@@ -133,44 +127,39 @@ class FunctionText(BlockText):
 
 
 class ConditionalText(BlockText):
-    def __init__(self, condition):
+    def __init__(self, condition=None):
         self.condition = condition
         super(ConditionalText, self).__init__()
 
     def get_dict(self):
-        this_dict = {
-            'condition': self.condition.get_dict()
-        }
+        this_dict = {}
+        if self.condition is not None:
+            this_dict['condition'] = self.condition.get_dict()
         codes = super(ConditionalText, self).get_dict()
         this_dict.update(codes)
         return this_dict
 
 
 class WhileText(ConditionalText):
-    def __init__(self, expression):
-        super(WhileText, self).__init__(expression)
+    pass
 
 
-class IfBlock(ConditionalText):
-    def __init__(self, expression):
-        super(IfBlock, self).__init__(expression)
-        self.name = 'if'
+class IfText(ConditionalText):
+    pass
 
-class ElIfBlock(ConditionalText):
-    def __init__(self, expression):
-        super(ElIfBlock, self).__init__(expression)
+class ElIfText(ConditionalText):
+    pass
 
-
-class ElseBlock(ConditionalText):
-    def __init__(self, expression):
-        super(ElseBlock, self).__init__(expression)
+class ElseText(ConditionalText):
+    def __init__(self):
+        super(ElseText, self).__init__()
 
 
 class StatementText(object):
     def __init__(self, dests, expression):
         '''
         a = add(3,5)
-        dests is a list of VariableText
+        dests is a list of Names
         expression is ExpressionText
         '''
         self.dests = dests  # dests is a list
@@ -186,21 +175,9 @@ class StatementText(object):
             'expression': self.expression.get_dict()
         }
 
-class TextNode(object):
-    def __init__(self, children):
-        assert isinstance(children, list)
-        self.children = children
-
     def __str__(self):
         return json.dumps(self.get_dict())
 
-    def get_dict(self):
-        childs = []
-        for child in self.children:
-            childs.append(child.get_dict())
-        return {
-            'children': childs
-        }
 
 class ExpressionText(object):
     '''
@@ -211,8 +188,6 @@ class ExpressionText(object):
     def __init__(self, data, children=()):
         if type(children) != tuple:
             children = tuple(children)
-        if type(data) == VariableText:
-            assert len(children) == 0
 
         #self.data = 'add'  # data is either function names or variables
         self.data = data
@@ -282,66 +257,73 @@ class ProgramText(object):
         #self.stack = [main]
         #self.index = 0
 
-
-
     def __str__(self):
-        return json.dumps(get_program_dict(self))
+        return json.dumps(self.get_dict())
 
+    def get_dict(self):
+        return get_program_dict(self)
 
-# Parsing functions
-def read_name(text):
-    '''
-    Read alphanumeric.
-    Return "" if nothing read.
-    '''
-    #text.strip(' ')  # strip beginning spaces
-    regex = re.compile('[a-zA-z][a-zA-Z0-9]*')
-    match = regex.match(text)
-    if match:
-        return match.group('name')
-
-
-def read_equals(text):
-    return
 
 def read_if(text):
-    return None, text
-
-
-def read_elif(text):
-    return None, text
-
-
-def read_else(text):
-    return None, text
-
-
-def read_while(text):
-    # if, elif ,else, while
-    print "conditional text matching against: " + text
     orig = text
-    whil, text = re_match('while', text)
-    if whil == None:
-        return None, orig
-
-    # read space
-    space, text = re_match(' ', text)
-    if space == None:
-        return None, orig
-
-    # read left parenthesis
-    par, text = re_match('\(', text)
-    if par == None:
+    if_word, text = re_match('if', text)
+    if if_word is None:
         return None, orig
 
     # read expression
     expr, text = read_expression(text)
-    if expr == None:
+    if expr is None:
         return None, orig
+
+    colon, text = re_match(':', text)
+    if colon is None:
+        return None, orig
+
+    return IfText(expr), text
+
+
+def read_elif(text):
+    orig = text
+    if_word, text = re_match('elif', text)
+    if if_word is None:
+        return None, orig
+
+    # read expression
+    expr, text = read_expression(text)
+    if expr is None:
+        return None, orig
+
+    colon, text = re_match(':', text)
+    if colon is None:
+        return None, orig
+
+    return IfText(expr), text
+
+
+def read_else(text):
+    orig = text
+    else_word, text = re_match('else:', text)
+    if else_word is None:
+        return None, orig
+    return ElseText(), text
+
+
+def read_while(text):
+    # if, elif ,else, while
+    print "while text matching against: " + text
+    orig = text
+    whil, text = re_match('while', text)
+    if whil is None:
+        return None, orig
+
+    # read expression
+    expr, text = read_expression(text)
+    if expr is None:
+        return None, orig
+
     print 'while read exp: {0}. text: {1}'.format(expr, text)
-    # read right parenthesis and colon
-    par, text = re_match('\):', text)
-    if par is None:
+    colon, text = re_match(':', text)
+    if colon is None:
         return None, orig
 
     # create while object
@@ -536,53 +518,23 @@ def build_simple_constant_or_variable(orig):
     return expression, tokens
 
 
-def build_operation(node_tokens):
-    logging.debug("running build_operation")
-    if len(node_tokens) != 3:
-        return None
-    childs = []
-
-    parameter = []
-    while len(node_tokens) > 0:
-        term = node_tokens.pop(0)
-        if isinstance(term, Operator):
-            if len(parameter) > 0:
-                new_node = TextNode(parameter)
-                expression = build_expression(new_node)
-                childs.append(expression)
-                parameter = []
-            else:
-                raise Exception()
-
-    operator = node_tokens.pop(0)
-    if not isinstance(operator, Operator):
-        return None
-
-    node_child = node_tokens.pop(0)
-    variable = build_constant_or_variable(node_child)
-    if variable is None:
-        return None
-
-    return ExpressionText(operator, childs)
-
-
 def read_statement(orig):
     '''
     StatementText example: counter = 5
     '''
     text = orig
-    dest, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
-    if dest == None:
+    dest, text = re_match(VARIABLE_PATTERN, text)
+    if dest is None:
         return None, orig
 
+    dest_var = Name(dest)
     # try reading space
     space, text = re_match(' ', text)
 
     equ, text = re_match('=', text)
-    if equ == None:
+    if equ is None:
         return None, orig
 
-    dest_var = VariableText(None, dest, None)
     # either constant, variable, function call, or operation
    
     # try reading space
@@ -603,22 +555,22 @@ def read_function_definition(orig):
     text = orig
     print "text matching against: " + text
     outputs, text = read_arguments_definition(text)
-    if outputs == None:
+    if outputs is None:
         return None, orig
     print outputs
     print ' text: ' + text
     # try reading space
     space, text = re_match(' ', text)
-    if space == None:
+    if space is None:
         return None, orig
 
-    function_name, text = re_match('[a-zA-z][a-zA-Z0-9]*', text)
-    if function_name == None:
+    function_name, text = re_match(VARIABLE_PATTERN, text)
+    if function_name is None:
         return None, orig
     print 'function_name: ' + function_name + ' text: ' + text
 
     inputs, text = read_arguments_definition(text)
-    if inputs == None:
+    if inputs is None:
         return None, orig
     print inputs
     print ' text: ' + text
@@ -626,32 +578,43 @@ def read_function_definition(orig):
     return FunctionText(function_name, inputs, outputs), text
 
 
+def read_struct_definition(orig):
+    text = orig
+    struct_name, text = re_match(VARIABLE_PATTERN, text)
+    if struct_name is None:
+        return None, orig
+
+    colon, text = re_match(':', text)
+    if colon is None:
+        return None, orig
+
+    return StructText(struct_name), text
+
 def read_arg_definition(orig):
     '''
     Read int continue
-    Return VariableText()
+    Return Parameter()
     '''
-    pattern = '[a-zA-z][a-zA-Z0-9]*'
     text = orig
 
     # type
-    arg_type, text = re_match(pattern, text)
-    if arg_type == None:
+    arg_type, text = re_match(VARIABLE_PATTERN, text)
+    if arg_type is None:
         return None, orig
 
     print "arg_type: " + arg_type + " text: " + text
     # space
     space, text = re_match(' ', text)
-    if space == None:
+    if space is None:
         return None, orig
     print "soace: " + space+ " text: " + text
 
     # name
-    name, text = re_match(pattern, text)
-    if name == None:
+    name, text = re_match(VARIABLE_PATTERN, text)
+    if name is None:
         return None, orig
     print "name: " + name+ " text: " + text
-    var = VariableText(arg_type, name, None)
+    var = Parameter(arg_type, name, None)
     return var, text
 
 
@@ -673,11 +636,9 @@ def read_arguments_definition(orig):
     '''
     text = orig
     # left paren
-    par, text = re_match('\(', text)
-    if par == None:
+    par, text = re_match(' *\(', text)
+    if par is None:
         return None, orig
-
-    print "par: " + par + " text: " + text
 
     # arguments
     variables = []
@@ -689,124 +650,22 @@ def read_arguments_definition(orig):
 
         # try reading comma
         com, text = re_match(',', text)
-        if com == None:
+        if com is None:
             break
 
         # try reading space
         space, text = re_match(' ', text)
-        if space == None:
+        if space is None:
             continue
 
     # see if ended
-    print "text: " + text
     par, text = re_match('\)', text)
-    if par == None:
+    if par is None:
         return None, orig 
-    print "par: " + par + " text: " + text
     return variables, text
 
 def is_reserved(text):
     return text in RESERVED_WORDS
-
-def read_constant(orig):
-    '''
-    Return VariableText with name set to None
-    '''
-    text = orig
-    dest, text = re_match('[0-9]+', text)
-    if dest != None:
-        print "read_constant dest: {0}".format(dest)
-        return VariableText('int', None, int(dest)), text
-    else:
-        return None, orig
-
-
-def read_variable(orig):
-    text = orig
-    dest, text = re_match('[a-zA-Z][a-zA-Z0-9]*', orig)
-    if dest != None and not is_reserved(dest):
-        return VariableText(None, dest, None), text
-    else:
-        return None, orig
-
-
-def read_constant_or_variable(text):
-    '''
-    Constant is a integer or variable name.
-    '''
-    # read int
-    orig = text
-    variable, text = read_constant(text)
-    if variable != None:
-        return variable, text
-
-    variable, text = read_variable(text)
-    if variable != None:
-        return variable, text
-
-    # read variable name
-    return None, orig
-
-
-def read_operation(text):
-    '''
-    ex1: index == 0
-    Operation is like a function in that it can return something.
-    supported:
-    ==
-    !=
-    '''
-    orig = text
-    left, text = read_constant_or_variable(text)
-    if left == None:
-        return None, orig
-
-    # read space
-    space, text = re_match(' ', text)
-    
-    # operator
-    # TODO: fix here
-    #oper, text = re_match('==|!=|\+|-', text)
-    oper, text = re_match(OPERATORS_PATTERN, text)
-    if oper == None:
-        return None, orig
-
-    # read_space
-    space, text = re_match(' ', text)
-    # right
-    right, text = read_constant_or_variable(text)
-    if right == None:
-        return None, orig
-
-
-    left_ex = ExpressionText(left)
-    right_ex = ExpressionText(right)
-
-    return ExpressionText(oper, [left_ex, right_ex]), text
-
-
-def is_function_name_old(functions, name):
-    for function in functions:
-        if function == name:
-            return True
-    return False
-
-def is_var_name_old(variables, name):
-    for var in variables:
-        if var == name:
-            return True
-    return False
-
-
-def name_end_old(name_chars):
-    name = string.join(name_chars, '')
-    # is name a function call? variable?
-    if is_function_name_old(name):
-        state = 'FUNCTION'
-    elif is_var_name_old(name):
-        state = 'VAR'
-    else:
-        raise Exception("unknown name")
 
 
 class Parser(object):
@@ -841,16 +700,61 @@ class Parser(object):
         if line == '':
             return
 
-        # Could be FunctionText definition
+
+        block = self.stack[-1]
+
+        if isinstance(block, StructText) and stack_index == 1:
+            argument, line = read_arg_definition(line)
+            if argument:
+                logging.debug('struct arg read: {}'.format(argument))
+                block.members.append(argument)
+                return
+
+
+        # conditional (if, elif, else, while)
+        while_clause, line = read_while(line)
+        if while_clause:
+            print "while read: {0}".format(while_clause.get_dict())
+            block.code.append(while_clause)
+            self.stack.append(while_clause)
+            return
+
+        if_clause, line = read_if(line)
+        if if_clause:
+            print "if read: {0}".format(if_clause.get_dict())
+            block.code.append(if_clause)
+            self.stack.append(if_clause)
+            return
+
+        elif_clause, line = read_elif(line)
+        if elif_clause:
+            print "elif read: {0}".format(elif_clause.get_dict())
+            block.code.append(elif_clause)
+            self.stack.append(elif_clause)
+            return
+
+        else_clause, line = read_else(line)
+        if else_clause:
+            print "else read: {0}".format(else_clause.get_dict())
+            block.code.append(else_clause)
+            self.stack.append(else_clause)
+            return
+
+        # Could be function or struct definition
         if stack_index == 0:
+            struct, line = read_struct_definition(line)
+            if struct:
+                print "struct_definition: {}".format(struct.get_dict())
+                self.program.structs.append(struct)
+                self.stack.append(struct)
+                return
+
             function, line = read_function_definition(line)
             if function:
                 print "function_definition: {0}".format(function.get_dict())
                 self.program.functions.append(function)
                 self.stack.append(function)
                 return
-
-        block = self.stack[-1]
 
         statement, line = read_statement(line)
         if statement:
@@ -864,55 +768,4 @@ class Parser(object):
             block.code.append(expression)
             return
 
-
-        # conditional (if, elif, else, while)
-        while_clause, line = read_while(line)
-        if while_clause:
-            print "while read: {0}".format(while_clause.get_dict())
-            block.code.append(while_clause)
-            self.stack.append(while_clause)
-            return
-
-        if_clause, line = read_if(line)
-
-        elif_clause, line = read_elif(line)
-
-        else_claus, line = read_else(line)
-
-        # read return, break
-
         raise Exception("Something wrong bud")
-
-
-    def read_operation_old(text):
-        operators = ['+', '-', '*', '/', '%']
-        for char in text:
-            if char == '(':
-                pass
-            elif char == ')':
-                pass
-            elif char == ' ':
-                pass
-            elif char in operators:
-                # needs an operand
-                pass
-
-def get_function(functions, data):
-    return None
-
-def get_variable(variables, data):
-    return None
-
-
-def expression_check(exp, variables, functions):
-    function = get_function(functions, exp.data)
-    if function:
-        # read children
-        pass
-
-    elif get_variable(variables, exp.data):
-        pass
-
-    else:
-        raise Exception("Undeclared name: {0}".format(exp.data))
-

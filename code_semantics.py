@@ -1,5 +1,6 @@
 from shared.common import get_object
-from parser import OPERATORS, PRIMITIVE_TYPES, VariableText, ExpressionText, StatementText, FunctionText, ConditionalText, WhileText, get_program_dict, get_expression_dict
+import logging
+from parser import OPERATORS, PRIMITIVE_TYPES, Parameter, ExpressionText, StatementText, FunctionText, ConditionalText, WhileText, get_program_dict, get_expression_dict, Name, Constant
 import json
 
 
@@ -54,7 +55,7 @@ class Variable(object):
     def get_dict(self):
         return {
             'type': self.type.get_dict(),
-            'name': self.name,
+            'name': self.name.get_dict(),
             'value': self.value
         }
 
@@ -120,63 +121,57 @@ class Expression(object):
         self.function = function
         self.program = program
         data = expression_text.data
-        data_type = type(data)
 
-        # variables inside expressions must be defined
-        if data_type == VariableText:
-            var_text = data
-            if var_text.name != None:
-                var = function.get_variable(var_text.name)
-                if var:
-                    self.data = var
-                    return
-                else:
-                    raise Exception("Undefined var: {0}".format(data.get_dict()))
-            elif var_text.value != None:
-                c_type = get_constant_type(var_text.value)
-                if c_type:
-                    self.data = Variable(c_type, None, var_text.value)
-                else:
-                    raise Exception("Unknown type: {0}".format(var_text.value))
+        if isinstance(data, Constant):
+            # constant variable
+            c_type = get_constant_type(data.value)
+            if c_type:
+                self.data = Variable(c_type, None, data)
             else:
-                raise Exception("Unable to read variable: {0}".format(data))
-        elif data_type == str:
-            child_types = []
-            for child in expression_text.children:
-                child_exp = Expression(child, function, program)
-                child_types.append(child_exp.get_types)
-                self.children.append(child_exp)
+                raise Exception("Unknown type: {0}".format(var_text.value))
+        elif isinstance(data, Name):
+            # name could be variable or function
+            var = function.get_variable(data.value)
+            if var:
+                self.data = var
+                return
 
-            for child in self.children:
-                types = child.get_types()
-                assert len(types) == 1, "Each operands must return 1 value, but returns: {0}".format(len(child))
-
-            # does function name or operator exist?
-            if data in OPERATORS:
+            func = program.get_function(data.value)
+            if func:
                 self.data = data
-                assert len(self.children) == 2, "Can only handle 2 operands in operation, but returns: {0}".format(len(self.children))
-                my_type = None
-                for child in self.children:
-                    child_type  = child.get_types()[0]
-                    if my_type == None:
-                        my_type = child_type
-                    else:
-                        assert my_type.name == child_type.name, "My type: {0}, child_type: {1}".format(my_type, child_type)
-
             else:
-                function = program.get_function(data)
-                if function:
-                    self.data = data
+                raise Exception("no function with that name: {0}".format(data))
+            self._set_children(expression_text)
+
+            for index, child in enumerate(self.children):
+                child_type  = child.get_types()[0]
+                def_name = function.inputs[index].type.name
+                assert def_name == child_type.name, "Function input type {0} does not match child type: {1}".format(def_name, child_type.name)
+            # could be function
+            raise Exception("Undefined var: {0}".format(data.get_dict()))
+        elif isinstance(data, Operator):
+            # operator is like a function call
+            self.data = data.value
+            self._set_children(expression_text)
+
+            assert len(self.children) == 2, "Can only handle 2 operands in operation, but returns: {0}".format(len(self.children))
+            my_type = None
+            for child in self.children:
+                child_type  = child.get_types()[0]
+                if my_type == None:
+                    my_type = child_type
                 else:
-                    raise Exception("no function with that name: {0}".format(data))
-                for index, child in enumerate(self.children):
-                    child_type  = child.get_types()[0]
-                    def_name = function.inputs[index].type.name
-                    assert def_name == child_type.name, "Function input type {0} does not match child type: {1}".format(def_name, child_type.name)
+                    assert my_type.name == child_type.name, "My type: {0}, child_type: {1}".format(my_type, child_type)
 
         else:
             raise Exception("Unknown data: {0}".format(data))
 
+    def _set_children(self, expression_text):
+        for child in expression_text.children:
+            child_exp = Expression(child, self.function, self.program)
+            types = child_exp.get_types()
+            assert len(types) == 1, "Each operands must return 1 value, but returns: {0}".format(len(child_exp))
+            self.children.append(child_exp)
 
     def get_types(self):
         '''
@@ -219,6 +214,7 @@ class Expression(object):
     def __str__(self):
         return json.dumps(self.get_dict())
 
+
 class Statement(object):
     def __init__(self, statement_text, function, program):
         dests = statement_text.dests
@@ -227,11 +223,11 @@ class Statement(object):
         dest_types = expression.get_types()
         destinations = []
         for dest, type in zip(dests,dest_types):
-            destination = function.get_variable(dest.name)
+            destination = function.get_variable(dest.value)
             if destination:
                 assert destination.type.name == type.name, "{0} not equal to {1}".format(destination.type.name, type.name)
             else:
-                destination = Variable(type, dest.name, None)
+                destination = Variable(type, dest.value, None)
                 function.variables_append(destination)
             destinations.append(destination)
 
@@ -274,6 +270,22 @@ class While(Conditional):
         assert len(types) == 1 and types[0].name == 'bool'
         super(While, self).__init__(condition, while_text, function, program)
 
+class Struct(object):
+    def __init__(self, name, members=[]):
+        self.name = name
+        self.members = members
+
+    def get_dict(self):
+        members = []
+        for member in self.members:
+            members.append(member.get_dict())
+        return {
+            'name': self.name,
+            'members': members
+        }
+
+    def __str__(self):
+        return json.dumps(self.get_dict())
 
 class Function(Block):
     def __init__(self, function_text, program):
@@ -341,7 +353,8 @@ class Function(Block):
 class Semantics:
     def __init__(self, program_text):
         function_semantics = []
-        self.program = Program(function_semantics, [])
+        structs = []
+        self.program = Program(function_semantics, structs)
 
         # first pass. just get the function name and inputs and outputs
         for function in program_text.functions:
@@ -352,8 +365,11 @@ class Semantics:
 
         # second pass. process the code.
         for function in function_semantics:
-            print "function variables for {0}".format(function.name)
+            logging.debug("function variables for {0}".format(function.name))
             for var in function.variables:
-                print var.get_dict()
+                logging.debug(var.get_dict())
             function.process_code()
 
+        for struct_text in program_text.structs:
+            struct = Struct(struct.text, struct.members)
+            structs.append(struct)

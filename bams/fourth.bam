@@ -1,0 +1,5 @@
+Rectangle:
+    int x
+    int y
+
+a = Rectangle()
