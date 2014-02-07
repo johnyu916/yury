@@ -175,7 +175,7 @@ class Converter(object):
             var = data
             dest_offset = return_vars[0]['offset']
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
-            if var.name != None:
+            if var.name is not None:
                 src_offset = block.variables[var.name]['offset']
                 self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset
                 # copy from 6 to 4.

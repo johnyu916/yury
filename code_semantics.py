@@ -55,7 +55,7 @@ class Variable(object):
     def get_dict(self):
         return {
             'type': self.type.get_dict(),
-            'name': self.name.get_dict(),
+            'name': self.name,
             'value': self.value
         }
 
@@ -72,7 +72,10 @@ class Program(object):
         return None
 
     def __str__(self):
-        return json.dumps(get_program_dict(self))
+        return json.dumps(self.get_dict())
+
+    def get_dict(self):
+        return get_program_dict(self)
 
 
 class Block(object):
@@ -116,6 +119,11 @@ class Block(object):
 
 
 class Expression(object):
+    '''
+    Node.
+    self.data is either Variable or string (function name or operator)
+    self.children is a list of expression objects.
+    '''
     def __init__(self, expression_text, function, program):
         self.children = []
         self.function = function
@@ -126,7 +134,7 @@ class Expression(object):
             # constant variable
             c_type = get_constant_type(data.value)
             if c_type:
-                self.data = Variable(c_type, None, data)
+                self.data = Variable(c_type, None, data.value)
             else:
                 raise Exception("Unknown type: {0}".format(var_text.value))
         elif isinstance(data, Name):
@@ -138,7 +146,7 @@ class Expression(object):
 
             func = program.get_function(data.value)
             if func:
-                self.data = data
+                self.data = data.value
             else:
                 raise Exception("no function with that name: {0}".format(data))
             self._set_children(expression_text)
@@ -286,6 +294,7 @@ class Struct(object):
 
     def __str__(self):
         return json.dumps(self.get_dict())
+
 
 class Function(Block):
     def __init__(self, function_text, program):

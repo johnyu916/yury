@@ -347,7 +347,8 @@ def read_expression(text):
 
         number, text = re_match('[0-9]+', text)
         if number is not None:
-            stack.append(Constant(number))
+            # NOTE: assuming int for now. add more later.
+            stack.append(Constant(int(number)))
             continue
 
         variable, text = re_match(VARIABLE_PATTERN, text)
