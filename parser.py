@@ -47,7 +47,7 @@ class ConstantText(Token):
 class Name(Token):
     pass
 
-class DottedName():
+class DottedName(object):
     def __init__(self, tokens):
         '''
         '''
@@ -57,6 +57,7 @@ class DottedName():
 
     def get_dict(self):
         return {
+            'type': str(DottedName),
             'tokens': self.tokens
         }
 

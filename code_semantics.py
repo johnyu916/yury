@@ -143,6 +143,7 @@ class Block(object):
 
     def process_code(self, code):
         for text in code:
+            logging.debug("Processing code: {}".format(text))
             text_type = type(text)
             if text_type == ExpressionText:
                 expr = Expression(text, self, self.program)
@@ -244,14 +245,13 @@ class Expression(object):
         '''
         data = self.data
         # TODO: This is not good enough
-        if type(data) == Variable:
-            #print "exp get_type var: {0}".format(data.get_dict())
-            assert type is not None, "type of variable is none {}".format(data)
+        if isinstance(data, DottedName):
+            variable = self.function.get_variable(data)
+            return [get_dotted_type(data.tokens, variable.type, self.program.structs)]
+        elif isinstance(data, Constant):
             return [data.type]
-        elif type(data) == Constant:
-            assert type is not None, "type of constant is none {}".format(data)
-            return [data.type]
-        elif type(data) == str:
+        elif isinstance(data, str):
+            # either function name or operator
             function = self.program.get_function(data)
             if function is not None:
                 return function.get_types()
@@ -265,7 +265,7 @@ class Expression(object):
                     return self.children[0].get_types()
             raise Exception("Unknown type of string function: ", data)
         else:
-            raise Exception("Cannot determine type of expression")
+            raise Exception("Cannot determine type of expression: {}".format(data))
 
     def get_dict(self):
         return get_expression_dict(self)
@@ -276,6 +276,9 @@ class Expression(object):
 
 class Statement(object):
     def __init__(self, statement_text, function, program):
+        '''
+        destinations is a list of DottedName objects.
+        '''
         dests = statement_text.dests
         expr = statement_text.expression
         expression = Expression(expr, function, program)
@@ -289,7 +292,7 @@ class Statement(object):
             else:
                 destination = Variable(type, dest.tokens[0])
                 function.variables_append(destination)
-            destinations.append(destination)
+            destinations.append(dest)
 
         self.destinations = destinations
         self.expression = expression
@@ -371,6 +374,14 @@ class Struct(Type):
                 return member
         return None
 
+    def get_member_offset(self, member_name):
+        offset = 0
+        for member in self.members:
+            if member.name == member_name:
+                return (member, offset)
+            offset += member.type.size
+        return None
+
     def __str__(self):
         return json.dumps(self.get_dict())
 
@@ -393,6 +404,10 @@ def function_make(function_text, program):
 
 class Function(Block):
     def __init__(self, name, inputs, outputs, program):
+        '''
+        name is a string
+        Inputs and outputs are lists of Variable objects.
+        '''
         super(Function, self).__init__(None, program)
         self.name = name
         self.inputs = []
@@ -412,7 +427,6 @@ class Function(Block):
         tokens = dotted_name.tokens
         root_name = tokens[0]
         for var in self.variables:
-            print "looking at var: {0}".format(var.get_dict())
             if var.name == root_name:
                 # now ensure rest of names are okay.
                 dotted_type = get_dotted_type(tokens, var.type, self.program.structs)

@@ -1,21 +1,20 @@
 import logging
 
-from code_semantics import Expression, Statement, Variable, While, get_type
-from parser import OPERATORS
+from code_semantics import Constant, Expression, Statement, Variable, While, get_type, get_dotted_type
+from parser import OPERATORS, DottedName
 from instruction import Translator, write_insn, write_ass, INSN_SIZE
 from shared.common import get_object
 USHORT_SIZE = 16
 
 
-class Block(object):
+class BlockStack(object):
     '''
-    Represents a block of code (function and segmented block)
+    Data structure for a block of code
     '''
     def __init__(self):
-        #self.sp_position = 0  # sp current position. Expressed from beginning (0).
         self.offset = 0 # position (initially at top).
         self.variables = {}
-        # self.function_calls = []  # list of  (insn_index, funtion_calling)
+
     def new_variable(self, variable):
         self.offset -= variable.type.size
         vari = {
@@ -24,11 +23,28 @@ class Block(object):
         }
         self.variables[variable.name] = vari
 
-    def get_variable(self, name):
-        for _, variable in self.variables.iteritems():
-            if variable['variable'].name == name:
-                return variable
-        return None
+    def get_variable(self, dotted_name):
+        if len(dotted_name.tokens) == 0: return None
+        token = dotted_name.tokens[0]
+        return self.variables.get(token)
+
+def get_size(dotted_name, block_stack, structs):
+    variable_dict = block_stack.get_variable(dest)
+    variable = variable_dict['variable']
+    type = get_dotted_type(dotted_name.tokens, variable.type, structs)
+    return type.size
+
+def get_offset(tokens, first_type, structs, offset=0):
+    if len(tokens) == 0:
+        raise Exception("Can't get type of empty tokens")
+
+    if len(tokens) == 1:
+        return offset
+
+    next_token = tokens[1]
+    (member, member_offset) = first_type.get_member_offset(next_token)
+
+    return get_offset(tokens[1:], member.type, offset + member_offset)
 
 '''
 Function stack:
@@ -110,21 +126,20 @@ class Converter(object):
         logging.debug("spitting function: {0}".format(function.name))
         # print a single function
         builder = self.builder
-        block = Block()
+        block_stack = BlockStack()
         inputs = function.inputs
         outputs = function.outputs
         local_vars = function.local_variables
 
-
-        return_pc = Variable(get_type('int'), 'return_pc', 0)
+        return_pc = Variable(get_type('int'), 'return_pc')
         for input in outputs+inputs+[return_pc]+local_vars:
-            block.new_variable(input)
+            block_stack.new_variable(input)
 
         # load stack pointer
         # self.builder.load(self.sp_register, self.sp_addr_register)
 
         # write code now
-        self.write_code_block(block, function)
+        self.write_code_block(block_stack, function)
 
         # return to some address.
         #offset = block.variables['return_pc']['offset']
@@ -132,18 +147,17 @@ class Converter(object):
         builder.jump(self.pc_return_register)
         logging.debug("spitting function done: {0}".format(function.name))
 
-    def write_code_block(self, block, code_block):
+    def write_code_block(self, block_stack, code_block):
         for chunk in code_block.code:
-            b_type = type(chunk)
-            if b_type == Expression:
-                self.spit_expression(block, chunk)
-            elif b_type == Statement:
-                self.spit_statement(block, chunk)
-            elif b_type == While:
-                self.spit_while(block, chunk)
+            if isinstance(chunk, Expression):
+                self.spit_expression(block_stack, chunk)
+            elif isinstance(chunk, Statement):
+                self.spit_statement(block_stack, chunk)
+            elif isinstance(chunk, While):
+                self.spit_while(block_stack, chunk)
 
 
-    def spit_expression(self, block, expression):
+    def spit_expression(self, block_stack, expression):
         '''
         Allocates space for return types.
         Perform the operation. at the end,
@@ -156,45 +170,47 @@ class Converter(object):
         return_types = expression.get_types()
         builder = self.builder
         return_vars = {}
-        block_begin_offset = block.offset
+        block_begin_offset = block_stack.offset
 
         for count, return_type in enumerate(return_types):
             # make room for return value
-            block.offset -= return_type.size
+            block_stack.offset -= return_type.size
             return_var = {
-                'variable': Variable(return_type, count, 0),
-                'offset': block.offset
+                'variable': Variable(return_type, count),
+                'offset': block_stack.offset
             }
             return_vars[count] = return_var
 
-
-        data_type = type(expression.data)
         data = expression.data
-        if data_type == Variable:
+        if isinstance(data, Constant):
             # setting to constant or variable
-            var = data
             dest_offset = return_vars[0]['offset']
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
-            if var.name is not None:
-                src_offset = block.variables[var.name]['offset']
-                self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset
-                # copy from 6 to 4.
-                builder.copy(4, 6, var.type.size, 7)
-            else:
-                # constant. store to 4 (destination)
-                builder.store_inti(4, var.value, 5)  # immediate
+            # constant. store to 4 (destination)
+            # TODO: currently only handle integers
+            builder.store_inti(4, data.value, 5)  # immediate
 
-        elif data_type == str:
+        elif isinstance(data, DottedName):
+            variable_dict = block_stack.get_variable(data)
+            variable_offset = variable_dict['offset']
+            member_offset = get_offset(data.tokens, variable_dict['variable'].type, self.program.structs)
+            src_offset = variable_offset + member_offset
+            var_size = get_dotted_type(data.tokens, variable_dict['variable'].type, self.program.structs).size
+            self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset
+            # copy from 6 to 4.
+            builder.copy(4, 6, var_size, 7)
+
+        elif isinstance(data, str):
             # has children.
             # if necessary, allocate additional space for intermediary.
             # so run them first.
             children = expression.children
             for child in children:
-                self.spit_expression(block, child)
+                self.spit_expression(block_stack, child)
                 # need to save the child somewhere.
                 child_return_types = child.get_types()
                 for child_type in child_return_types:
-                    block.offset -= child_type.size
+                    block_stack.offset -= child_type.size
 
             # operator or string
             if data in OPERATORS:
@@ -222,17 +238,22 @@ class Converter(object):
                 elif data == '==':
                     builder.set_on_e(7,8,9, 10, 11)
                     builder.store_byte(4, 7) # store result in 4
+
+            elif self.program.get_struct(data) is not None:
+
+                # maybe a struct constructor. then we don't need to do anything
+                pass
             else:
                 # call function. Note we already allocated space for the 
                 # output (return_vars) and input (child_return_types).
                 # save return register on stack, because the child is going to use it now.
-                return_pc_offset = block.variables['return_pc']['offset']
+                return_pc_offset = block_stack.variables['return_pc']['offset']
                 self.set_offset_address(3, return_pc_offset, 4)
                 builder.store_int(3, self.pc_return_register)
 
                 # set stack pointer to offset
                 builder.subtract_inti(self.sp_register, self.sp_register, block_begin_offset *-1, 3)
-                self.call_function(block, data)
+                self.call_function(data)
 
                 # call function changed the stack pointer, so change it back
                 builder.add_inti(self.sp_register, self.sp_register, block_begin_offset * -1, 4)
@@ -241,7 +262,7 @@ class Converter(object):
                 builder.load_int(self.pc_return_register, 3)
 
 
-        block.offset = block_begin_offset
+        block_stack.offset = block_begin_offset
         logging.debug("spitting expression done")
 
     def set_offset_address(self, register, offset, worker_register):
@@ -256,7 +277,7 @@ class Converter(object):
         self.builder.set_int(worker_register, offset*-1)
         self.builder.subtract_int(register, self.sp_register, worker_register)
 
-    def call_function(self, block, function_name):
+    def call_function(self, function_name):
         builder = self.builder
         function = self.program.get_function(function_name)
         if not function:
@@ -273,50 +294,51 @@ class Converter(object):
         # set some value to another register VAL.
         # store VAL ADDR. 
 
-    def spit_statement(self, block, statement):
+    def spit_statement(self, block_stack, statement):
         '''
         Destinations should already be in the stack, so does not
-        allocate additional memory (but expressions do).
+        allocate additional memory (but expressions inside
+        probably will use the stack).
         After expression is done, memory is copied from the 
         return values to the destinations.
         '''
         logging.debug("spitting statement: {0}".format(statement))
         builder = self.builder
-        dests = statement.destinations
+        destinations = statement.destinations
         expression = statement.expression
 
         # find the destinations
-        for dest in dests:
-            variable = block.get_variable(dest.name)
+        for dest in destinations:
+            variable = block_stack.get_variable(dest)['variable']
             if not variable:
-                raise Exception("didn't find variable %s" % dest.name)
-                #logging.debug("didn't find variable %s" % dest.name)
-                #block.new_variable(variable)
+                raise Exception("didn't find variable %s" % dest)
 
-        #dest_addr = block.vars[dest.name]
-        self.spit_expression(block, expression)
-        return_start = block.offset
+        self.spit_expression(block_stack, expression)
+        return_start = block_stack.offset
         # copy addrs to destinations
-        for dest in dests:
-            return_start -= dest.type.size
-            self.set_offset_address(3, block.variables[dest.name]['offset'],4)
+        for dest in destinations:
+            variable_dict = block_stack.get_variable(dest)
+            variable = variable_dict['variable']
+            dest_size = get_dotted_type(dest.tokens, variable.type, self.program.structs).size
+            dest_offset = get_offset(dest.tokens, variable.type, self.program.structs, variable_dict['offset'])
+            return_start -= dest_size
+
+            self.set_offset_address(3, dest_offset,4)
             self.set_offset_address(5, return_start,6)
-            #copy 3 is the destination. 5 is the source.
-            builder.copy(3, 5, dest.type.size, 7)
-            #builder.load(7, 5)
-            #builder.store_int(3, 7)
+            #copy. 3 is the destination. 5 is the source.
+            builder.copy(3, 5, dest_size, 7)
 
-        logging.debug("spitting statement done. block.offset: %s" % block.offset)
+        logging.debug("spitting statement done. block.offset: %s" % block_stack.offset)
 
 
-    def spit_while(self, block, while_cond):
+    def spit_while(self, block_stack, while_cond):
         # if condition met, enter loop, else exit.
         # must clear any unused variables after its done.
         logging.debug("spitting while: {0}".format(while_cond.condition))
         loop_start = len(self.builder.insns)
-        self.spit_expression(block, while_cond.condition)
+        self.spit_expression(block_stack, while_cond.condition)
 
-        offset = block.offset - 1
+        offset = block_stack.offset - 1
         addr_reg = 3
         self.set_offset_address(addr_reg, offset, 4)
         value_reg = 5
@@ -326,7 +348,7 @@ class Converter(object):
         # if condition doesn't hold, exit.
         self.builder.branch_on_z_imm(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
 
-        self.write_code_block(block, while_cond)
+        self.write_code_block(block_stack, while_cond)
 
         # end loop
         self.builder.jumpi(loop_start*4, 6)
@@ -335,57 +357,3 @@ class Converter(object):
         self.builder.branch_on_z_imm_set(loop_end_index, value_reg, loop_end*4, 6)
         #self.builder.insns[loop_end_index].branch_to = loop_end
         logging.debug("spitting while done")
-
-
-def test():
-    # set memory to 4k
-    #memory_size = 4096
-    block = Block()
-    insns = Translator(block)
-    variables = {}
-
-    f_vars = {}
-    sys_vars = {}  # vars only used internally. not referenced by program.
-    variables['fibonacci'] = f_vars
-
-    # memory for return variable
-    f_vars['return'] = insns.new_short()
-    # memory for parameters
-    f_vars['index'] = insns.new_short()
-    # copy from parent variable to child
-    insns.copy_short(f_vars['index'], variables['counter'])
-    # entered function
-    f_vars['last'] = insns.new_short()
-    insns.store_short(f_vars['last'], 1)
-    f_vars['current'] = insns.new_short()
-    insns.store_short(f_vars['current'], 1)
-
-    # while loop
-    # if condition met, enter loop, else exit.
-    # must clear any unused variables after its done.
-    loop_start = len(insns.insns)
-    insns.branch_short(f_vars['index'], 0, 1000)
-    insns.add_short(f_vars['current'], f_vars['current'], f_vars['last'])
-    sys_vars['complement'] = insns.new_short()
-    insns.complement(sys_vars['complement'], 1)
-    insns.add_short(f_vars['index'], f_vars['index'], sys_vars['complement'])
-    insns.jumpi(loop_start, 4)
-    loop_end = len(insns.insns)
-
-    # set the branch point
-    insns.insns[loop_start].branch_to = loop_end
-    # return statement
-    insns.copy_short(f_vars['return'], f_vars['current'])
-
-
-    # back in main function.
-    variables['counter'] = insns.new_short()
-    insns.store_short(variables['counter'], 5)
-    variables['value'] = insns.new_short()
-    insns.copy_short(variables['value'], f_vars['return'])
-
-
-    # TODO: clean up after function complete. 
-    #  save and jump to original insn after function complete.
-    #  list the function insns first, then main line. jump in first insn.
-
