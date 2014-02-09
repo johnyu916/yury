@@ -3,3 +3,6 @@ Rectangle:
     int y
 
 a = Rectangle()
+b = a
+a.x = 5
+a.y = a.x + 7

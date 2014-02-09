@@ -41,18 +41,38 @@ class Comma(Token):
 class Operator(Token):
     pass
 
-class Constant(Token):
+class ConstantText(Token):
     pass
 
 class Name(Token):
     pass
 
+class DottedName():
+    def __init__(self, tokens):
+        '''
+        '''
+        assert isinstance(tokens, list)
+        assert len(tokens) > 0
+        self.tokens = tokens
+
+    def get_dict(self):
+        return {
+            'tokens': self.tokens
+        }
+
+    def __str__(self):
+        return json.dumps(self.get_dict())
+
 
 class Parameter(object):
     '''
-    Type, name and value. Type can be primitive or defined from library. Constant is also represented as variable
+    For parsing function definition parameters.
+    Defined by type, name. Type can be primitive or defined from library. ConstantText is also represented as variable
     '''
     def __init__(self, arg_type, name):
+        '''
+        arg_type and name are both strings.
+        '''
         self.name = name
         self.arg_type = arg_type
 
@@ -77,6 +97,10 @@ class BlockText(object):
 
 class StructText(object):
     def __init__(self, name, members=[]):
+        '''
+        name is string.
+        members is list of Parameters
+        '''
         self.name = name
         self.members = members
 
@@ -159,7 +183,7 @@ class StatementText(object):
     def __init__(self, dests, expression):
         '''
         a = add(3,5)
-        dests is a list of Names
+        dests is a list of DottedName objects
         expression is ExpressionText
         '''
         self.dests = dests  # dests is a list
@@ -183,7 +207,7 @@ class ExpressionText(object):
     '''
     ExpressionText is a node that carries data.
     children can be ExpressionTexts or empty.
-    data can be a Token (Operator, Name, Constant)
+    data can be a Token (Operator, Name, ConstantText)
     '''
     def __init__(self, data, children=()):
         if type(children) != tuple:
@@ -337,7 +361,7 @@ def read_expression(text):
 
     while len(text) > 0:
         #print "read_expression text: " + text
-        space, text = re_match(' ', text)
+        space, text = re_match(' *', text)
         # don't care whether a space was read or not
 
         par, text = re_match('\(', text)
@@ -348,12 +372,12 @@ def read_expression(text):
         number, text = re_match('[0-9]+', text)
         if number is not None:
             # NOTE: assuming int for now. add more later.
-            stack.append(Constant(int(number)))
+            stack.append(ConstantText(int(number)))
             continue
 
-        variable, text = re_match(VARIABLE_PATTERN, text)
+        variable, text = read_dotted_name(text)
         if variable is not None:
-            stack.append(Name(variable))
+            stack.append(variable)
             continue
 
         comma, text = re_match(',', text)
@@ -494,7 +518,7 @@ def build_simple_constant_or_variable(orig):
     tokens = copy.copy(orig)
     name = list_pop(tokens, 0)
     expression = None
-    if isinstance(name, Name):
+    if isinstance(name, DottedName):
         # could be a function
         params = list_pop(tokens, 0)
         if isinstance(params, list):
@@ -504,7 +528,7 @@ def build_simple_constant_or_variable(orig):
                 # put it back cuz we didn't consume it
                 tokens.insert(0, params)
             expression = ExpressionText(name)
-    elif isinstance(name, Constant):
+    elif isinstance(name, ConstantText):
         expression = ExpressionText(name)
     elif isinstance(name, list):
         if len(name) == 1:
@@ -519,18 +543,34 @@ def build_simple_constant_or_variable(orig):
     return expression, tokens
 
 
+def read_dotted_name(orig):
+    text = orig
+
+    dest, text = re_match(VARIABLE_PATTERN, text)
+    if dest is None:
+        return None, orig
+
+    tokens = [dest]
+
+    while(True):
+        token, text = re_match('.'+VARIABLE_PATTERN, text)
+        if token is None:
+            break
+        else:
+            token = token[1:] # token without period
+            tokens.append(token)
+
+    return DottedName(tokens), text
+
+
 def read_statement(orig):
     '''
     StatementText example: counter = 5
     '''
     text = orig
-    dest, text = re_match(VARIABLE_PATTERN, text)
-    if dest is None:
-        return None, orig
-
-    dest_var = Name(dest)
+    dotted_name, text = read_dotted_name(text)
     # try reading space
-    space, text = re_match(' ', text)
+    space, text = re_match(' *', text)
 
     equ, text = re_match('=', text)
     if equ is None:
@@ -539,11 +579,11 @@ def read_statement(orig):
     # either constant, variable, function call, or operation
    
     # try reading space
-    space, text = re_match(' ', text)
+    space, text = re_match(' *', text)
 
     expression, text = read_expression(text)
     if expression != None:
-        return StatementText([dest_var], expression), text
+        return StatementText([dotted_name], expression), text
 
     return None, orig
 
@@ -603,19 +643,16 @@ def read_arg_definition(orig):
     if arg_type is None:
         return None, orig
 
-    print "arg_type: " + arg_type + " text: " + text
     # space
-    space, text = re_match(' ', text)
+    space, text = re_match(' *', text)
     if space is None:
         return None, orig
-    print "soace: " + space+ " text: " + text
 
     # name
     name, text = re_match(VARIABLE_PATTERN, text)
     if name is None:
         return None, orig
-    print "name: " + name+ " text: " + text
-    var = Parameter(arg_type, name, None)
+    var = Parameter(arg_type, name)
     return var, text
 
 
@@ -705,6 +742,7 @@ class Parser(object):
         block = self.stack[-1]
 
         if isinstance(block, StructText) and stack_index == 1:
+            # struct members
             argument, line = read_arg_definition(line)
             if argument:
                 logging.debug('struct arg read: {}'.format(argument))
