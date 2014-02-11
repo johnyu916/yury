@@ -1,6 +1,6 @@
 import logging
 
-from code_semantics import Constant, Expression, Statement, Variable, While, get_type, get_dotted_type
+from code_semantics import Constant, Expression, Statement, Variable, While, If, ElIf, Else, get_type, get_dotted_type
 from parser import OPERATORS, DottedName
 from instruction import Translator, write_insn, write_ass, INSN_SIZE
 from shared.common import get_object
@@ -13,7 +13,7 @@ class BlockStack(object):
     '''
     def __init__(self):
         self.offset = 0 # position (initially at top).
-        self.variables = {}
+        self.variables = []
 
     def new_variable(self, variable):
         self.offset -= variable.type.size
@@ -21,12 +21,20 @@ class BlockStack(object):
             'variable': variable,
             'offset' : self.offset
         }
-        self.variables[variable.name] = vari
+        self.variables.append(vari)
+
+    def pop_variable(self):
+        # remove from the end
+        variable_dict = self.variables.pop()
+        self.offset += variable_dict['variable'].type.size
 
     def get_variable(self, dotted_name):
         if len(dotted_name.tokens) == 0: return None
         token = dotted_name.tokens[0]
-        return self.variables.get(token)
+        for variable_dict in self.variables:
+            if variable_dict['variable'].name == token:
+                return variable_dict
+        return None
 
 def get_size(dotted_name, block_stack, structs):
     variable_dict = block_stack.get_variable(dest)
@@ -155,6 +163,15 @@ class Converter(object):
                 self.spit_statement(block_stack, chunk)
             elif isinstance(chunk, While):
                 self.spit_while(block_stack, chunk)
+            elif isinstance(chunk, If):
+                self.spit_if(block_stack, chunk)
+            elif isinstance(chunk, ElIf):
+                self.spit_elif(block_stack, chunk)
+            elif isinstance(chunk, Else):
+                self.spit_else(block_stack, chunk)
+            else:
+                raise Exception("Don't know what to do with: ", chunk)
+
 
 
     def spit_expression(self, block_stack, expression):
@@ -330,6 +347,12 @@ class Converter(object):
 
         logging.debug("spitting statement done. block.offset: %s" % block_stack.offset)
 
+    def _load_condition_result(self, block_stack):
+        offset = block_stack.offset - 1
+        addr_reg = 3
+        self.set_offset_address(addr_reg, offset, 4)
+        value_reg = 5
+        self.builder.load_byte(value_reg, addr_reg)
 
     def spit_while(self, block_stack, while_cond):
         # if condition met, enter loop, else exit.
@@ -338,11 +361,7 @@ class Converter(object):
         loop_start = len(self.builder.insns)
         self.spit_expression(block_stack, while_cond.condition)
 
-        offset = block_stack.offset - 1
-        addr_reg = 3
-        self.set_offset_address(addr_reg, offset, 4)
-        value_reg = 5
-        self.builder.load_byte(value_reg, addr_reg)
+        self._load_condition_result(block_stack)
         loop_end_index = len(self.builder.insns)
 
         # if condition doesn't hold, exit.
@@ -357,3 +376,34 @@ class Converter(object):
         self.builder.branch_on_z_imm_set(loop_end_index, value_reg, loop_end*4, 6)
         #self.builder.insns[loop_end_index].branch_to = loop_end
         logging.debug("spitting while done")
+
+    def spit_if(self, block_stack, if_cond):
+        for variable in if_cond.variables:
+            block_stack.new_variable(variable)
+
+        self.spit_expression(block_stack, if_cond.condition)
+
+        # load result of expression into reg 5
+        self._load_condition_result(block_stack)
+
+        # branch to next guy
+        branch_index = len(self.builder.insns)
+        self.builder.branch_on_z_imm(5, 0, 6)
+
+        self.write_code_block(block_stack, if_cond)
+        block_end = len(self.builder.insns)
+        self.builder.branch_on_z_imm_set(branch_index, value_reg=None, immediate=block_end*4, free_reg=None)
+
+        # pop stack
+        for _ in if_cond.variables:
+            block_stack.pop_variable()
+
+    def spit_elif(self, block_stack, elif_cond):
+        self.spit_if(block_stack, elif_cond)
+
+    def spit_else(self, block_stack, else_cond):
+        for variable in else_cond.variables:
+            block_stack.new_variable(variable)
+        self.write_code_block(block_stack, else_cond)
+        for _ in else_cond.variables:
+            block_stack.pop_variable()

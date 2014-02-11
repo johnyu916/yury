@@ -1,6 +1,6 @@
 from shared.common import get_object
 import logging
-from parser import OPERATORS, PRIMITIVE_TYPES, Parameter, ExpressionText, StatementText, FunctionText, ConditionalText, WhileText, get_program_dict, get_expression_dict, DottedName, ConstantText, Operator
+from parser import OPERATORS, PRIMITIVE_TYPES, Parameter, ExpressionText, StatementText, FunctionText, WhileText, IfText, ElIfText, ElseText, get_program_dict, get_expression_dict, DottedName, ConstantText, Operator
 import json
 
 
@@ -62,6 +62,7 @@ def get_dotted_type(tokens, first_type, structs):
     if member is None:
         raise Exception("Can't find member: ", next_token)
     return get_dotted_type(tokens[1:], member.type, structs)
+
 
 def get_constant_type(value):
     # only int
@@ -137,41 +138,146 @@ class Program(object):
 class Block(object):
     def __init__(self, parent, program):
         self.code = []
+        self.variables = []
         self.parent = parent
         self.program = program
 
-
     def process_code(self, code):
+        '''
+        code is text.code
+        '''
         for text in code:
             logging.debug("Processing code: {}".format(text))
-            text_type = type(text)
-            if text_type == ExpressionText:
-                expr = Expression(text, self, self.program)
+            if isinstance(text, ExpressionText):
+                expr = expression_make(text, self, self.program)
                 self.code.append(expr)
-            elif text_type == StatementText:
+            elif isinstance(text, StatementText):
                 statement = Statement(text, self, self.program)
                 self.code.append(statement)
-            elif text_type == WhileText:
-                whilev = While(text, self, self.program)
-                whilev.process_code()
+            elif isinstance(text, WhileText):
+                condition = make_condition(text.condition, self, self.program)
+                whilev = While(condition, self, self.program)
+                whilev.process_code(text.code)
                 self.code.append(whilev)
                 # need to shift context.
+            elif isinstance(text, IfText):
+                prev_block = self.code[-1]
+                assert not isinstance(prev_block, If) and not isinstance(prev_block, ElIf), "Prev should not be be if or elif but is: {}".format(prev_block)
+                condition = make_condition(text.condition, self, self.program)
+                ifcon = If(condition, self, self.program)
+                ifcon.process_code(text.code)
+                self.code.append(ifcon)
+            elif isinstance(text, ElIfText):
+                prev_block = self.code[-1]
+                assert isinstance(prev_block, If) or isinstance(prev_block, ElIf), "Prev needs to be if or elif but is: {}".format(prev_block)
+                condition = make_condition(text.condition, self, self.program)
+                elifcon = ElIf(condition, self, self.program)
+                elifcon.process_code(text.code)
+                self.code.append(elifcon)
+            elif isinstance(text, ElseText):
+                prev_block = self.code[-1]
+                assert isinstance(prev_block, If) or isinstance(prev_block, ElIf), "Prev needs to be if or elif but is: {}".format(prev_block)
+                elsecon = Else(None, self, self.program)
+                elsecon.process_code(text.code)
+                self.code.append(elsecon)
+            else:
+                raise Exception("Can't process code: ", text)
+
+    def variables_append(self, variable):
+        self.variables.append(variable)
 
     def get_variable(self, dotted_name):
+        tokens = dotted_name.tokens
+        root_name = tokens[0]
+        for var in self.variables:
+            if var.name == root_name:
+                # now ensure rest of names are okay.
+                dotted_type = get_dotted_type(tokens, var.type, self.program.structs)
+                return var
+
         if self.parent:
             return self.parent.get_variable(dotted_name)
+        else:
+            return None
 
     def get_dict(self):
         codes = []
+        variables = [var.get_dict() for var in self.variables]
         for line in self.code:
             codes.append(line.get_dict())
         return {
-            'code': codes
+            'code': codes,
+            'variables': variables
         }
 
     def __str__(self):
         return json.dumps(self.get_dict())
 
+def make_expression_children(expression_text, block, program):
+    '''
+    build expression from children of functions/operators.
+    '''
+    children = []
+    for child in expression_text.children:
+        child_exp = expression_make(child, block, program)
+        types = child_exp.get_types()
+        assert len(types) == 1, "Each operands must return 1 value, but returns: {0}".format(len(child_exp))
+        children.append(child_exp)
+    return children
+
+def expression_make(expression_text, block, program):
+    data = expression_text.data
+    e_data = None
+    children = []
+    if isinstance(data, ConstantText):
+        # constant variable
+        c_type = get_constant_type(data.value)
+        if c_type:
+            e_data = Constant(c_type, data.value)
+        else:
+            raise Exception("Unknown type: {0}".format(data.value))
+    elif isinstance(data, DottedName):
+        # name could be variable or function
+        var = block.get_variable(data)
+        if var:
+            e_data = data
+        else:
+            assert len(data.tokens) == 1, "Only support single token function names"
+            token = data.tokens[0]
+            function = program.get_function(token)
+            if function is not None:
+                e_data = token
+                children = make_expression_children(expression_text, block, program)
+
+                for index, child in enumerate(children):
+                    child_type  = child.get_types()[0]
+                    def_name = function.inputs[index].type.name
+                    assert def_name == child_type.name, "Function input type {} does not match child type: {}".format(def_name, child_type.name)
+            else:
+                struct = program.get_struct(token)
+                if struct is not None:
+                    e_data = token
+                else:
+                    raise Exception("no function or struct with that name: {0}".format(data))
+
+    elif isinstance(data, Operator):
+        # operator is like a function call
+        e_data = data.value
+        children = make_expression_children(expression_text, block, program)
+
+        assert len(children) == 2, "Can only handle 2 operands in operation, but returns: {0}".format(len(children))
+        my_type = None
+        for child in children:
+            child_type  = child.get_types()[0]
+            if my_type == None:
+                my_type = child_type
+            else:
+                assert my_type.name == child_type.name, "My type: {0}, child_type: {1}".format(my_type, child_type)
+
+    else:
+        raise Exception("Unknown data: {0}".format(data))
+
+    return Expression(e_data, children, block, program)
 
 class Expression(object):
     '''
@@ -179,64 +285,12 @@ class Expression(object):
     self.data is either DottedName or Constant or string (function name or operator)
     self.children is a list of expression objects.
     '''
-    def __init__(self, expression_text, function, program):
-        self.children = []
-        self.function = function
+    def __init__(self, data, children, block, program):
+        self.children = children
+        self.block = block
         self.program = program
-        self.data = None
-        data = expression_text.data
+        self.data = data
 
-        if isinstance(data, ConstantText):
-            # constant variable
-            c_type = get_constant_type(data.value)
-            if c_type:
-                self.data = Constant(c_type, data.value)
-            else:
-                raise Exception("Unknown type: {0}".format(data.value))
-        elif isinstance(data, DottedName):
-            # name could be variable or function
-            var = function.get_variable(data)
-            if var:
-                self.data = data
-                return
-
-            assert len(data.tokens) == 1, "Only support single token function names"
-            token = data.tokens[0]
-            if program.get_function(token) is not None:
-                self.data = token
-            elif program.get_struct(token) is not None:
-                self.data = token
-            else:
-                raise Exception("no function or struct with that name: {0}".format(data))
-            self._set_children(expression_text)
-
-            for index, child in enumerate(self.children):
-                child_type  = child.get_types()[0]
-                def_name = function.inputs[index].type.name
-                assert def_name == child_type.name, "Function input type {0} does not match child type: {1}".format(def_name, child_type.name)
-        elif isinstance(data, Operator):
-            # operator is like a function call
-            self.data = data.value
-            self._set_children(expression_text)
-
-            assert len(self.children) == 2, "Can only handle 2 operands in operation, but returns: {0}".format(len(self.children))
-            my_type = None
-            for child in self.children:
-                child_type  = child.get_types()[0]
-                if my_type == None:
-                    my_type = child_type
-                else:
-                    assert my_type.name == child_type.name, "My type: {0}, child_type: {1}".format(my_type, child_type)
-
-        else:
-            raise Exception("Unknown data: {0}".format(data))
-
-    def _set_children(self, expression_text):
-        for child in expression_text.children:
-            child_exp = Expression(child, self.function, self.program)
-            types = child_exp.get_types()
-            assert len(types) == 1, "Each operands must return 1 value, but returns: {0}".format(len(child_exp))
-            self.children.append(child_exp)
 
     def get_types(self):
         '''
@@ -244,9 +298,8 @@ class Expression(object):
         Note this can be more than one, so return an array
         '''
         data = self.data
-        # TODO: This is not good enough
         if isinstance(data, DottedName):
-            variable = self.function.get_variable(data)
+            variable = self.block.get_variable(data)
             return [get_dotted_type(data.tokens, variable.type, self.program.structs)]
         elif isinstance(data, Constant):
             return [data.type]
@@ -275,23 +328,23 @@ class Expression(object):
 
 
 class Statement(object):
-    def __init__(self, statement_text, function, program):
+    def __init__(self, statement_text, block, program):
         '''
         destinations is a list of DottedName objects.
         '''
         dests = statement_text.dests
         expr = statement_text.expression
-        expression = Expression(expr, function, program)
+        expression = expression_make(expr, block, program)
         dest_types = expression.get_types()
         destinations = []
         for dest, type in zip(dests,dest_types):
-            destination = function.get_variable(dest)
+            destination = block.get_variable(dest)
             if destination:
                 dotted_type = get_dotted_type(dest.tokens, destination.type, program.structs)
                 assert dotted_type.name == type.name, "{0} not equal to {1}".format(dotted_type.name, type.name)
             else:
                 destination = Variable(type, dest.tokens[0])
-                function.variables_append(destination)
+                block.variables_append(destination)
             destinations.append(dest)
 
         self.destinations = destinations
@@ -311,27 +364,38 @@ class Statement(object):
 
 
 class Conditional(Block):
-    def __init__(self, condition, text, parent, program):
+    def __init__(self, condition, parent, program):
         self.condition = condition
-        super(Conditional, self).__init__(text, parent, program)
+        super(Conditional, self).__init__(parent, program)
 
     def get_dict(self):
-        this_dict = {
-            'condition': self.condition.get_dict()
-        }
+        this_dict = {}
+        if self.condition is not None:
+            this_dict['condition']= self.condition.get_dict()
         codes = super(Conditional, self).get_dict()
         this_dict.update(codes)
         return this_dict
 
 
+def make_condition(condition_text, parent, program):
+    condition = expression_make(condition_text, parent, program)
+    types = condition.get_types()
+    # condition is an expression. it must return boolean
+    assert len(types) == 1 and types[0].name == 'bool'
+    return condition
+
+
 class While(Conditional):
-    def __init__(self, while_text, function, program):
-        cond_text = while_text.condition
-        condition = Expression(cond_text, function, program)
-        # condition is an expression. it must return boolean
-        types = condition.get_types()
-        assert len(types) == 1 and types[0].name == 'bool'
-        super(While, self).__init__(condition, while_text, function, program)
+    pass
+
+class If(Conditional):
+    pass
+
+class ElIf(Conditional):
+    pass
+
+class Else(Conditional):
+    pass
 
 def struct_append(struct_text, structs):
     name = struct_text.name
@@ -423,19 +487,6 @@ class Function(Block):
         self.variables.append(variable)
         self.local_variables.append(variable)
 
-    def get_variable(self, dotted_name):
-        tokens = dotted_name.tokens
-        root_name = tokens[0]
-        for var in self.variables:
-            if var.name == root_name:
-                # now ensure rest of names are okay.
-                dotted_type = get_dotted_type(tokens, var.type, self.program.structs)
-                return var
-
-        if self.parent:
-            return self.parent.get_variable(dotted_name)
-        else:
-            return None
 
     def get_types(self):
         types = []
@@ -447,7 +498,6 @@ class Function(Block):
         inputs = [inpu.get_dict() for inpu in self.inputs]
         outputs = [output.get_dict() for output in self.outputs]
         local_variables = [var.get_dict() for var in self.local_variables]
-        variables = [var.get_dict() for var in self.variables]
 
         codes = super(Function, self).get_dict()
         return_dict = {
@@ -455,7 +505,6 @@ class Function(Block):
             'inputs': inputs,
             'outputs': outputs,
             'local_variables': local_variables,
-            'variables': variables,
         }
         return_dict.update(codes)
         return return_dict

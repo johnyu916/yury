@@ -119,7 +119,6 @@ class StructText(object):
 
 
 class FunctionText(BlockText):
-
     def __init__(self, name, inputs=[], outputs=[]):
         '''
         name is the function name (string).
@@ -129,7 +128,6 @@ class FunctionText(BlockText):
         self.inputs = inputs
         self.outputs = outputs
         super(FunctionText, self).__init__()
-
 
     def get_dict(self):
         inputs = []
@@ -176,8 +174,7 @@ class ElIfText(ConditionalText):
     pass
 
 class ElseText(ConditionalText):
-    def __init__(self):
-        super(ElseText, self).__init__()
+    pass
 
 
 class StatementText(object):
@@ -322,7 +319,7 @@ def read_elif(text):
     if colon is None:
         return None, orig
 
-    return IfText(expr), text
+    return ElIfText(expr), text
 
 
 def read_else(text):
