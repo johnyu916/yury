@@ -1,8 +1,10 @@
 (int current) fibonacci(int index):
-    last = 1
-    current = 1
+    first = 1
+    second = 1
     while (index != 0):
-        current = current + last
+        current = first + second
+        first = second
+        second = current
         index = index - 1
 counter = 5
 value = fibonacci(counter)

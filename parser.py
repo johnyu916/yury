@@ -426,7 +426,7 @@ def build_text_node(stack):
     is_left_hit = False
     while len(stack) > 0:
         token = stack.pop()
-        #print "build_text_node token: {}".format(token)
+        print "build_text_node token: {}".format(token)
         if isinstance(token, LeftPar):
             is_left_hit = True
             break
@@ -551,7 +551,7 @@ def read_dotted_name(orig):
     tokens = [dest]
 
     while(True):
-        token, text = re_match('.'+VARIABLE_PATTERN, text)
+        token, text = re_match('\.'+VARIABLE_PATTERN, text)
         if token is None:
             break
         else:

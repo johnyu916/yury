@@ -43,7 +43,7 @@ def get_type(type_name, structs=None):
     return struct
 
 
-def get_dotted_type(tokens, first_type, structs):
+def get_dotted_type(tokens, first_type):
     '''
     get the type of dotted_name variable.
     need to know the type name of the first token, because
@@ -61,7 +61,7 @@ def get_dotted_type(tokens, first_type, structs):
     member = first_type.get_member(next_token)
     if member is None:
         raise Exception("Can't find member: ", next_token)
-    return get_dotted_type(tokens[1:], member.type, structs)
+    return get_dotted_type(tokens[1:], member.type)
 
 
 def get_constant_type(value):
@@ -192,7 +192,7 @@ class Block(object):
         for var in self.variables:
             if var.name == root_name:
                 # now ensure rest of names are okay.
-                dotted_type = get_dotted_type(tokens, var.type, self.program.structs)
+                dotted_type = get_dotted_type(tokens, var.type)
                 return var
 
         if self.parent:
@@ -248,8 +248,10 @@ def expression_make(expression_text, block, program):
             if function is not None:
                 e_data = token
                 children = make_expression_children(expression_text, block, program)
+                print "function printing: ", function
 
                 for index, child in enumerate(children):
+                    print "expression child: ", child
                     child_type  = child.get_types()[0]
                     def_name = function.inputs[index].type.name
                     assert def_name == child_type.name, "Function input type {} does not match child type: {}".format(def_name, child_type.name)
@@ -300,7 +302,7 @@ class Expression(object):
         data = self.data
         if isinstance(data, DottedName):
             variable = self.block.get_variable(data)
-            return [get_dotted_type(data.tokens, variable.type, self.program.structs)]
+            return [get_dotted_type(data.tokens, variable.type)]
         elif isinstance(data, Constant):
             return [data.type]
         elif isinstance(data, str):
@@ -340,7 +342,7 @@ class Statement(object):
         for dest, type in zip(dests,dest_types):
             destination = block.get_variable(dest)
             if destination:
-                dotted_type = get_dotted_type(dest.tokens, destination.type, program.structs)
+                dotted_type = get_dotted_type(dest.tokens, destination.type)
                 assert dotted_type.name == type.name, "{0} not equal to {1}".format(dotted_type.name, type.name)
             else:
                 destination = Variable(type, dest.tokens[0])
@@ -457,11 +459,11 @@ def function_make(function_text, program):
     for inpu in function_text.inputs:
         var = variable_make(inpu, program.structs)
         inputs.append(var)
-        print "adding input to function: {0} {1}".format(name, var.get_dict())
+        logging.debug("adding input to function: {0} {1}".format(name, var.get_dict()))
 
     for inpu in function_text.outputs:
         var = variable_make(inpu, program.structs)
-        print "adding output to function: {0} {1}".format(name, var.get_dict())
+        logging.debug("adding output to function: {0} {1}".format(name, var.get_dict()))
         outputs.append(var)
 
     return Function(name, inputs, outputs, program)
@@ -474,8 +476,8 @@ class Function(Block):
         '''
         super(Function, self).__init__(None, program)
         self.name = name
-        self.inputs = []
-        self.outputs = []
+        self.inputs = inputs
+        self.outputs = outputs
         self.variables = inputs + outputs
         self.local_variables = []
 

@@ -415,7 +415,8 @@ class Translator(object):
 
     def copy(self, dest, src, size, free_reg):
         '''
-        copy addr on src to addr on dest
+        memory copy src addr to dest addr
+        size is in bytes.
         '''
         insn = load_word_insn(free_reg, src, 0)
         insn2 = store_word_insn(free_reg, dest, 0)

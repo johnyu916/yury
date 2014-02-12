@@ -25,7 +25,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         output_file_name = sys.argv[2]
     else:
-        output_file_name = filename.split('.')[-1]
+        output_file_name = filename.split('.')[-2]
+    print 'filename is: ', output_file_name
     #with open(BAM_DIR / filename) as f:
     with open(filename) as f:
         text = f.read()

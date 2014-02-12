@@ -1,5 +1,5 @@
 random = 3
-result = addOne
+result = addOne(3)
 
 (int result) addOne (int num):
     second = 1

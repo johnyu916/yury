@@ -1,0 +1,15 @@
+set 0 0
+set 63 1000
+set 62 4096
+set 61 0
+__main__: set 3 12
+subtract 4 62 3
+set 5 5
+store_word 5 4 0
+set 4 8
+subtract 3 62 4
+set 6 12
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+jump 61

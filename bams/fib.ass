@@ -1,0 +1,172 @@
+set 0 0
+set 63 1000
+set 62 4096
+set 61 0
+__main__: set 3 16
+subtract 4 62 3
+set 5 5
+store_word 5 4 0
+set 4 8
+subtract 3 62 4
+set 6 16
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 5 8
+subtract 6 62 5
+set 3 20
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 4 4
+subtract 3 62 4
+store_word 61 3 0
+set 3 12
+subtract 62 62 3
+set 61 112
+set 5 160
+jump 5
+set 4 12
+add 62 62 4
+set 4 4
+subtract 3 62 4
+load_word 61 3 0
+set 4 12
+subtract 3 62 4
+set 6 16
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+jump 61
+fibonacci: set 3 24
+subtract 4 62 3
+set 5 1
+store_word 5 4 0
+set 4 16
+subtract 3 62 4
+set 6 24
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 3 24
+subtract 4 62 3
+set 5 1
+store_word 5 4 0
+set 4 20
+subtract 3 62 4
+set 6 24
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 5 8
+subtract 6 62 5
+set 3 25
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 3 29
+subtract 4 62 3
+set 5 0
+store_word 5 4 0
+set 3 21
+subtract 4 62 3
+set 3 25
+subtract 5 62 3
+set 3 29
+subtract 6 62 3
+load_word 8 5 0
+load_word 9 6 0
+subtract 10 8 9
+set 11 336
+branch_on_z 10 11
+set 7 1
+set 11 340
+jump 11
+set 7 0
+store_byte 7 4 0
+set 4 21
+subtract 3 62 4
+load_byte 5 3 0
+set 6 684
+branch_on_z 5 6
+set 5 16
+subtract 6 62 5
+set 3 28
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 5 20
+subtract 6 62 5
+set 3 32
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 3 24
+subtract 4 62 3
+set 3 28
+subtract 5 62 3
+set 3 32
+subtract 6 62 3
+load_word 8 5 0
+load_word 9 6 0
+add 7 8 9
+store_word 7 4 0
+set 4 4
+subtract 3 62 4
+set 6 24
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 5 20
+subtract 6 62 5
+set 3 24
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 4 16
+subtract 3 62 4
+set 6 24
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 5 4
+subtract 6 62 5
+set 3 24
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 4 20
+subtract 3 62 4
+set 6 24
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 5 8
+subtract 6 62 5
+set 3 28
+subtract 4 62 3
+load_word 7 6 0
+store_word 7 4 0
+set 3 32
+subtract 4 62 3
+set 5 1
+store_word 5 4 0
+set 3 24
+subtract 4 62 3
+set 3 28
+subtract 5 62 3
+set 3 32
+subtract 6 62 3
+load_word 8 5 0
+load_word 9 6 0
+subtract 7 8 9
+store_word 7 4 0
+set 4 8
+subtract 3 62 4
+set 6 24
+subtract 5 62 6
+load_word 7 5 0
+store_word 7 3 0
+set 6 240
+jump 6
+jump 61

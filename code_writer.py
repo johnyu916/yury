@@ -16,6 +16,7 @@ class BlockStack(object):
         self.variables = []
 
     def new_variable(self, variable):
+        logging.debug("variable: {} size: {}".format(variable.name, variable.type.size))
         self.offset -= variable.type.size
         vari = {
             'variable': variable,
@@ -31,7 +32,9 @@ class BlockStack(object):
     def get_variable(self, dotted_name):
         if len(dotted_name.tokens) == 0: return None
         token = dotted_name.tokens[0]
+        print "token: ",token
         for variable_dict in self.variables:
+            print "get_variable name: ", variable_dict['variable'].name
             if variable_dict['variable'].name == token:
                 return variable_dict
         return None
@@ -42,7 +45,7 @@ def get_size(dotted_name, block_stack, structs):
     type = get_dotted_type(dotted_name.tokens, variable.type, structs)
     return type.size
 
-def get_offset(tokens, first_type, structs, offset=0):
+def get_offset(tokens, first_type, offset=0):
     if len(tokens) == 0:
         raise Exception("Can't get type of empty tokens")
 
@@ -179,6 +182,8 @@ class Converter(object):
         Allocates space for return types.
         Perform the operation. at the end,
         block offset will be returned to what it was.
+        After finish,
+        The "return value" starts just below the block offset.
         '''
         # perform operation and store in temporary variable
         #self.builder.store_short(vars[exp.dest], exp.ex
@@ -208,12 +213,17 @@ class Converter(object):
             builder.store_inti(4, data.value, 5)  # immediate
 
         elif isinstance(data, DottedName):
+            # first get the source address
             variable_dict = block_stack.get_variable(data)
             variable_offset = variable_dict['offset']
-            member_offset = get_offset(data.tokens, variable_dict['variable'].type, self.program.structs)
+            member_offset = get_offset(data.tokens, variable_dict['variable'].type)
             src_offset = variable_offset + member_offset
-            var_size = get_dotted_type(data.tokens, variable_dict['variable'].type, self.program.structs).size
+            var_size = get_dotted_type(data.tokens, variable_dict['variable'].type).size
             self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset
+
+            # now get destination offset
+            dest_offset = return_vars[0]['offset']
+            self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
             # copy from 6 to 4.
             builder.copy(4, 6, var_size, 7)
 
@@ -258,13 +268,14 @@ class Converter(object):
 
             elif self.program.get_struct(data) is not None:
 
-                # maybe a struct constructor. then we don't need to do anything
+                # a struct constructor. then we don't need to do anything
                 pass
             else:
                 # call function. Note we already allocated space for the 
                 # output (return_vars) and input (child_return_types).
                 # save return register on stack, because the child is going to use it now.
-                return_pc_offset = block_stack.variables['return_pc']['offset']
+                dotted_name= DottedName(['return_pc'])
+                return_pc_offset = block_stack.get_variable(dotted_name)['offset']
                 self.set_offset_address(3, return_pc_offset, 4)
                 builder.store_int(3, self.pc_return_register)
 
@@ -336,8 +347,9 @@ class Converter(object):
         for dest in destinations:
             variable_dict = block_stack.get_variable(dest)
             variable = variable_dict['variable']
-            dest_size = get_dotted_type(dest.tokens, variable.type, self.program.structs).size
-            dest_offset = get_offset(dest.tokens, variable.type, self.program.structs, variable_dict['offset'])
+            dest_size = get_dotted_type(dest.tokens, variable.type).size
+            dest_offset = get_offset(dest.tokens, variable.type, variable_dict['offset'])
+            logging.debug("var_offset: {} offset with member: {}".format(variable_dict['offset'], dest_offset))
             return_start -= dest_size
 
             self.set_offset_address(3, dest_offset,4)
@@ -365,7 +377,7 @@ class Converter(object):
         loop_end_index = len(self.builder.insns)
 
         # if condition doesn't hold, exit.
-        self.builder.branch_on_z_imm(value_reg, 0, 6)  # temporarily set to 0, later to loop_end
+        self.builder.branch_on_z_imm(5, 0, 6)  # temporarily set to 0, later to loop_end
 
         self.write_code_block(block_stack, while_cond)
 
@@ -373,7 +385,7 @@ class Converter(object):
         self.builder.jumpi(loop_start*4, 6)
         loop_end = len(self.builder.insns)
         # loop conclusion
-        self.builder.branch_on_z_imm_set(loop_end_index, value_reg, loop_end*4, 6)
+        self.builder.branch_on_z_imm_set(loop_end_index, value_reg=None, immediate=loop_end*4, free_reg=None)
         #self.builder.insns[loop_end_index].branch_to = loop_end
         logging.debug("spitting while done")
 
