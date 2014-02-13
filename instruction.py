@@ -498,7 +498,6 @@ class Translator(object):
         self.insns[insn_idx] = set_insn(register_no, value)
 
 
-
     def __add_inverse(self, one, two, f_one, f_two, f_three):
         '''
         f_three holds the result of one + (-1*two)

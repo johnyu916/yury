@@ -4,7 +4,7 @@ from code_semantics import Constant, Expression, Statement, Variable, While, If,
 from parser import OPERATORS, DottedName
 from instruction import Translator, write_insn, write_ass, INSN_SIZE
 from shared.common import get_object
-USHORT_SIZE = 16
+POINTER_SIZE = 4 # bytes
 
 
 class BlockStack(object):
@@ -17,7 +17,7 @@ class BlockStack(object):
 
     def new_variable(self, variable):
         logging.debug("variable: {} size: {}".format(variable.name, variable.type.size))
-        self.offset -= variable.type.size
+        self.offset -= POINTER_SIZE
         vari = {
             'variable': variable,
             'offset' : self.offset
@@ -44,6 +44,24 @@ def get_size(dotted_name, block_stack, structs):
     variable = variable_dict['variable']
     type = get_dotted_type(dotted_name.tokens, variable.type, structs)
     return type.size
+
+def get_offset(tokens, first_type, reg_no, temp_reg_no):
+    '''
+    reg_no is the register that contains address to object.
+    '''
+    if len(tokens) == 0:
+        raise Exception("Can't get type of empty tokens")
+
+    if len(tokens) == 1:
+        return
+
+    next_token = tokens[1]
+    (member, member_offset) = first_type.get_member_offset(next_token)
+
+    builder.add_inti(reg_no, reg_no, member_offset)
+
+    get_offset(tokens[1:], member.type, reg_no, temp_reg_no)
+
 
 def get_offset(tokens, first_type, offset=0):
     if len(tokens) == 0:
@@ -72,14 +90,13 @@ class Converter(object):
     def __init__(self, program, hardware_config, output_file_name):
         '''
         '''
-        self.memory_size = 4096
+        self.memory_size = 4096 # bytes
         self.insns = [] # instructions.
-        self.builder = Translator(4096, self.insns)
-        self.sp_addr = 1000 # address of stack pointer
+        self.builder = Translator(self.memory_size, self.insns)
         self.zero_register = 0
-        self.sp_addr_register = 63 # register that contains address of stack pointer
         self.sp_register = 62 # register that contains stack pointer value
         self.pc_return_register = 61 # pc to return to after its done.
+        self.hp_register_no = 63 # address of heap pointer.
         self.function_begin = {}  # which insn # does function begin?
         self.function_calls = []  # which function is being called where?
         self.output_file_name = output_file_name
@@ -89,11 +106,13 @@ class Converter(object):
 
         # set register 0 to zero pointer
         self.builder.set_int(self.zero_register, 0)
-        # set stack pointer address register
-        self.builder.set_int(self.sp_addr_register, self.sp_addr)
+        # set stack pointer to memory size
         self.builder.set_int(self.sp_register, self.memory_size)
+        # set pc return register
         self.builder.set_int(self.pc_return_register, 0)
 
+        hp_index = len(self.insns)
+        self.builder.set_int(self.hp_register_no, 0)
         for function in program.functions:
             self.function_begin[function.name] = len(self.insns)
             self.spit_function(function)
@@ -101,6 +120,8 @@ class Converter(object):
         for index, name in self.function_calls:
             self.builder.jump_and_link_set(index, immediate=self.function_begin[name]*4)
 
+        # heap begins right after end of insns.
+        self.builder.set_int_set(hp_index, register_no=None, value=len(self.insns)*4)
         # now convert all insns into
         self.write_insns(output_file_name)
 
@@ -144,10 +165,8 @@ class Converter(object):
 
         return_pc = Variable(get_type('int'), 'return_pc')
         for input in outputs+inputs+[return_pc]+local_vars:
-            block_stack.new_variable(input)
+            block_stack.new_pointer(input)
 
-        # load stack pointer
-        # self.builder.load(self.sp_register, self.sp_addr_register)
 
         # write code now
         self.write_code_block(block_stack, function)
@@ -196,7 +215,7 @@ class Converter(object):
 
         for count, return_type in enumerate(return_types):
             # make room for return value
-            block_stack.offset -= return_type.size
+            block_stack.offset -= POINTER_SIZE
             return_var = {
                 'variable': Variable(return_type, count),
                 'offset': block_stack.offset
@@ -208,24 +227,27 @@ class Converter(object):
             # setting to constant or variable
             dest_offset = return_vars[0]['offset']
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
+            self.store_int(4, self.hp_register_no)  # store address on hp_register_no to dest.
             # constant. store to 4 (destination)
+            # create a location for 4.
             # TODO: currently only handle integers
-            builder.store_inti(4, data.value, 5)  # immediate
+            builder.store_inti(self.hp_register_no, data.value, 5)
+            builder.add_inti(self.hp_register_no, self.hp_register_no, data.type.size)
 
         elif isinstance(data, DottedName):
             # first get the source address
             variable_dict = block_stack.get_variable(data)
             variable_offset = variable_dict['offset']
-            member_offset = get_offset(data.tokens, variable_dict['variable'].type)
-            src_offset = variable_offset + member_offset
-            var_size = get_dotted_type(data.tokens, variable_dict['variable'].type).size
-            self.set_offset_address(6, src_offset, 5) # 6 has addr of src_offset
+
+            builder.set_offset_address(4, variable_offset, 3) 
+            builder.load_int(7,4)  # reg 7 has pointer value.
+            get_offset(data.tokens, variable_dict['variable'].type, 7)
 
             # now get destination offset
             dest_offset = return_vars[0]['offset']
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
-            # copy from 6 to 4.
-            builder.copy(4, 6, var_size, 7)
+            # copy from 7 to 4.
+            builder.copy(4, 7, POINTER_SIZE, 8)
 
         elif isinstance(data, str):
             # has children.
@@ -245,31 +267,38 @@ class Converter(object):
                     raise Exception("operation returns 1 value, but returns: {0}".format(len(return_vars)))
                 # operators return only one thing. assume 2 return values.
                 dest_offset = return_vars[0]['offset']
-                operand_one_size = children[0].get_types()[0].size
-                operand_two_size = children[1].get_types()[0].size
                 self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest_offset
-                self.set_offset_address(5, dest_offset-operand_one_size, 3) # 5 has address of operand one
-                self.set_offset_address(6, dest_offset - operand_one_size - operand_two_size, 3) # 6 has address of operand two
+                self.set_offset_address(5, dest_offset-POINTER_SIZE, 3) # 5 has address of operand one
+                self.set_offset_address(6, dest_offset - 2*(POINTER_SIZE), 3) # 6 has address of operand two
 
-                builder.load_int(8, 5)
-                builder.load_int(9, 6)
+                builder.load_int(10, 5)
+                builder.load_int(8, 10)
+                builder.load_int(11, 6)
+                builder.load_int(9, 11)
                 if data == '+':
                     builder.add_int(7, 8, 9)
-                    builder.store_int(4, 7) # store result in 4
                 elif data == '-':
                     builder.subtract_int(7,8,9)
-                    builder.store_int(4, 7) # store result in 4
                 elif data == '!=':
                     builder.set_on_ne(7,8,9, 10, 11)
-                    builder.store_byte(4, 7) # store result in 4
                 elif data == '==':
                     builder.set_on_e(7,8,9, 10, 11)
-                    builder.store_byte(4, 7) # store result in 4
+                else:
+                    raise Exception("Unknown operator: ", data)
+                builder.store_int(4, self.hp_register_no) # store result in 4
+                builder.store_int(self.hp_register_no, 7) # store result in heap
+                builder.add_inti(self.hp_register_no, self.hp_register_no, int.size)
+
 
             elif self.program.get_struct(data) is not None:
 
                 # a struct constructor. then we don't need to do anything
-                pass
+                size = self.program_get_struct(data).size
+                dest_offset = return_vars[0]['offset']
+                self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest_offset
+                builder.add_inti(self.hp_register_no, self.hp_register_no, size)
+
+
             else:
                 # call function. Note we already allocated space for the 
                 # output (return_vars) and input (child_return_types).
@@ -281,6 +310,7 @@ class Converter(object):
 
                 # set stack pointer to offset
                 builder.subtract_inti(self.sp_register, self.sp_register, block_begin_offset *-1, 3)
+
                 self.call_function(data)
 
                 # call function changed the stack pointer, so change it back
@@ -304,6 +334,7 @@ class Converter(object):
         assert offset <= 0
         self.builder.set_int(worker_register, offset*-1)
         self.builder.subtract_int(register, self.sp_register, worker_register)
+
 
     def call_function(self, function_name):
         builder = self.builder
@@ -355,16 +386,17 @@ class Converter(object):
             self.set_offset_address(3, dest_offset,4)
             self.set_offset_address(5, return_start,6)
             #copy. 3 is the destination. 5 is the source.
-            builder.copy(3, 5, dest_size, 7)
+            builder.copy(3, 5, POINTER_SIZE, 7)
 
         logging.debug("spitting statement done. block.offset: %s" % block_stack.offset)
 
     def _load_condition_result(self, block_stack):
-        offset = block_stack.offset - 1
+        offset = block_stack.offset - 4
         addr_reg = 3
-        self.set_offset_address(addr_reg, offset, 4)
+        self.set_offset_address(addr_reg, offset, 4) # addr_reg has addr of pointer.
+        self.builder.load_inti(6, addr_reg)
         value_reg = 5
-        self.builder.load_byte(value_reg, addr_reg)
+        self.builder.load_byte(value_reg, 6)
 
     def spit_while(self, block_stack, while_cond):
         # if condition met, enter loop, else exit.
