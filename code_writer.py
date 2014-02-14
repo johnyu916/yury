@@ -45,7 +45,7 @@ def get_size(dotted_name, block_stack, structs):
     type = get_dotted_type(dotted_name.tokens, variable.type, structs)
     return type.size
 
-def get_offset(tokens, first_type, reg_no, temp_reg_no):
+def get_offset(tokens, first_type, reg_no, temp_reg_no, temp_two, builder):
     '''
     reg_no is the register that contains address to object.
     '''
@@ -56,14 +56,15 @@ def get_offset(tokens, first_type, reg_no, temp_reg_no):
         return
 
     next_token = tokens[1]
+    builder.load_int(temp_reg_no, reg_no)
     (member, member_offset) = first_type.get_member_offset(next_token)
 
-    builder.add_inti(reg_no, reg_no, member_offset)
+    builder.add_inti(reg_no, temp_reg_no, member_offset, temp_two)
 
-    get_offset(tokens[1:], member.type, reg_no, temp_reg_no)
+    get_offset(tokens[1:], member.type, reg_no, temp_reg_no, temp_two, builder)
 
 
-def get_offset(tokens, first_type, offset=0):
+def get_offset_old(tokens, first_type, offset=0):
     if len(tokens) == 0:
         raise Exception("Can't get type of empty tokens")
 
@@ -73,7 +74,7 @@ def get_offset(tokens, first_type, offset=0):
     next_token = tokens[1]
     (member, member_offset) = first_type.get_member_offset(next_token)
 
-    return get_offset(tokens[1:], member.type, offset + member_offset)
+    return get_offset_old(tokens[1:], member.type, offset + member_offset)
 
 '''
 Function stack:
@@ -165,7 +166,7 @@ class Converter(object):
 
         return_pc = Variable(get_type('int'), 'return_pc')
         for input in outputs+inputs+[return_pc]+local_vars:
-            block_stack.new_pointer(input)
+            block_stack.new_variable(input)
 
 
         # write code now
@@ -227,27 +228,28 @@ class Converter(object):
             # setting to constant or variable
             dest_offset = return_vars[0]['offset']
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
-            self.store_int(4, self.hp_register_no)  # store address on hp_register_no to dest.
+            builder.store_int(4, self.hp_register_no)  # store address on hp_register_no to dest.
             # constant. store to 4 (destination)
             # create a location for 4.
             # TODO: currently only handle integers
             builder.store_inti(self.hp_register_no, data.value, 5)
-            builder.add_inti(self.hp_register_no, self.hp_register_no, data.type.size)
+            builder.add_inti(self.hp_register_no, self.hp_register_no, data.type.size, 6)
 
         elif isinstance(data, DottedName):
             # first get the source address
+            temp_reg = 6
             variable_dict = block_stack.get_variable(data)
             variable_offset = variable_dict['offset']
 
-            builder.set_offset_address(4, variable_offset, 3) 
-            builder.load_int(7,4)  # reg 7 has pointer value.
-            get_offset(data.tokens, variable_dict['variable'].type, 7)
+            self.set_offset_address(5, variable_offset, 3)
+            #builder.load_int(7,5)  # reg 7 has pointer value.
+            get_offset(data.tokens, variable_dict['variable'].type, 5, temp_reg, 7, builder)
 
             # now get destination offset
             dest_offset = return_vars[0]['offset']
             self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest+offset
-            # copy from 7 to 4.
-            builder.copy(4, 7, POINTER_SIZE, 8)
+            # copy from 5 to 4.
+            builder.copy(4, 5, POINTER_SIZE, 7)
 
         elif isinstance(data, str):
             # has children.
@@ -287,16 +289,17 @@ class Converter(object):
                     raise Exception("Unknown operator: ", data)
                 builder.store_int(4, self.hp_register_no) # store result in 4
                 builder.store_int(self.hp_register_no, 7) # store result in heap
-                builder.add_inti(self.hp_register_no, self.hp_register_no, int.size)
+                var_size = return_vars[0]['variable'].type.size
+                builder.add_inti(self.hp_register_no, self.hp_register_no, var_size, 12)
 
 
             elif self.program.get_struct(data) is not None:
 
                 # a struct constructor. then we don't need to do anything
-                size = self.program_get_struct(data).size
+                size = self.program.get_struct(data).size
                 dest_offset = return_vars[0]['offset']
                 self.set_offset_address(4, dest_offset, 3) # 4 has addr of dest_offset
-                builder.add_inti(self.hp_register_no, self.hp_register_no, size)
+                builder.add_inti(self.hp_register_no, self.hp_register_no, size, 6)
 
 
             else:
@@ -378,23 +381,23 @@ class Converter(object):
         for dest in destinations:
             variable_dict = block_stack.get_variable(dest)
             variable = variable_dict['variable']
-            dest_size = get_dotted_type(dest.tokens, variable.type).size
-            dest_offset = get_offset(dest.tokens, variable.type, variable_dict['offset'])
-            logging.debug("var_offset: {} offset with member: {}".format(variable_dict['offset'], dest_offset))
-            return_start -= dest_size
+            variable_offset = variable_dict['offset']
+            self.set_offset_address(8, variable_offset, 9)  # 8 has address of variable on stack.
+            get_offset(dest.tokens, variable.type, 8, 10, 11, builder)  # if variable is dotted.
+            logging.debug("var_offset: {}".format(variable_offset))
+            return_start -= POINTER_SIZE
 
-            self.set_offset_address(3, dest_offset,4)
             self.set_offset_address(5, return_start,6)
-            #copy. 3 is the destination. 5 is the source.
-            builder.copy(3, 5, POINTER_SIZE, 7)
+            #copy. 8 is the destination. 5 is the source.
+            builder.copy(8, 5, POINTER_SIZE, 7)
 
         logging.debug("spitting statement done. block.offset: %s" % block_stack.offset)
 
     def _load_condition_result(self, block_stack):
-        offset = block_stack.offset - 4
+        offset = block_stack.offset - POINTER_SIZE
         addr_reg = 3
         self.set_offset_address(addr_reg, offset, 4) # addr_reg has addr of pointer.
-        self.builder.load_inti(6, addr_reg)
+        self.builder.load_int(6, addr_reg) # 6 has value of return value.
         value_reg = 5
         self.builder.load_byte(value_reg, 6)
 
