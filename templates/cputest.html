@@ -1,12 +1,11 @@
-
 {% extends "main.html" %}
 {% block head %}
 <link rel="stylesheet" href="/static/css/cpu.css">
 {% endblock %}
 {% block body %}
-<script src='/static/js/cpu.js'></script>
-<script src='/static/js/instruction.js'></script>
-<script src='/static/js/cpu_tests.js'></script>
+<script src='/static/js/cpu/cpu.js'></script>
+<script src='/static/js/cpu/instruction.js'></script>
+<script src='/static/js/cpu/tests.js'></script>
 
 <div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
 <!-- load file from list.-->
@@ -50,53 +49,33 @@
     var reader = new FileReader();
 
   }
-  function cpu_state(cpu){
-    var texts = [];
-    texts.push("<div>PC: " + cpu.pc + "</div>");
-    var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc/4]));
-    texts.push("<div>Next instruction: " + insn_str +'</div>');
-    texts.push("<table> ");
-    var words = [];
-    for (var i = 0; i < cpu.registers.length; i+=8){
-      texts.push("<tr>")
-      for (var j = 0; j < 8; j +=1){
-        texts.push("<td style='border: 1px solid black'>" + "Register " + (i+j) + "</td>");
-      }
-      texts.push("</tr><tr>")
-      for (var j = 0; j < 8; j +=1){
-        texts.push("<td style='border: 1px solid black'>" + cpu.registers[i+j] + "</td>");
-      }
-      texts.push("</tr>");
-    }
-    texts.push("</table>");
-
-    var memory_length = cpu.memory.length;
-    texts.push("<div>Memory: " + memory_length *4 + " bytes</div>");
-    for (var i = memory_length-1; i > memory_length - 16; i-=1){
-      var byte_array = integer_to_byte_array(cpu.memory[i]);
-        texts.push("<div>" + i*4 + " " + byte_array + "    (" + cpu.memory[i] + ")" + "</div>");
-    }
-    $("#cpu-state").html(texts.join('\n'));
+  function refreshView(cpu){
+      $("#cpu-state").html(cpu_view(cpu));
   }
   $(document).ready(function(){
     //$(".file-input").change(onFileSelect);
-    cpu_main();
+    var args = $('#cpu-info').data('cpu');
+    var data = jQuery.parseJSON(args.replace(/'/g, '"'));
+    var world = new World();
+    var cpu = new CPU(data);
+    world.cpu = cpu;
+
     $("#run-cycle-cpu").click(function(){
-      on_run_cycle_click();
-      cpu_state(world.cpu);
+      on_run_cycle_click(cpu);
+      $("#cpu-state").html(cpu_view(world.cpu));
     });
     $("#run-cycles-cpu").click(function(){
       var cycles = $("#number-cycles").val();
-      on_run_cycles_click(cycles);
-      cpu_state(world.cpu);
+      on_run_cycles_click(cpu, cycles);
+      $("#cpu-state").html(cpu_view(world.cpu));
     });
     $("#run-cpu").click(function(){
-      on_run_click();
-      cpu_state(world.cpu);
+      on_run_click(cpu);
+      $("#cpu-state").html(cpu_view(world.cpu));
     });
     $("#load-cpu").click(function(){
       var filename = $(".files").val();
-      on_load_click(filename, cpu_state);
+      on_load_click(filename, cpu, refreshView);
     });
 
     // lets run some tests

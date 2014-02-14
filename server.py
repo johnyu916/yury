@@ -8,6 +8,16 @@ import views
 app = Flask(__name__)
 
 # URL routers
+@app.route('/testkeyboard')
+def test_keyboard():
+    context = {}
+    return render_template('test_keyboard.html', context=context)
+
+@app.route('/cpuconsole')
+def test_keyboard():
+    context = {}
+    return render_template('cpu_console.html', context=context)
+
 @app.route('/cpu')
 def cpu():
     context = views.cpu()

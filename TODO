@@ -1,11 +1,8 @@
 ==TODO==
-- expressions should know about parenthesis. take it out of while loop.
-- if elif else
 - loop inside loop
 - calling function in function
-- structs
-- pointers
 - convert to javascript
+- handle async like javascript does.
 - how much game logic should be done by the game as opposed to the
 game engine? is going through gamebots best done at game engine or
 in the game?
@@ -17,3 +14,7 @@ demonstrate a combinational circuit
 setting variable
 while loop
 calling function
+- expressions should know about parenthesis. take it out of while loop.
+- if elif else
+- structs
+- pointers

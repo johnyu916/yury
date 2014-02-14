@@ -33,6 +33,21 @@ var OPCODES = {
     'multiply': 11,
 };
 
+function parse_tokens(tokens){
+    var opcode = OPCODES[tokens[0]];
+    var one = parseInt(tokens[1]);
+    var two = parseInt(tokens[2]);
+    if (opcode == OPCODES.set || opcode == OPCODES.jump){
+        return [opcode, one, two];
+    }
+    else{
+        var three = parseInt(tokens[3]);
+        return [opcode, one, two, three];
+    }
+}
+
+// need to go from array to int.
+
 function branch_on_z_insn(value_register, branch_register){
     return [
         OPCODES['branch_on_z'],

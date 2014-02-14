@@ -38,7 +38,6 @@ function World() {
     this.booter = null;
 }
 
-var world = new World();
 
 function Router(args) {
     //Router's responsibility is to route packets.
@@ -294,8 +293,8 @@ CPU.prototype.run_cycle = function(){
     }
     console.log("pc: " + this.pc);
     // NEW STYLE.
-    var insn = get_insn(this.memory[this.pc/4]);//take integer and return a array
     var next_pc = this.pc + 4;
+    var insn = get_insn(this.memory[this.pc/4]);//take integer and return a array
     var insn_type = insn[0];
     if (insn_type == OPCODES.store_word){
         var value = insn[1];
@@ -401,7 +400,7 @@ function new_int_value(memory, offset, size, value){
 
 
 
-function on_load_click(filename, callback) {
+function on_load_click(filename, cpu, callback) {
     $.ajax({
         url: '/binary',
         data: {'name':filename}
@@ -409,32 +408,53 @@ function on_load_click(filename, callback) {
         var binary = response_data['binary'];
         console.log("Running program" + binary.name);
         var memory = load_binary(binary.data);
-        world.cpu.memory = memory;
+        cpu.memory = memory;
 
-        callback(world.cpu);
+        callback(cpu);
     });
 }
 
-function on_run_cycle_click(){
-    world.cpu.run_cycle();
+function on_run_cycle_click(cpu){
+    cpu.run_cycle();
 }
 
-function on_run_click(){
-    world.cpu.run();
+function on_run_click(cpu){
+    cpu.run();
 }
 
-function on_run_cycles_click(cycles){
+function on_run_cycles_click(cpu, cycles){
     for (var i = 0; i < cycles; i++){
-        world.cpu.run_cycle();
+        cpu.run_cycle();
     }
 }
 
-function cpu_main() {
-    var args = $('#cpu-info').data('cpu');
-    var data = jQuery.parseJSON(args.replace(/'/g, '"'));
-    console.log("cpu data: " + data);
-    var cpu = new CPU(data);
-    world.cpu = cpu;
-    //just loop as quickly as possible
-}
+// Views
 
+  function cpu_view(cpu){
+    var texts = [];
+    texts.push("<div>PC: " + cpu.pc + "</div>");
+    var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc/4]));
+    texts.push("<div>Next instruction: " + insn_str +'</div>');
+    texts.push("<table> ");
+    var words = [];
+    for (var i = 0; i < cpu.registers.length; i+=8){
+      texts.push("<tr>")
+      for (var j = 0; j < 8; j +=1){
+        texts.push("<td style='border: 1px solid black'>" + "Register " + (i+j) + "</td>");
+      }
+      texts.push("</tr><tr>")
+      for (var j = 0; j < 8; j +=1){
+        texts.push("<td style='border: 1px solid black'>" + cpu.registers[i+j] + "</td>");
+      }
+      texts.push("</tr>");
+    }
+    texts.push("</table>");
+
+    var memory_length = cpu.memory.length;
+    texts.push("<div>Memory: " + memory_length *4 + " bytes</div>");
+    for (var i = memory_length-1; i > memory_length - 16; i-=1){
+      var byte_array = integer_to_byte_array(cpu.memory[i]);
+        texts.push("<div>" + i*4 + " " + byte_array + "    (" + cpu.memory[i] + ")" + "</div>");
+    }
+    $("#cpu-state").html(texts.join('\n'));
+  }

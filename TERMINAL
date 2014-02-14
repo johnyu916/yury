@@ -1,0 +1,12 @@
+TERMINAL is a window. It accepts input and sends it somewhere. It accepts output and displays on window. Runs asynchronously.
+
+Features:
+
+Cursor.
+Cursor is a place where people can enter input. When user presses enter, the command is finished.
+
+Flow:
+
+A box is drawn with a cursor at the top. 
+Scrollable window inside the box. Clicking on the box 
+captures input.

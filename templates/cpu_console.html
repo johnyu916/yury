@@ -1,0 +1,27 @@
+{% extends "main.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/cpu.css">
+{% endblock %}
+{% block body %}
+<script src='/static/js/cpu/cpu.js'></script>
+<script src='/static/js/cpu/instruction.js'></script>
+<script src='/static/js/cpu/tests.js'></script>
+<div id='cpu-state'>
+  <!-- cpu state -->
+</div>
+<div id="web-console">
+</div>
+<script>
+  var cpu = new CPU(data);
+  var parser = new AssemblyParser(cpu);
+  function onInput(inputString){
+    tokens = inputString.split(' ');
+
+  }
+  $(document).ready(function(){
+    var webConsole = new WebConsole('web-console', onInput);
+    $("#cpu-state").html(cpu_view(world.cpu));
+
+  });
+</script>
+{% endblock %}

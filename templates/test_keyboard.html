@@ -1,0 +1,34 @@
+{% extends "main.html" %}
+
+{% block body %}
+<div id="bluebox" style="height: 200px; width: 300px; background-color: blue">
+</div>
+<pre id="prebox" style="height: 200px; width: 300px">
+some text
+</pre>
+<div style="width: 1px; height:0px; position:absolute; overflow:hidden">
+  <textarea id="text-input" style="position: absolute"></textarea>
+</div>
+
+<div id="log"></div>
+
+
+<script>
+  function log(message){
+    $("#log").append("<div>"+message+"</div>");
+  }
+
+  $(document).ready(function(){
+    $("#bluebox").click(function() {
+      log("box pressed");
+    });
+    $("#prebox").click(function() {
+      $("#text-input").focus();
+    });
+    $("#text-input").keypress(function(event) {
+      var key = event.which;
+      $("#prebox").text( $("#prebox").text() + String.fromCharCode(key) );
+    });
+  });
+</script>
+{% endblock %}
