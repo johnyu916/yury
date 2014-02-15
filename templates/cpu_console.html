@@ -6,21 +6,27 @@
 <script src='/static/js/cpu/cpu.js'></script>
 <script src='/static/js/cpu/instruction.js'></script>
 <script src='/static/js/cpu/tests.js'></script>
+<script src='/static/js/cpu/cpu_parser.js'></script>
+<script src='/static/js/web_console.js'></script>
 <div id='cpu-state'>
   <!-- cpu state -->
 </div>
-<div id="web-console">
+<div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
+<div id="web-console" style="width: 400px; height: 300px">
 </div>
 <script>
-  var cpu = new CPU(data);
-  var parser = new AssemblyParser(cpu);
-  function onInput(inputString){
-    tokens = inputString.split(' ');
-
-  }
   $(document).ready(function(){
-    var webConsole = new WebConsole('web-console', onInput);
-    $("#cpu-state").html(cpu_view(world.cpu));
+    var args = $('#cpu-info').data('cpu');
+    var data = jQuery.parseJSON(args.replace(/'/g, '"'));
+    var cpu = new CPU(data);
+    var parser = new AssemblyParser(cpu);
+    var webConsole = new WebConsole('web-console', function(inputString){
+      tokens = inputString.split(' ');
+      console.log("rcv tokens: "+ tokens);
+      parser.parseTokens(tokens);
+      $("#cpu-state").html(cpu_view(cpu));
+    });
+    $("#cpu-state").html(cpu_view(cpu));
 
   });
 </script>

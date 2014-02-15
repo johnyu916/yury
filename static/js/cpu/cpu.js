@@ -3,6 +3,8 @@
 var block_size_log = 5;
 var block_size = Math.pow(2, block_size_log);
 
+var INSN_SIZE = 4; // bytes
+
 var base16_to_int = {
     '0': 0,
     '1': 1,
@@ -205,39 +207,12 @@ function load_binary(text) {
         insn = base16_to_integer(word);
         console.log("word was: " + word + " insn: " + insn);
 
-        // due to byte addressing, you must 
         memory.push(insn);
         i += 8;
     }
     return memory;
 }
 
-
-/* lowest byte is op-code
- * 
- */
-function get_insn(integer) {
-    console.log("get_insn integer: " + integer);
-    var opcode = integer & 255;
-    integer = integer >>> 8;
-    var two = integer & 255;
-    integer = integer >>> 8;
-    if (opcode == OPCODES.set || opcode == OPCODES.jump){
-        // 2 more
-        var three = integer & 65535;
-        var insn = [opcode, two, three];
-        console.log("get_insn read insn: " + insn);
-        return insn;
-    }
-    else{
-        var three = integer & 255;
-        integer = integer >>> 8;
-        var four = integer;
-        var insn = [opcode, two, three, four];
-        console.log("get_insn read insn2: " + insn);
-        return insn;
-    }
-}
 
 function ass_insn(insn) {
     var opc = insn[0];
@@ -293,8 +268,8 @@ CPU.prototype.run_cycle = function(){
     }
     console.log("pc: " + this.pc);
     // NEW STYLE.
-    var next_pc = this.pc + 4;
-    var insn = get_insn(this.memory[this.pc/4]);//take integer and return a array
+    var next_pc = this.pc + INSN_SIZE;
+    var insn = integer_to_insn(this.memory[this.pc/4]);//take integer and return a array
     var insn_type = insn[0];
     if (insn_type == OPCODES.store_word){
         var value = insn[1];
@@ -433,7 +408,7 @@ function on_run_cycles_click(cpu, cycles){
   function cpu_view(cpu){
     var texts = [];
     texts.push("<div>PC: " + cpu.pc + "</div>");
-    var insn_str = ass_insn(get_insn(cpu.memory[cpu.pc/4]));
+    var insn_str = ass_insn(integer_to_insn(cpu.memory[cpu.pc/4]));
     texts.push("<div>Next instruction: " + insn_str +'</div>');
     texts.push("<table> ");
     var words = [];

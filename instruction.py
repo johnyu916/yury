@@ -1,16 +1,6 @@
 import logging
 import struct
 
-class InstructionOld(object):
-    def __init__(self, read_addr = 0, branch_to = 0, on_one = False, on_zero = False):
-        '''
-        if read is one, branch and set to on_one, else next insn and set to on_zero.
-        '''
-        self.read_addr = read_addr
-        self.branch_to = branch_to
-        self.on_one = on_one
-        self.on_zero = on_zero
-
 
 '''
 address is a 32-bit unsigned integer. 

@@ -9,6 +9,11 @@ def cputest():
         'binaries': binaries
     }
 
+def cpu_console():
+    context = {
+        'CPU' : CPU
+    }
+    return context
 
 def cpu():
     # Include settings

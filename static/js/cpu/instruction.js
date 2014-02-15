@@ -33,7 +33,53 @@ var OPCODES = {
     'multiply': 11,
 };
 
-function parse_tokens(tokens){
+function insn_to_integer(insn){
+    var sizes = get_insn_sizes(insn[0]);
+    var shift = 0;
+    var integer = 0;
+    for (var i = 0; i < sizes.length; i++){
+        var value = insn[i] << shift;
+        integer += value;
+        shift += 8*sizes[i];
+    }
+    return integer;
+}
+
+/* lowest byte is op-code
+ * 
+ */
+function integer_to_insn(integer) {
+    console.log("integer_to_insn integer: " + integer);
+    var opcode = integer & 255;
+    integer = integer >>> 8;
+    var two = integer & 255;
+    integer = integer >>> 8;
+    if (opcode == OPCODES.set || opcode == OPCODES.jump){
+        var three = integer & 65535;
+        var insn = [opcode, two, three];
+        console.log("integer_to_insn read insn: " + insn);
+        return insn;
+    }
+    else{
+        var three = integer & 255;
+        integer = integer >>> 8;
+        var four = integer;
+        var insn = [opcode, two, three, four];
+        console.log("integer_to_insn read insn2: " + insn);
+        return insn;
+    }
+}
+
+function get_insn_sizes(opcode){
+    if (opcode === OPCODES.set || opcode === OPCODES.jump){
+        return [1,1,2];
+    }
+    else{
+        return [1,1,1,1];
+    }
+}
+
+function tokens_to_insn(tokens){
     var opcode = OPCODES[tokens[0]];
     var one = parseInt(tokens[1]);
     var two = parseInt(tokens[2]);

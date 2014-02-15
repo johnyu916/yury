@@ -14,8 +14,8 @@ def test_keyboard():
     return render_template('test_keyboard.html', context=context)
 
 @app.route('/cpuconsole')
-def test_keyboard():
-    context = {}
+def cpu_console():
+    context = views.cpu_console()
     return render_template('cpu_console.html', context=context)
 
 @app.route('/cpu')
