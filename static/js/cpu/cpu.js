@@ -403,33 +403,3 @@ function on_run_cycles_click(cpu, cycles){
     }
 }
 
-// Views
-
-  function cpu_view(cpu){
-    var texts = [];
-    texts.push("<div>PC: " + cpu.pc + "</div>");
-    var insn_str = ass_insn(integer_to_insn(cpu.memory[cpu.pc/4]));
-    texts.push("<div>Next instruction: " + insn_str +'</div>');
-    texts.push("<table> ");
-    var words = [];
-    for (var i = 0; i < cpu.registers.length; i+=8){
-      texts.push("<tr>")
-      for (var j = 0; j < 8; j +=1){
-        texts.push("<td style='border: 1px solid black'>" + "Register " + (i+j) + "</td>");
-      }
-      texts.push("</tr><tr>")
-      for (var j = 0; j < 8; j +=1){
-        texts.push("<td style='border: 1px solid black'>" + cpu.registers[i+j] + "</td>");
-      }
-      texts.push("</tr>");
-    }
-    texts.push("</table>");
-
-    var memory_length = cpu.memory.length;
-    texts.push("<div>Memory: " + memory_length *4 + " bytes</div>");
-    for (var i = memory_length-1; i > memory_length - 16; i-=1){
-      var byte_array = integer_to_byte_array(cpu.memory[i]);
-        texts.push("<div>" + i*4 + " " + byte_array + "    (" + cpu.memory[i] + ")" + "</div>");
-    }
-    $("#cpu-state").html(texts.join('\n'));
-  }

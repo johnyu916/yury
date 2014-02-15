@@ -80,14 +80,24 @@ function get_insn_sizes(opcode){
 }
 
 function tokens_to_insn(tokens){
+    if (tokens.length < 3) return null;
+    console.log("1");
     var opcode = OPCODES[tokens[0]];
+    if (opcode === undefined) return null;
+    console.log("2");
     var one = parseInt(tokens[1]);
+    if (isNaN(one)) return null;
+    console.log("3");
     var two = parseInt(tokens[2]);
+    if (isNaN(two)) return null;
+    console.log("4");
     if (opcode == OPCODES.set || opcode == OPCODES.jump){
         return [opcode, one, two];
     }
     else{
+        if (tokens.length < 4) return null;
         var three = parseInt(tokens[3]);
+        if (isNaN(three)) return null;
         return [opcode, one, two, three];
     }
 }

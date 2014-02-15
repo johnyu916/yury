@@ -1,18 +1,19 @@
 {% extends "main.html" %}
 {% block head %}
-<link rel="stylesheet" href="/static/css/cpu.css">
+<link rel="stylesheet" href="/static/css/cpu_console.css">
 {% endblock %}
 {% block body %}
 <script src='/static/js/cpu/cpu.js'></script>
 <script src='/static/js/cpu/instruction.js'></script>
 <script src='/static/js/cpu/tests.js'></script>
 <script src='/static/js/cpu/cpu_parser.js'></script>
+<script src='/static/js/cpu/view.js'></script>
 <script src='/static/js/web_console.js'></script>
+<div id="cpu-info" data-cpu='{{context["CPU"]}}'></div>
 <div id='cpu-state'>
   <!-- cpu state -->
 </div>
-<div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
-<div id="web-console" style="width: 400px; height: 300px">
+<div id="web-console" >
 </div>
 <script>
   $(document).ready(function(){
@@ -20,13 +21,20 @@
     var data = jQuery.parseJSON(args.replace(/'/g, '"'));
     var cpu = new CPU(data);
     var parser = new AssemblyParser(cpu);
-    var webConsole = new WebConsole('web-console', function(inputString){
+    var webConsole = new WebConsole('web-console');
+    var cpuView = new CPUView('cpu-state', cpu);
+    webConsole.onRead = function(inputString){
       tokens = inputString.split(' ');
       console.log("rcv tokens: "+ tokens);
-      parser.parseTokens(tokens);
-      $("#cpu-state").html(cpu_view(cpu));
-    });
-    $("#cpu-state").html(cpu_view(cpu));
+      var status = parser.parseTokens(tokens);
+      if (status.code !== 0){
+        webConsole.write(status.detail);
+      }
+      else{
+        cpuView.refresh();
+        webConsole.write(cpu.registers[5]);
+      }
+    };
 
   });
 </script>
