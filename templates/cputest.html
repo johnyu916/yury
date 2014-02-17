@@ -4,7 +4,9 @@
 {% endblock %}
 {% block body %}
 <script src='/static/js/cpu/cpu.js'></script>
+<script src='/static/js/shared.js'></script>
 <script src='/static/js/cpu/instruction.js'></script>
+<script src='/static/js/cpu/view.js'></script>
 <script src='/static/js/cpu/tests.js'></script>
 
 <div id="cpu-info" data-cpu='{{context["CPU"]}}'/>
@@ -49,33 +51,33 @@
     var reader = new FileReader();
 
   }
-  function refreshView(cpu){
-      $("#cpu-state").html(cpu_view(cpu));
-  }
   $(document).ready(function(){
     //$(".file-input").change(onFileSelect);
     var args = $('#cpu-info').data('cpu');
     var data = jQuery.parseJSON(args.replace(/'/g, '"'));
     var world = new World();
     var cpu = new CPU(data);
+    var cpuView = new CPUView('cpu-state', cpu);
     world.cpu = cpu;
 
     $("#run-cycle-cpu").click(function(){
       on_run_cycle_click(cpu);
-      $("#cpu-state").html(cpu_view(world.cpu));
+      cpuView.refresh();
     });
     $("#run-cycles-cpu").click(function(){
       var cycles = $("#number-cycles").val();
       on_run_cycles_click(cpu, cycles);
-      $("#cpu-state").html(cpu_view(world.cpu));
+      cpuView.refresh();
     });
     $("#run-cpu").click(function(){
       on_run_click(cpu);
-      $("#cpu-state").html(cpu_view(world.cpu));
+      cpuView.refresh();
     });
     $("#load-cpu").click(function(){
       var filename = $(".files").val();
-      on_load_click(filename, cpu, refreshView);
+      on_load_click(filename, cpu, function(){
+        cpuView.refresh();
+      });
     });
 
     // lets run some tests

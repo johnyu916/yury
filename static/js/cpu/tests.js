@@ -1,17 +1,3 @@
-function assert(actual, expected){
-    if (!(expected === actual)) {
-        throw ("assert FAIL: expected: " + expected + ", but actual: " + actual);
-    }
-}
-
-
-function assert_message(condition, message){
-    if (!condition) {
-        throw ("assert FAIL: " + message) || "assert FAIL";
-    }
-}
-
-
 function test_load_binary() {
     var memory = load_binary('70000000');
     assert(memory.length, 1);
@@ -35,15 +21,15 @@ function test_load_binary() {
     */
 }
 
-function test_get_insn() {
-    var insn = get_insn(7);
+function test_integer_to_insn() {
+    var insn = integer_to_insn(7);
     assert(insn.length, 3);
     assert(insn[0], 7);
     assert(insn[1], 0);
     assert(insn[2], 0);
 
     // subtract insn: subtract 255 - 255 and put into 255
-    var insn = get_insn(-251);
+    var insn = integer_to_insn(-251);
     assert(insn.length, 4);
     assert(insn[0], 5);
     assert(insn[1], 255);
@@ -51,7 +37,7 @@ function test_get_insn() {
     assert(insn[3], 255);
 
     // set insn contains 2 byte immediate
-    var insn = get_insn(-432926969);
+    var insn = integer_to_insn(-432926969);
     assert(insn.length, 3);
     assert(insn[0], 7);
     assert(insn[1], 15);
@@ -118,7 +104,7 @@ function test_cpu_branch_on_z(){
 
 function run_tests(){
     test_load_binary();
-    test_get_insn();
+    test_integer_to_insn();
     test_byte_array_to_integer();
     test_memory_get_block_bytes();
     test_memory_set();

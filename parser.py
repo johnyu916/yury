@@ -567,7 +567,9 @@ def read_statement(orig):
     '''
     text = orig
     dotted_name, text = read_dotted_name(text)
-    # try reading space
+    if dotted_name is None:
+        return None, org
+    # try reading spaces
     space, text = re_match(' *', text)
 
     equ, text = re_match('=', text)

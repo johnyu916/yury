@@ -1,9 +1,8 @@
 import logging
 import struct
 
-
 '''
-address is a 32-bit unsigned integer. 
+address is a 32-bit unsigned integer.
 byte addressing.
 opcode is first byte of the instruction.
 little-endian - for a multi-byte object (such as a 32-bit integer), least significant byte is stored in lowest memory location.

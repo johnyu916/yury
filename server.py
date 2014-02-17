@@ -13,6 +13,16 @@ def test_keyboard():
     context = {}
     return render_template('test_keyboard.html', context=context)
 
+@app.route('/waffletest')
+def waffle_test():
+    context = {}
+    return render_template('waffle_tests.html', context=context)
+
+@app.route('/ass_to_bin')
+def ass_to_bin():
+    context = {}
+    return render_template('ass_to_bin.html', context=context)
+
 @app.route('/cpuconsole')
 def cpu_console():
     context = views.cpu_console()

@@ -1,0 +1,11 @@
+{% extends "main.html" %}
+{% block head %}
+<script src='/static/js/shared.js'></script>
+<script src='/static/js/waffle/parser.js'></script>
+<script src='/static/js/waffle/tests.js'></script>
+{% endblock %}
+{% block body %}
+<script>
+  run_waffle_tests();
+</script>
+{% endblock %}

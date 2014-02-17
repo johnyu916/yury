@@ -153,3 +153,17 @@ function for_each_device(sources, callback, object){
         traverse_element(sources[i], callback, object);
     }
 }
+
+
+function assert(actual, expected){
+    if (!(expected === actual)) {
+        throw ("assert FAIL: expected: " + expected + ", but actual: " + actual);
+    }
+}
+
+
+function assert_message(condition, message){
+    if (!condition) {
+        throw ("assert FAIL: " + message) || "assert FAIL";
+    }
+}

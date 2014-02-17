@@ -3,7 +3,8 @@ function AssemblyParser(cpu){
     this.insn_length = 0;
 }
 
-AssemblyParser.prototype.parseTokens = function(tokens){
+AssemblyParser.prototype.parseTokens = function(line){
+    var tokens = lines[i].split(' ');
     var status = {
         code: 0,
         detail: ""
@@ -20,3 +21,12 @@ AssemblyParser.prototype.parseTokens = function(tokens){
     this.cpu.run_cycle();
     return status;
 };
+
+function WaffleMaker(cpu){
+    this.cpu = cpu;
+    this.parser = new WaffleParser();
+}
+
+WaffleMaker.prototype.parseTokens = function(line){
+    
+}

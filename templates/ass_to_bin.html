@@ -1,0 +1,29 @@
+{% extends "main.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/ass_to_bin.css">
+{% endblock %}
+{% block body %}
+<script src='/static/js/cpu/instruction.js'></script>
+<div id="input_container">
+  <textarea type="text" id="ass_input">
+  </textarea>
+</div>
+<button id="translate">Translate</button>
+<div id="bin_output">
+</div>
+<script>
+  $(document).ready(function(){
+    var base16insns = [];
+    $('#translate').click(function() {
+      var text = $('#ass_input').val();
+      var lines = text.split('\n');
+      for (var i =0; i < lines.length; i++){
+        var tokens = lines[i].split(' ');
+        var insn = tokens_to_insn(line);
+        base16insns.push(write_insn(insn));
+      }
+      $('#bin_output').text(base16insns.join(''));
+    });
+  });
+</script>
+{% endblock %}

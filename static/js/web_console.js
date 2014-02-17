@@ -1,5 +1,7 @@
 var KEY_ENTER = 13;
 var KEY_BACKSPACE = 8;
+var KEY_UP = 38;
+var KEY_DOWN = 40;
 
 var PROMPT = '>';
 var CURSOR_COLOR_BLUR = '#cccccc';
@@ -26,6 +28,9 @@ function WebConsole(containerId){
     this.container.append(empty_div);
     this.container.append('<div/>');
 
+    this.command_history = [""];
+    this.command_history_index = 0;
+
     var that = this;
     this.clickArea.click(function() {
         that.keyboard.focus();
@@ -45,8 +50,11 @@ function WebConsole(containerId){
         var text = that.inputArea.text();
         if (key === KEY_ENTER){
             //is done.
-            console.log("enter pressed");
-            that.onRead(that.inputArea.text());
+            //console.log("enter pressed");
+            that.command_history[that.command_history.length-1] = text;
+            that.command_history_index = that.command_history.length;
+            that.command_history.push("");
+            that.onRead(text);
             //remove cursor
             that.cursor.remove();
             that._newPrompt();
@@ -65,11 +73,27 @@ function WebConsole(containerId){
         var text = that.inputArea.text();
         if (key === KEY_BACKSPACE){
             text = text.substr(0, text.length-1);
+            that.command_history[that.command_history_index] = text;
             that.inputArea.text(text);
+        }
+        else if (key == KEY_UP){
+            var new_index = that.command_history_index - 1;
+            if (new_index >= 0){
+                that.command_history_index = new_index;
+                text = that.command_history[new_index];
+                that.inputArea.text(text);
+            }
+        }
+        else if (key == KEY_DOWN){
+            var new_index = that.command_history_index + 1;
+            if (new_index < that.command_history.length){
+                that.command_history_index = new_index;
+                text = that.command_history[new_index];
+                that.inputArea.text(text);
+            }
         }
     });
 
-    this.input = "";
     this.onRead = null;
 }
 
