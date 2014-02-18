@@ -15,6 +15,12 @@ def cpu_console():
     }
     return context
 
+def waffle_console():
+    context = {
+        'CPU' : CPU
+    }
+    return context
+
 def cpu():
     # Include settings
     context = {

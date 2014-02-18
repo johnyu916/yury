@@ -28,6 +28,11 @@ def cpu_console():
     context = views.cpu_console()
     return render_template('cpu_console.html', context=context)
 
+@app.route('/waffleconsole')
+def waffle_console():
+    context = views.waffle_console()
+    return render_template('waffle_console.html', context=context)
+
 @app.route('/cpu')
 def cpu():
     context = views.cpu()

@@ -1,0 +1,42 @@
+{% extends "main.html" %}
+{% block head %}
+<link rel="stylesheet" href="/static/css/cpu_console.css">
+{% endblock %}
+{% block body %}
+<script src='/static/js/shared.js'></script>
+<script src='/static/js/cpu/cpu.js'></script>
+<script src='/static/js/cpu/instruction.js'></script>
+<script src='/static/js/waffle/parser.js'></script>
+<script src='/static/js/waffle/semantics.js'></script>
+<script src='/static/js/cpu/cpu_parser.js'></script>
+<script src='/static/js/cpu/view.js'></script>
+<script src='/static/js/web_console.js'></script>
+<div id="cpu-info" data-cpu='{{context["CPU"]}}'></div>
+<div id='cpu-state'>
+  <!-- cpu state -->
+</div>
+<div id="web-console" >
+</div>
+<script>
+  $(document).ready(function(){
+    var args = $('#cpu-info').data('cpu');
+    var data = jQuery.parseJSON(args.replace(/'/g, '"'));
+    var cpu = new CPU(data);
+    var parser = WaffleMakerMake(cpu);
+    var webConsole = new WebConsole('web-console');
+    var cpuView = new CPUView('cpu-state', cpu);
+    webConsole.onRead = function(inputString){
+      tokens = inputString.split(' ');
+      console.log("rcv tokens: "+ tokens);
+      var status = parser.parseTokens(tokens);
+      if (status.code !== 0){
+        webConsole.write(status.detail);
+      }
+      else{
+        cpuView.refresh();
+      }
+    };
+
+  });
+</script>
+{% endblock %}

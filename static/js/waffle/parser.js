@@ -319,14 +319,18 @@ function read_statement(orig){
     return result;
 }
 
-function WaffleParser(){
-    
-}
+var WaffleParser = {
 
-WaffleParser.prototype.parse = function(line){
+};
+
+WaffleParser.parse = function(line){
     var result = read_statement(line);
     if (result[0] !== null){
 
     }
+}
 
+function WaffleParserMake(){
+    var parser = object(WaffleParser);
+    return parser;
 }
