@@ -157,7 +157,7 @@ function for_each_device(sources, callback, object){
 
 function assert(actual, expected){
     if (!(expected === actual)) {
-        throw ("assert FAIL: expected: " + expected + ", but actual: " + actual);
+        throw ("assert FAIL: " + actual + " === " + expected);
     }
 }
 

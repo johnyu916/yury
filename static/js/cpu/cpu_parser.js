@@ -25,8 +25,17 @@ AssemblyParser.prototype.parseTokens = function(line){
 function WaffleMaker(cpu){
     this.cpu = cpu;
     this.parser = new WaffleParser();
+    this.semantics = new WaffleSemantics();
+    this.insn_length = 0;
 }
 
 WaffleMaker.prototype.parseTokens = function(line){
-    
+    text = this.parser.parse(line);
+    code = this.semantics.process(text);
+    instructions = this.writer.process(code);
+    for (int i = 0; i < instructions.length; i++){
+        var j = this.insn_length + i;
+        this.cpu.memory[j] = instructions[j];
+    }
+    this.cpu.run()
 }
