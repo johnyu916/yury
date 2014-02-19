@@ -1,15 +1,64 @@
 var Struct = {};
 
-var Funct = {};
+var Block = {
+    code: []
+    variables:[]
+    parent:null
+    program:null
+};
+
+var Func = object(Block);
+
+
+function FuncMake
 
 var Program = {
     functions: [],
     structs: []
-}
+};
 
 var Expression = {
     data: null,
     children: null
+};
+
+Expression.get_types = function(){
+    return [];
+}
+
+var Statement = {
+    destinations: null,
+    expression: null
+};
+
+function StatementMake(destinations, expression){
+    var statement = object(Statement);
+    statement.destinations = destinations;
+    statement.expression = expression;
+    return statement;
+}
+
+function StatementMakeFromText(statement_text, block, program){
+    var text_dests = statement_text.dests;
+    var text_exp = statement_text.expression;
+    var exp = expression_make(text_exp, block, program);
+    var dest_types = expression.get_types();
+    var destinations = [];
+    for (var i = 0; i < dest_types.length; i++){
+        var text_dest = text_dests[i];
+        var type = dest_types[i];
+        var destination = block.get_variable(text_dest);
+        if (destination !== null){
+            var dotted_type = get_dotted_type(dest.tokens, destination.type);
+            assert_message(dotted_type, type.name, "dest types must be equal");
+        }
+        else{
+            destination = VariableMake(type, text_dest.tokens[0]);
+            block.variables_append(destination);
+        }
+        destinations.push(destination);
+    }
+    return StatementMake(destinations, expression);
 }
 
 var Type = {
@@ -29,20 +78,25 @@ var Variable = {
 
 var WaffleSemantics = {
     program: null,
-    current_block: null
+    block: null
 }
 
 WaffleSemantics.process = function(construct){
     if (construct.type === 'ExpressionText'){
-        expression_make(construct);
+        return expression_make(construct, this.block, this.program);
+    }
+    else if (construct.type === 'StatementText'){
+        return StatementMakeFromText(construct, this.block, this.program);
     }
 }
 
 function WaffleSemanticsMake(){
     var semantics = object(WaffleSemantics);
     semantics.program = object(Program);
+    semantics.block = FuncMake();
     return semantics;
 }
+
 
 function make_expression_children(expression_text, block, program){
     //build expression from children of functions/operators.

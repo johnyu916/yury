@@ -8,6 +8,7 @@
 <script src='/static/js/cpu/instruction.js'></script>
 <script src='/static/js/waffle/parser.js'></script>
 <script src='/static/js/waffle/semantics.js'></script>
+<script src='/static/js/waffle/writer.js'></script>
 <script src='/static/js/cpu/cpu_parser.js'></script>
 <script src='/static/js/cpu/view.js'></script>
 <script src='/static/js/web_console.js'></script>
@@ -26,9 +27,7 @@
     var webConsole = new WebConsole('web-console');
     var cpuView = new CPUView('cpu-state', cpu);
     webConsole.onRead = function(inputString){
-      tokens = inputString.split(' ');
-      console.log("rcv tokens: "+ tokens);
-      var status = parser.parseTokens(tokens);
+      var status = parser.parseTokens(inputString);
       if (status.code !== 0){
         webConsole.write(status.detail);
       }

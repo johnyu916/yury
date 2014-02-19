@@ -95,6 +95,23 @@ function test_read_expression(){
     assert(result.length, 2);
     assert(result[0].classname, 'ExpressionText');
     console.log(JSON.stringify(result[0]));
+    var sentence = '0';
+    var result = read_expression(sentence);
+    assert(result.length, 2);
+    assert(result[0].classname, 'ExpressionText');
+    console.log(JSON.stringify(result[0]));
+}
+
+function test_read_statement(){
+    var result = read_statement('a = 0');
+    assert(result.length, 2);
+    assert(result[0].classname, 'StatementText');
+}
+
+function test_waffle_parser(){
+    var parser = WaffleParserMake();
+    var text = parser.parse("a = 0");
+    assert(text.classname, 'StatementText');
 }
 
 function run_waffle_tests(){
@@ -112,5 +129,7 @@ function run_waffle_tests(){
     console.log('6');
     test_read_expression();
     console.log('7');
-
+    test_read_statement();
+    console.log('8');
+    test_waffle_parser();
 }

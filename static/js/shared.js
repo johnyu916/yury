@@ -172,6 +172,6 @@ function assert(actual, expected){
 
 function assert_message(condition, message){
     if (!condition) {
-        throw ("assert FAIL: " + message) || "assert FAIL";
+        throw ("assert FAIL: " + actual + " === " + expected + ". " + message) || "assert FAIL";
     }
 }

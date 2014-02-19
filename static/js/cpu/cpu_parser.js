@@ -26,25 +26,29 @@ var WaffleMaker = {
     cpu: null,
     parser: null,
     semantics: null,
+    writer: null,
     insn_length: null
 };
 
 function WaffleMakerMake(cpu){
     var maker = object(WaffleMaker);
-    this.cpu = cpu;
-    this.parser = WaffleParserMake();
-    this.semantics = WaffleSemanticsMake();
-    this.insn_length = 0;
+    maker.cpu = cpu;
+    maker.parser = WaffleParserMake();
+    maker.semantics = WaffleSemanticsMake();
+    maker.writer = WaffleWriterMake();
+    maker.insn_length = 0;
     return maker;
 }
 
 WaffleMaker.parseTokens = function(line){
     text = this.parser.parse(line);
+    console.log(JSON.stringify(text));
     code = this.semantics.process(text);
+    console.log(JSON.stringify(code));
     instructions = this.writer.process(code);
     for (var i = 0; i < instructions.length; i++){
         var j = this.insn_length + i;
         this.cpu.memory[j] = instructions[j];
     }
-    this.cpu.run()
+    //this.cpu.run()
 }

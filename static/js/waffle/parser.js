@@ -15,13 +15,36 @@ function LeftPar(){
     this.classname = 'LeftPar';
 }
 
+
 function ExpressionText(data, children){
     this.classname = 'ExpressionText';
     this.data = data;
     this.children = children;
 }
 
+function StatementTextMake(dest, exp){
+    var statement = object(StatementText);
+    statement.expression = exp;
+    statement.destination = dest;
+    return statement;
+}
 
+function ConstantTextMake(value){
+    var con = object(ConstantText);
+    con.value = value;
+    return con;
+}
+
+var ConstantText = {
+    classname: 'ConstantText',
+    value: null
+};
+
+var StatementText = {
+    classname: 'StatementText',
+    expression: null,
+    destination: null
+};
 
 function Expressions(values){
     this.classname = 'Expressions';
@@ -89,7 +112,7 @@ function read_expression(orig){
         text = result[1];
         if (result[0] !== null){
             // NOTE: assuming int for now. add more later.
-            stack.push(new ConstantText(parseInt(result[0])));
+            stack.push(ConstantTextMake(parseInt(result[0])));
             continue;
         }
 
@@ -304,19 +327,31 @@ function build_constant_or_variable(orig){
 
 function read_statement(orig){
     var text = orig;
+    console.log("text 0: " + text);
     var result = read_dotted_name(text);
     if (result[0] === null) return [null, orig];
+    var dest = result[0];
+    text = result[1];
+    console.log("text: " + text);
     result = re_match(' *', text);
+    text = result[1];
+    console.log("text: " + text);
 
     result = re_match('=', text);
     if (result[0] === null) return [null, orig];
+    text = result[1];
+    console.log("text: " + text);
 
     result = re_match(' *', text);
+    text = result[1];
+    console.log("text: " + text);
 
     result = read_expression(text);
     if (result[0] === null) return [null, orig];
-
-    return result;
+    var expression = result[0];
+    text = result[1];
+    console.log("dest: " + dest + " " + expression);
+    return [StatementTextMake(dest, expression), text];
 }
 
 var WaffleParser = {
@@ -326,7 +361,7 @@ var WaffleParser = {
 WaffleParser.parse = function(line){
     var result = read_statement(line);
     if (result[0] !== null){
-
+        return result[0];
     }
 }
 
