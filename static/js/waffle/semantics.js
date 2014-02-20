@@ -1,16 +1,25 @@
 var Struct = {};
 
 var Block = {
-    code: []
-    variables:[]
-    parent:null
-    program:null
+    code: [],
+    variables: [],
+    parent: null,
+    program: null
 };
 
 var Func = object(Block);
+Func.name = '';
 
 
-function FuncMake
+function FuncMake(name, inputs, outputs, program){
+    var func = object(Func);
+    func.name = name;
+    func.inputs = inputs;
+    func.outputs = outputs;
+    func.program = program;
+    func.parent = null;
+    return func;
+}
 
 var Program = {
     functions: [],
@@ -18,6 +27,7 @@ var Program = {
 };
 
 var Expression = {
+    classname: "Expression",
     data: null,
     children: null
 };
@@ -26,7 +36,15 @@ Expression.get_types = function(){
     return [];
 }
 
+function ExpressionMake(data, children){
+    var expression = object(Expression);
+    expression.data = data;
+    expression.children=children;
+    return expression;
+}
+
 var Statement = {
+    classname: 'Statement',
     destinations: null,
     expression: null
 };
@@ -42,7 +60,7 @@ function StatementMakeFromText(statement_text, block, program){
     var text_dests = statement_text.dests;
     var text_exp = statement_text.expression;
     var exp = expression_make(text_exp, block, program);
-    var dest_types = expression.get_types();
+    var dest_types = exp.get_types();
     var destinations = [];
     for (var i = 0; i < dest_types.length; i++){
         var text_dest = text_dests[i];
@@ -58,7 +76,7 @@ function StatementMakeFromText(statement_text, block, program){
         }
         destinations.push(destination);
     }
-    return StatementMake(destinations, expression);
+    return StatementMake(destinations, exp);
 }
 
 var Type = {
@@ -67,13 +85,29 @@ var Type = {
 }
 
 var Constant = {
+    classname: 'Constant',
     type: null,
     value: null
 }
 
+function ConstantMake(type, value){
+    var constant = object(Constant);
+    constant.type = type;
+    constant.value = value;
+    return constant;
+}
+
 var Variable = {
+    classname: 'Variable',
     type: null,
     name: ""
+}
+
+function VariableMake(type, name){
+    var variable = object(Variable);
+    variable.type = type;
+    variable.name = name;
+    return variable;
 }
 
 var WaffleSemantics = {
@@ -81,11 +115,33 @@ var WaffleSemantics = {
     block: null
 }
 
+TYPES = [
+    {
+        name:'int',
+        size:4
+    }
+]
+
+function get_primitive_type(type_str){
+    for (var i = 0; i < TYPES.length; i++){
+        var type = TYPES[i];
+        if (type.name === type_str) return type;
+    }
+    return null;
+}
+
+function get_constant_type(value){
+    if (typeof(value) === 'number'){
+        return get_primitive_type('int')
+    }
+    
+}
+
 WaffleSemantics.process = function(construct){
-    if (construct.type === 'ExpressionText'){
+    if (construct.classname === 'ExpressionText'){
         return expression_make(construct, this.block, this.program);
     }
-    else if (construct.type === 'StatementText'){
+    else if (construct.classname === 'StatementText'){
         return StatementMakeFromText(construct, this.block, this.program);
     }
 }
@@ -93,7 +149,8 @@ WaffleSemantics.process = function(construct){
 function WaffleSemanticsMake(){
     var semantics = object(WaffleSemantics);
     semantics.program = object(Program);
-    semantics.block = FuncMake();
+    semantics.block = FuncMake('__main__', [], [], semantics.program);
+    semantics.program.functions.push(semantics.block)
     return semantics;
 }
 
@@ -115,18 +172,17 @@ function expression_make(expression_text, block, program){
     var text_data = expression_text.data;
     var text_children = expression_text.children;
     var children = [];
-    var data = null;
     if (text_data.classname === 'ConstantText'){
         type = get_constant_type(text_data.value);
         if (type === null) throw ("Unknown type: " + data.value);
-        else return new Expression(new Constant(type, data.value), null);
+        else return ExpressionMake(ConstantMake(type, text_data.value), null);
     }
     else if (text_data.classname === 'DottedName'){
         // name could be variable, struct, or function.
         if (text_children === null){
             // must be variable
             var variable = block.get_variable(text_data);
-            if (variable !== null) return new Expression(variable, null);
+            if (variable !== null) return ExpressionMake(variable, null);
             else throw ("Unknown variable: "+ text_data);
         }
         else{
@@ -135,11 +191,11 @@ function expression_make(expression_text, block, program){
             var func = program.get_function(token);
             if (func !== null){
                 children = make_expression_children(expression_text, block, program);
-                return new Expression(token, children);
+                return ExpressionMake(token, children);
             }
             var struct = program.get_struct(token);
             if (struct !== null){
-                return new Expression(token, []);
+                return ExpressionMake(token, []);
             }
             else{
                 throw ("No function or struct: " + text_data);
@@ -157,10 +213,9 @@ function expression_make(expression_text, block, program){
                 assert (my_type.name === child_type.name);
             }
         }
-        return new Expression(token, children);
+        return ExpressionMake(token, children);
     }
     else{
         throw ("Unknown data: " + text_data);
     }
 }
-

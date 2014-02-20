@@ -41,14 +41,17 @@ function WaffleMakerMake(cpu){
 }
 
 WaffleMaker.parseTokens = function(line){
-    text = this.parser.parse(line);
+    var text = this.parser.parse(line);
     console.log(JSON.stringify(text));
-    code = this.semantics.process(text);
+    var code = this.semantics.process(text);
     console.log(JSON.stringify(code));
-    instructions = this.writer.process(code);
+
+    //fresh set of insns each time.
+    var instructions = this.writer.process(code);
     for (var i = 0; i < instructions.length; i++){
         var j = this.insn_length + i;
         this.cpu.memory[j] = instructions[j];
     }
+    // also should write "pause" instruction.
     //this.cpu.run()
 }

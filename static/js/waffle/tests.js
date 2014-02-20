@@ -114,6 +114,38 @@ function test_waffle_parser(){
     assert(text.classname, 'StatementText');
 }
 
+function test_waffle_expression_make(){
+    var text = read_expression('0');
+    assert(text.length, 2);
+    assert(text[0].classname, 'ExpressionText');
+    var program = object(Program);
+    var block = FuncMake('test', [],[], program);
+    program.functions.push(block);
+    var expression = expression_make(text[0], block, program);
+    assert(expression.classname, 'Expression');
+}
+
+function test_waffle_statement_make(){
+    var text = read_statement('a=0');
+    assert(text.length, 2);
+    assert(text[0].classname, 'StatementText');
+    var program = object(Program);
+    var block = FuncMake('test', [],[], program);
+    program.functions.push(block);
+    var statement = StatementMakeFromText(text[0], block, program);
+    assert(statement.classname, 'Statement');
+
+}
+
+function test_waffle_semantics(){
+    var semantics = WaffleSemanticsMake();
+    var parser = WaffleParserMake();
+    var text = parser.parse("a = 0");
+    assert(text.classname, 'StatementText');
+    var code = semantics.process(text);
+    assert(code.classname, 'Statement');
+}
+
 function run_waffle_tests(){
     test_object();
     console.log('1');
@@ -132,4 +164,11 @@ function run_waffle_tests(){
     test_read_statement();
     console.log('8');
     test_waffle_parser();
+    console.log('9');
+    test_waffle_expression_make();
+    console.log('10');
+    test_waffle_statement_make();
+    console.log('11');
+    test_waffle_semantics();
+    console.log('12');
 }
