@@ -32,9 +32,7 @@ class BlockStack(object):
     def get_variable(self, dotted_name):
         if len(dotted_name.tokens) == 0: return None
         token = dotted_name.tokens[0]
-        print "token: ",token
         for variable_dict in self.variables:
-            print "get_variable name: ", variable_dict['variable'].name
             if variable_dict['variable'].name == token:
                 return variable_dict
         return None

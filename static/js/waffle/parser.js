@@ -22,10 +22,10 @@ function ExpressionText(data, children){
     this.children = children;
 }
 
-function StatementTextMake(dest, exp){
+function StatementTextMake(dests, exp){
     var statement = object(StatementText);
     statement.expression = exp;
-    statement.destination = dest;
+    statement.destinations = dests;
     return statement;
 }
 
@@ -43,7 +43,7 @@ var ConstantText = {
 var StatementText = {
     classname: 'StatementText',
     expression: null,
-    destination: null
+    destinations: []
 };
 
 function Expressions(values){
@@ -351,7 +351,7 @@ function read_statement(orig){
     var expression = result[0];
     text = result[1];
     console.log("dest: " + dest + " " + expression);
-    return [StatementTextMake(dest, expression), text];
+    return [StatementTextMake([dest], expression), text];
 }
 
 var WaffleParser = {

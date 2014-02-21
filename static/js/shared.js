@@ -163,15 +163,8 @@ function for_each_device(sources, callback, object){
 }
 
 
-function assert(actual, expected){
+function assert(actual, expected, message){
     if (!(expected === actual)) {
-        throw ("assert FAIL: " + actual + " === " + expected);
-    }
-}
-
-
-function assert_message(condition, message){
-    if (!condition) {
-        throw ("assert FAIL: " + actual + " === " + expected + ". " + message) || "assert FAIL";
+        throw ("assert FAIL: " + actual + " === " + expected + ". " + message);
     }
 }

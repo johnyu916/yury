@@ -5,9 +5,29 @@ var BlockStack = {
     variable_dicts: []
 };
 
+// dest is a dottedname
+BlockStack.get_variable_dict = function(dest){
+    assert(dest.tokens.length, 1, "get_variable_dict fail");
+    var name = dest.tokens[0];
+    for (var i = 0; i < this.variable_dicts.length; i++){
+        var dict = this.variable_dicts[i];
+        if (dict.variable.name === name) return dict;
+    }
+    return null;
+};
+
+BlockStack.new_variable = function(variable){
+    this.offset -= POINTER_SIZE;
+    var var_dict = {
+        'variable': variable,
+        'offset': this.offset
+    };
+    this.variable_dicts.push(var_dict);
+}
+
 var WaffleWriter = {
-    block_stack: null;
-    insns: [];
+    block_stack: null,
+    insns: []
 };
 
 WaffleWriter.process = function(code){
@@ -17,13 +37,13 @@ WaffleWriter.process = function(code){
     return [];
 }
 
-WaffleWriter.set_sp_offset(register, offset, temp_reg){
-    this.insns.push(set_int(register, offset*-1));
-    this.insns.push(subtract_int(register, this.sp_register, temp_reg))
+WaffleWriter.set_sp_offset = function(register, offset, temp_reg){
+    this.insns.push(BigInstruction.set_int(register, offset*-1));
+    this.insns.push(BigInstruction.subtract_int(register, this.sp_register, temp_reg))
 }
 
 WaffleWriter.write_expression = function(expression, block_stack){
-    var return_types = expression.get_types();
+    var return_types = expression.types;
     data = expression.data
     var return_vars = {}
     var block_begin_offset = block_stack.offset;
@@ -31,7 +51,7 @@ WaffleWriter.write_expression = function(expression, block_stack){
     for (var i = 0; i < return_types.length; i++){
         block_stack.offest -= POINTER_SIZE;
         return_var = {
-            variable: VariableMake(return_types[i], String(i));
+            variable: VariableMake(return_types[i], String(i)),
             offset: block_stack.offset
         }
         return_vars[i] = return_var;
@@ -50,21 +70,17 @@ WaffleWriter.write_expression = function(expression, block_stack){
 
 WaffleWriter.write_statement = function(statement, block_stack){
     var dests = statement.destinations;
-    for (int i = 0; i < dests.length; i++){
+    for (var i = 0; i < dests.length; i++){
         var dest = dests[i];
         // well actually need to insert if they aren't already there.
         var variable_dict =  block_stack.get_variable_dict(dest);
         if (variable_dict === null){
-            throw ("Variable doesn't exist " + dest);
+            //add to block_stack
+            var new_var = VariableMake(statement.expression.types[i], dest.tokens[0]);
+            block_stack.new_variable(new_var);
         }
     }
-    this.write_expression(block_stack, statement.expression);
-
-    for (var i = 0; i < dests.length; i++){
-        var dest = dests[i];
-        var variable_dict = block_stack.get_variable_dict(dest);
-
-    }
+    this.write_expression(statement.expression, block_stack);
 }
 
 function WaffleWriterMake(){

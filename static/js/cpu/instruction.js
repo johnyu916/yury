@@ -124,6 +124,15 @@ function set_insn(value_register, immediate){
     ];
 }
 
+function subtract_insn(dest, one, two){
+    return [
+        OPCODES['subtract'],
+        dest,
+        one,
+        two
+    ];
+}
+
 function write_insn(insn){
     // 0 is opcode
     var code = insn[0];

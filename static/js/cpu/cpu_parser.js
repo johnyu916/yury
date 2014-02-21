@@ -52,6 +52,10 @@ WaffleMaker.parseTokens = function(line){
         var j = this.insn_length + i;
         this.cpu.memory[j] = instructions[j];
     }
+    return {
+        code: 0,
+        detail: ''
+    };
     // also should write "pause" instruction.
     //this.cpu.run()
 }
