@@ -12,21 +12,23 @@ class Compiler(object):
     def __init__(self, text, output_file_name):
         self.lines = text.split('\n')
         self.parser = Parser(self.lines)
-        print "Parser finished. Code: {0}".format(self.parser.program)
+        print("Parser finished. Code: {}".format(self.parser.program))
         self.semantics = Semantics(self.parser.program)
-        print "Semantics finished. Program: {}".format(self.semantics.program)
+        print("Semantics finished. Program: {}".format(self.semantics.program))
         program = self.semantics.program
         self.converter = Converter(program, {}, output_file_name)
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
+
+    # filename should be a .bam file
     filename = sys.argv[1]
     if len(sys.argv) == 3:
         output_file_name = sys.argv[2]
     else:
         output_file_name = filename.split('.')[-2]
-    print 'filename is: ', output_file_name
+    print('filename is: ', output_file_name)
     #with open(BAM_DIR / filename) as f:
     with open(filename) as f:
         text = f.read()

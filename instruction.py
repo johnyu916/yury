@@ -247,7 +247,7 @@ def get_insn_text(insn, sizes):
     if a value is more than a byte, then lower byte is first,
     then higher byte.
     '''
-    print "texting insn: {0}".format(insn)
+    print("texting insn: {0}".format(insn))
     text = ''
     for integer, size in zip(insn, sizes):
         text += get_base16(integer, size)
@@ -280,7 +280,7 @@ def write_ass(insn):
         text = 'multiply {0} {1} {2}'.format(insn[1], insn[2], insn[3])
     else:
         raise Exception("Unknown instruction: {0}".format(code))
-    print 'writing insn: ' + text
+    print('writing insn: ' + text)
     return text + '\n'
 
 

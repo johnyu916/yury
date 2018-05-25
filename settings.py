@@ -1,5 +1,5 @@
 import math
-import path
+#import path
 
 DATABASE = {
     'HOST': '127.0.0.1',
@@ -23,13 +23,13 @@ CPU = {
 
 DEVICE_PRIMITIVES = ['resistor', 'source', 'ground', 'switch', 'bridge'];
 
-ROOT = path.path(__file__).dirname()
-STATIC = ROOT / 'static'
-LESS_DIR = STATIC / 'less'
-CSS_DIR = STATIC / 'css'
+#ROOT = path.path(__file__).dirname()
+#STATIC = ROOT / 'static'
+#LESS_DIR = STATIC / 'less'
+#CSS_DIR = STATIC / 'css'
+#
+#DEVICE_DIR = ROOT / 'descriptions'
+#DEVICE_TESTS_DIR = DEVICE_DIR / 'tests'
+#TESTS_DIR = ROOT / 'tests'
 
-DEVICE_DIR = ROOT / 'descriptions'
-DEVICE_TESTS_DIR = DEVICE_DIR / 'tests'
-TESTS_DIR = ROOT / 'tests'
-
-BAM_DIR = ROOT / 'bam'
+BAM_DIR = 'bam'

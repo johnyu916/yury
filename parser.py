@@ -332,7 +332,7 @@ def read_else(text):
 
 def read_while(text):
     # if, elif ,else, while
-    print "while text matching against: " + text
+    print("while text matching against: " + text)
     orig = text
     whil, text = re_match('while', text)
     if whil is None:
@@ -343,7 +343,7 @@ def read_while(text):
     if expr is None:
         return None, orig
 
-    print 'while read exp: {0}. text: {1}'.format(expr, text)
+    print('while read exp: {0}. text: {1}'.format(expr, text))
     colon, text = re_match(':', text)
     if colon is None:
         return None, orig
@@ -412,7 +412,7 @@ def read_expression(text):
     exps = build_text_node(stack)
 
     if len(exps) != 1:
-        print "Exps should not be one"
+        print("Exps should not be one")
         return None, orig
 
     expression = exps[0]
@@ -426,7 +426,7 @@ def build_text_node(stack):
     is_left_hit = False
     while len(stack) > 0:
         token = stack.pop()
-        print "build_text_node token: {}".format(token)
+        print("build_text_node token: {}".format(token))
         if isinstance(token, LeftPar):
             is_left_hit = True
             break
@@ -594,12 +594,12 @@ def read_function_definition(orig):
     return (None, orig) if not function
     '''
     text = orig
-    print "text matching against: " + text
+    print("text matching against: " + text)
     outputs, text = read_arguments_definition(text)
     if outputs is None:
         return None, orig
-    print outputs
-    print ' text: ' + text
+    print(outputs)
+    print(' text: ' + text)
     # try reading space
     space, text = re_match(' ', text)
     if space is None:
@@ -608,13 +608,13 @@ def read_function_definition(orig):
     function_name, text = re_match(VARIABLE_PATTERN, text)
     if function_name is None:
         return None, orig
-    print 'function_name: ' + function_name + ' text: ' + text
+    print('function_name: ' + function_name + ' text: ' + text)
 
     inputs, text = read_arguments_definition(text)
     if inputs is None:
         return None, orig
-    print inputs
-    print ' text: ' + text
+    print(inputs)
+    print(' text: ' + text)
 
     return FunctionText(function_name, inputs, outputs), text
 
@@ -722,7 +722,7 @@ class Parser(object):
     def check(self, line):
         # just read from beginning.
         line = line.rstrip()
-        print "processing: '{0}'".format(line)
+        print("processing: '{0}'".format(line))
 
         # how many spaces are in front?
         stack_index = get_stack_index(line)
@@ -753,28 +753,28 @@ class Parser(object):
         # conditional (if, elif, else, while)
         while_clause, line = read_while(line)
         if while_clause:
-            print "while read: {0}".format(while_clause.get_dict())
+            print("while read: {0}".format(while_clause.get_dict()))
             block.code.append(while_clause)
             self.stack.append(while_clause)
             return
 
         if_clause, line = read_if(line)
         if if_clause:
-            print "if read: {0}".format(if_clause.get_dict())
+            print("if read: {0}".format(if_clause.get_dict()))
             block.code.append(if_clause)
             self.stack.append(if_clause)
             return
 
         elif_clause, line = read_elif(line)
         if elif_clause:
-            print "elif read: {0}".format(elif_clause.get_dict())
+            print("elif read: {0}".format(elif_clause.get_dict()))
             block.code.append(elif_clause)
             self.stack.append(elif_clause)
             return
 
         else_clause, line = read_else(line)
         if else_clause:
-            print "else read: {0}".format(else_clause.get_dict())
+            print("else read: {0}".format(else_clause.get_dict()))
             block.code.append(else_clause)
             self.stack.append(else_clause)
             return
@@ -783,27 +783,27 @@ class Parser(object):
         if stack_index == 0:
             struct, line = read_struct_definition(line)
             if struct:
-                print "struct_definition: {}".format(struct.get_dict())
+                print("struct_definition: {}".format(struct.get_dict()))
                 self.program.structs.append(struct)
                 self.stack.append(struct)
                 return
 
             function, line = read_function_definition(line)
             if function:
-                print "function_definition: {0}".format(function.get_dict())
+                print("function_definition: {0}".format(function.get_dict()))
                 self.program.functions.append(function)
                 self.stack.append(function)
                 return
 
         statement, line = read_statement(line)
         if statement:
-            print "statement read: {0}. appending to: {1}".format(statement, block)
+            print("statement read: {0}. appending to: {1}".format(statement, block))
             block.code.append(statement)
             return
 
         expression, line = read_expression(line)
         if expression:
-            print "expression read: {0}".format(expression)
+            print("expression read: {0}".format(expression))
             block.code.append(expression)
             return
 

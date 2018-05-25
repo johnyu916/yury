@@ -248,10 +248,10 @@ def expression_make(expression_text, block, program):
             if function is not None:
                 e_data = token
                 children = make_expression_children(expression_text, block, program)
-                print "function printing: ", function
+                print("function printing: ", function)
 
                 for index, child in enumerate(children):
-                    print "expression child: ", child
+                    print("expression child: ", child)
                     child_type  = child.get_types()[0]
                     def_name = function.inputs[index].type.name
                     assert def_name == child_type.name, "Function input type {} does not match child type: {}".format(def_name, child_type.name)
@@ -483,7 +483,7 @@ class Function(Block):
 
         logging.debug("function constructor variables: ")
         for var in self.variables:
-            print var.get_dict()
+            print(var.get_dict())
 
     def variables_append(self, variable):
         self.variables.append(variable)

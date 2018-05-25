@@ -128,7 +128,7 @@ class Converter(object):
     def write_insns(self, output_file_name):
         def function_key(item):
             return item[0]
-        functions = [(number, name) for name, number in self.function_begin.iteritems()]
+        functions = [(number, name) for name, number in self.function_begin.items()]
         functions.sort(key=function_key)
 
         current_no, current_name = functions.pop(0)
